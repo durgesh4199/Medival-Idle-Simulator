@@ -30,7 +30,9 @@ export function initGame(): void {
 
   if (tickHandle === undefined) {
     tickHandle = window.setInterval(() => {
-      useGameStore.getState().tick(Date.now())
+      const now = Date.now()
+      useGameStore.getState().tick(now)
+      useGameStore.getState().combatTick(now)
     }, TICK_INTERVAL_MS)
   }
 
@@ -46,7 +48,9 @@ function onVisibilityChange() {
   if (document.visibilityState === 'visible') {
     // Catch up instantly on refocus instead of waiting for the next tick —
     // background tabs get throttled by the browser to well under 5/sec.
-    useGameStore.getState().tick(Date.now())
+    const now = Date.now()
+    useGameStore.getState().tick(now)
+    useGameStore.getState().combatTick(now)
   }
 }
 

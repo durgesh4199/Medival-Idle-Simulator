@@ -97,33 +97,61 @@ rare `rusty_ancient_dagger` all have one. Equipping is instant player configurat
 not a timed `Action`, so it lives as two `gameStore` mutations (`equipItem`/
 `unequipItem`) rather than in `skillEngine.ts`: equip moves one unit from inventory
 into an `equipment` slot map, returning whatever was worn there back to inventory;
-unequip is the reverse. `engine/equipmentEngine.ts` is the one pure function this
-adds — `aggregateEquipmentStats` sums whatever's currently worn into totals the Bank
-page displays (Accuracy/Strength/Defence). Those numbers don't do anything yet; the
-Combat system is what will actually read them.
+unequip is the reverse. `engine/equipmentEngine.ts` has the pure functions this
+adds — `aggregateEquipmentStats` sums whatever's currently worn into the totals
+Combat reads for its accuracy/damage rolls, and `getWeaponAttackSpeedMs` reads the
+weapon slot alone (attack speed isn't a "sum across slots" kind of stat).
 
 `BankPage` renders all 9 equipment slots (paper-doll style) plus a searchable,
 category-filterable (All/Equipment/Food/Resources) grid of everything else in the
 inventory — the doc's §7 "persistent economy interface." Equipment persists through
 the same `saveGame`/`loadFromSave` path as everything else in the store.
 
+### Combat
+
+The one system that doesn't fit the gathering-skill `Action` shape (design doc §6):
+instead of one timer with one outcome, it's two independent attack-speed timers
+(player, enemy) racing against a shared enemy HP pool. `engine/combatEngine.ts`
+holds it — `computePlayerCombatStats` derives Accuracy/Max Hit/Evasion/Max HP/Attack
+Speed from combat-skill levels (Attack/Strength/Defence/Hitpoints — plain keys in the
+same `skillXp` map production skills use, deliberately *not* `SkillId`s, since
+they're trained only by fighting and have no Skills-sidebar UI of their own) plus
+`aggregateEquipmentStats`, and `simulateCombat` is the event loop: walk forward to
+`now`, resolve whichever of the two timers is next, repeat. A kill rolls loot
+(`rollLoot` — every entry independent, unlike a gathering Action's single weighted
+output), adds gold, and instantly respawns the same enemy, same as an idle action
+looping. Below half HP, the player auto-eats whatever's selected as combat food
+(closing the doc's `Fishing → Fish → Cooking → Food → Combat` chain — `healAmount` on
+`cooked_herring`/`cooked_trout` is what gets eaten). A defeat clears `combat` and
+fully heals for next time — no other penalty — and `CombatPage` shows a brief banner
+either way, live or discovered on return from being away.
+
+`simulateCombat` is written the same way `gameStore.tick` is: one call resolves
+everything between the last state and `now`, so it's simultaneously the live-ticking
+function and the offline-catchup function — verified by seeding a save with a fight
+started hours in the past and confirming the "Welcome back" summary shows the XP,
+loot, and gold earned (and, in one run, that the player *had* been defeated partway
+through and combat had correctly stopped).
+
+`startAction` and `startCombat` are mutually exclusive — starting either stops the
+other, since skilling and fighting are the same "one current activity" slot per the
+core loop (§1, §3).
+
 ## Extending the game
 
-Everything else in [the design doc](docs/design-document.md) — Combat, Mastery,
-Quests/Dungeons/Slayer/Pets/Achievements, the shop/economy — plugs into this same
-shape:
+Everything else in [the design doc](docs/design-document.md) — Mastery, Quests,
+Dungeons, Slayer, Pets, Achievements, the shop/economy — plugs into this same shape:
 
 - Any further **gathering/production skill** (Farming, Ranching, ...) is just another
   data file of `Location`/`Action` — no new engine code needed, register it in
   `data/index.ts` the same way the 8 current skills work.
-- **Combat** is the one system that needs new engine code (accuracy/evasion rolls,
-  HP, enemy AI, loot tables) rather than fitting the existing `Action` shape — plan
-  for a `combatEngine.ts` alongside `skillEngine.ts`, with enemies as their own
-  `data/` tables. It's also the payoff for Equipment: `aggregateEquipmentStats`
-  already produces the Accuracy/Strength/Defence numbers a hit/damage roll needs.
-- **Mastery/prayers** are additional modifiers layered on top of the same
-  action-resolution loop (e.g. bonus XP%, bonus drop chance) — they change what
-  numbers go into `rollActionRewards`/`rollDurationMs`, not the loop's shape.
+- More **combat content** (new enemies, a second `CombatArea`, attack styles, spells,
+  prayers) is mostly data — add enemies to `data/combat/enemies.ts`, areas to
+  `data/combat/areas.ts`. Prayers/spells as *modifiers* on `computePlayerCombatStats`
+  would be the next engine-level combat change.
+- **Mastery** is additional modifiers layered on top of the same action-resolution
+  loop (e.g. bonus XP%, bonus drop chance) — it changes what numbers go into
+  `rollActionRewards`/`rollDurationMs`/`simulateCombat`, not any loop's shape.
 - **Economy** (buying/selling) is mostly UI: items already carry a `value`, and gold
   already exists on the store — a shop screen is a smaller lift than the others.
 

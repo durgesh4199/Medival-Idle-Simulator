@@ -15,6 +15,16 @@ export interface ActiveActionSave {
   durationMs: number
 }
 
+/** Mirrors engine/combatEngine.ts's CombatSimState, plus which enemy. */
+export interface CombatSave {
+  enemyId: string
+  enemyHp: number
+  playerHp: number
+  nextPlayerAttackAt: number
+  nextEnemyAttackAt: number
+  kills: number
+}
+
 export interface SaveData {
   version: number
   gold: number
@@ -22,6 +32,9 @@ export interface SaveData {
   inventory: Record<string, number>
   equipment: Partial<Record<EquipmentSlot, string>>
   activeAction: ActiveActionSave | null
+  combat: CombatSave | null
+  /** Persists independent of whether a fight is active, like equipment. */
+  selectedFoodItemId: string | null
   /** Timestamp this save was written, used to compute offline progress. */
   savedAt: number
 }

@@ -11,8 +11,8 @@ export const items: Record<string, Item> = {
     value: 500,
     category: 'equipment',
     // A rare Fishing find punches above what its level would normally
-    // craft — that's what makes it worth fishing for.
-    equipment: { slot: 'weapon', stats: { accuracy: 12, strength: 10 } },
+    // craft — that's what makes it worth fishing for. Daggers are fast.
+    equipment: { slot: 'weapon', stats: { accuracy: 12, strength: 10, attackSpeedMs: 1800 } },
   },
   logs: { id: 'logs', name: 'Logs', icon: '🪵', value: 2, category: 'resource' },
   oak_logs: { id: 'oak_logs', name: 'Oak Logs', icon: '🪵', value: 5, category: 'resource' },
@@ -38,7 +38,7 @@ export const items: Record<string, Item> = {
     icon: '🗡️',
     value: 40,
     category: 'equipment',
-    equipment: { slot: 'weapon', stats: { accuracy: 5, strength: 4 } },
+    equipment: { slot: 'weapon', stats: { accuracy: 5, strength: 4, attackSpeedMs: 2600 } },
   },
   bronze_helmet: {
     id: 'bronze_helmet',
@@ -70,12 +70,28 @@ export const items: Record<string, Item> = {
     icon: '⚔️',
     value: 90,
     category: 'equipment',
-    equipment: { slot: 'weapon', stats: { accuracy: 10, strength: 9 } },
+    equipment: { slot: 'weapon', stats: { accuracy: 10, strength: 9, attackSpeedMs: 2400 } },
   },
 
   // Cooking output. Burning is a shared failure item, same as Melvor.
-  cooked_herring: { id: 'cooked_herring', name: 'Cooked Herring', icon: '🍤', value: 8, category: 'food' },
-  cooked_trout: { id: 'cooked_trout', name: 'Cooked Trout', icon: '🐟', value: 12, category: 'food' },
+  // healAmount closes the doc's "Fishing -> Fish -> Cooking -> Food ->
+  // Combat" chain — these are what Combat's food slot eats.
+  cooked_herring: {
+    id: 'cooked_herring',
+    name: 'Cooked Herring',
+    icon: '🍤',
+    value: 8,
+    category: 'food',
+    healAmount: 30,
+  },
+  cooked_trout: {
+    id: 'cooked_trout',
+    name: 'Cooked Trout',
+    icon: '🐟',
+    value: 12,
+    category: 'food',
+    healAmount: 45,
+  },
   burnt_food: { id: 'burnt_food', name: 'Burnt Food', icon: '🔥', value: 0, category: 'food' },
 
   // Hunting: trapped animals drop materials, plus a rare pelt.
@@ -100,6 +116,13 @@ export const items: Record<string, Item> = {
   fire_rune: { id: 'fire_rune', name: 'Fire Rune', icon: '🔺', value: 8, category: 'resource' },
   chaos_rune: { id: 'chaos_rune', name: 'Chaos Rune', icon: '🌪️', value: 25, category: 'resource' },
   death_rune: { id: 'death_rune', name: 'Death Rune', icon: '💀', value: 60, category: 'resource' },
+
+  // Combat loot. Bones are a near-universal drop (future Prayer training
+  // material, per the design doc — not built yet, but the item exists).
+  bones: { id: 'bones', name: 'Bones', icon: '🦴', value: 2, category: 'resource' },
+  rat_tail: { id: 'rat_tail', name: 'Rat Tail', icon: '🐁', value: 3, category: 'resource' },
+  goblin_ear: { id: 'goblin_ear', name: 'Goblin Ear', icon: '👂', value: 8, category: 'resource' },
+  ancient_coin: { id: 'ancient_coin', name: 'Ancient Coin', icon: '🪙', value: 250, category: 'resource' },
 }
 
 export function getItem(id: string): Item {

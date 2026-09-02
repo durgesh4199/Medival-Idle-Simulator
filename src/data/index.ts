@@ -1,3 +1,6 @@
+import { combatAreas } from './combat/areas'
+import { combatSkillDisplay, combatSkillOrder } from './combat/combatSkills'
+import { enemies } from './combat/enemies'
 import { cookingActions, cookingLocations, cookingSkill } from './skills/cooking'
 import { fishingActions, fishingLocations, fishingSkill } from './skills/fishing'
 import { firemakingActions, firemakingLocations, firemakingSkill } from './skills/firemaking'
@@ -62,6 +65,11 @@ export function actionsForLocation(locationId: string): Action[] {
   if (!loc) return []
   return loc.actionIds.map((id) => actionsById[id])
 }
+
+export { combatAreas, combatSkillDisplay, combatSkillOrder, enemies }
+export const enemiesById: Record<string, (typeof enemies)[number]> = Object.fromEntries(
+  enemies.map((e) => [e.id, e]),
+)
 
 export * from './types'
 export { getItem, items } from './items/items'

@@ -1,15 +1,22 @@
 import { create } from 'zustand'
-import { actionsById } from '../data'
+import { actionsById, enemiesById } from '../data'
 import { items } from '../data/items/items'
 import type { EquipmentSlot } from '../data/types'
+import {
+  computePlayerCombatStats,
+  simulateCombat,
+  type PlayerCombatStats,
+} from '../engine/combatEngine'
+import { aggregateEquipmentStats, getWeaponAttackSpeedMs } from '../engine/equipmentEngine'
 import { hasRequiredInputs, rollActionRewards, rollDurationMs } from '../engine/skillEngine'
 import { levelForXp } from '../engine/xp'
-import type { ActiveActionSave, SaveData } from '../engine/saveSystem'
+import type { ActiveActionSave, CombatSave, SaveData } from '../engine/saveSystem'
 
 export interface OfflineSummary {
   elapsedMs: number
   xpGained: Record<string, number>
   itemsGained: Record<string, number>
+  goldGained: number
 }
 
 type Equipment = Partial<Record<EquipmentSlot, string>>
@@ -20,6 +27,12 @@ interface GameState {
   inventory: Record<string, number>
   equipment: Equipment
   activeAction: ActiveActionSave | null
+  combat: CombatSave | null
+  selectedFoodItemId: string | null
+  /** Wall-clock time of the most recent defeat, live or discovered on
+   *  return from offline combat — lets the Combat page show a brief
+   *  "you were defeated" notice without a separate dismiss action. */
+  lastDefeatAt: number | null
   offlineSummary: OfflineSummary | null
 
   levelOf: (skillId: string) => number
@@ -33,6 +46,20 @@ interface GameState {
   equipItem: (itemId: string) => void
   /** Returns the item worn in `slot` back to inventory. */
   unequipItem: (slot: EquipmentSlot) => void
+
+  /** The player's current Accuracy/Max Hit/Evasion/Max HP/Attack Speed,
+   *  derived from combat-skill levels + equipped gear. */
+  playerCombatStats: () => PlayerCombatStats
+  /** Stops any active skill action (combat and skilling are mutually
+   *  exclusive — one "current activity", per the core loop) and starts a
+   *  fresh fight against `enemyId`. */
+  startCombat: (enemyId: string) => void
+  stopCombat: () => void
+  selectCombatFood: (itemId: string | null) => void
+  /** Advances combat to `now`, resolving every attack event in between —
+   *  same shape as `tick`, so offline catch-up covers combat too. */
+  combatTick: (now: number) => void
+
   dismissOfflineSummary: () => void
   loadFromSave: (save: SaveData) => void
   toSaveShape: () => Omit<SaveData, 'version' | 'savedAt'>
@@ -49,6 +76,9 @@ export const useGameStore = create<GameState>((set, get) => ({
   inventory: {},
   equipment: {},
   activeAction: null,
+  combat: null,
+  selectedFoodItemId: null,
+  lastDefeatAt: null,
   offlineSummary: null,
 
   levelOf: (skillId) => levelForXp(get().skillXp[skillId] ?? 0),
@@ -65,6 +95,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     const action = actionsById[actionId]
     if (!action || !get().canStartAction(actionId)) return
     set({
+      // Mutual exclusion: starting a skill action ends any fight in progress.
+      combat: null,
       activeAction: {
         actionId,
         startedAt: Date.now(),
@@ -148,6 +180,96 @@ export const useGameStore = create<GameState>((set, get) => ({
       return { ...state, inventory, equipment }
     }),
 
+  playerCombatStats: () => {
+    const state = get()
+    const levels = {
+      attack: state.levelOf('attack'),
+      strength: state.levelOf('strength'),
+      defence: state.levelOf('defence'),
+      hitpoints: state.levelOf('hitpoints'),
+    }
+    const equipmentStats = aggregateEquipmentStats(state.equipment)
+    const weaponAttackSpeedMs = getWeaponAttackSpeedMs(state.equipment)
+    return computePlayerCombatStats(levels, equipmentStats, weaponAttackSpeedMs)
+  },
+
+  startCombat: (enemyId) => {
+    const enemy = enemiesById[enemyId]
+    if (!enemy) return
+    const stats = get().playerCombatStats()
+    const now = Date.now()
+    set({
+      activeAction: null,
+      combat: {
+        enemyId,
+        enemyHp: enemy.hp,
+        playerHp: stats.maxHp,
+        nextPlayerAttackAt: now + stats.attackSpeedMs,
+        nextEnemyAttackAt: now + enemy.attackSpeedMs,
+        kills: 0,
+      },
+    })
+  },
+
+  stopCombat: () => set({ combat: null }),
+
+  selectCombatFood: (itemId) => {
+    if (itemId !== null && !items[itemId]?.healAmount) return
+    set({ selectedFoodItemId: itemId })
+  },
+
+  combatTick: (now) =>
+    set((state) => {
+      if (!state.combat) return state
+      const enemy = enemiesById[state.combat.enemyId]
+      if (!enemy) return { ...state, combat: null }
+
+      const player = state.playerCombatStats()
+      const foodItem = state.selectedFoodItemId ? items[state.selectedFoodItemId] : undefined
+      const foodAvailableQty = state.selectedFoodItemId
+        ? (state.inventory[state.selectedFoodItemId] ?? 0)
+        : 0
+
+      const result = simulateCombat({
+        now,
+        enemy,
+        player,
+        state: {
+          enemyHp: state.combat.enemyHp,
+          playerHp: state.combat.playerHp,
+          nextPlayerAttackAt: state.combat.nextPlayerAttackAt,
+          nextEnemyAttackAt: state.combat.nextEnemyAttackAt,
+          kills: state.combat.kills,
+        },
+        foodHealAmount: foodItem?.healAmount ?? 0,
+        foodAvailableQty,
+      })
+
+      const skillXp = { ...state.skillXp }
+      for (const [skillId, xp] of Object.entries(result.xpGained)) {
+        if (xp > 0) skillXp[skillId] = (skillXp[skillId] ?? 0) + xp
+      }
+
+      const inventory = { ...state.inventory }
+      for (const [itemId, qty] of Object.entries(result.lootGained)) {
+        inventory[itemId] = (inventory[itemId] ?? 0) + qty
+      }
+      if (result.foodEaten > 0 && state.selectedFoodItemId) {
+        const remaining = (inventory[state.selectedFoodItemId] ?? 0) - result.foodEaten
+        if (remaining > 0) inventory[state.selectedFoodItemId] = remaining
+        else delete inventory[state.selectedFoodItemId]
+      }
+
+      return {
+        ...state,
+        skillXp,
+        inventory,
+        gold: state.gold + result.goldGained,
+        combat: result.defeated ? null : { enemyId: state.combat.enemyId, ...result.state },
+        lastDefeatAt: result.defeated ? Date.now() : state.lastDefeatAt,
+      }
+    }),
+
   dismissOfflineSummary: () => set({ offlineSummary: null }),
 
   loadFromSave: (save) => {
@@ -157,15 +279,19 @@ export const useGameStore = create<GameState>((set, get) => ({
       inventory: save.inventory,
       equipment: save.equipment ?? {},
       activeAction: save.activeAction,
+      combat: save.combat ?? null,
+      selectedFoodItemId: save.selectedFoodItemId ?? null,
     })
 
     const beforeXp = { ...get().skillXp }
     const beforeInventory = { ...get().inventory }
+    const beforeGold = get().gold
 
     // Clamp how far we simulate forward so an ancient save doesn't spin the
     // tab for minutes on load.
     const effectiveNow = Math.min(Date.now(), save.savedAt + MAX_OFFLINE_MS)
     get().tick(effectiveNow)
+    get().combatTick(effectiveNow)
 
     const afterState = get()
     const xpGained: Record<string, number> = {}
@@ -178,11 +304,16 @@ export const useGameStore = create<GameState>((set, get) => ({
       const gained = qty - (beforeInventory[itemId] ?? 0)
       if (gained > 0) itemsGained[itemId] = gained
     }
+    const goldGained = afterState.gold - beforeGold
 
     const elapsedMs = effectiveNow - save.savedAt
-    const hasProgress = Object.keys(xpGained).length > 0 || Object.keys(itemsGained).length > 0
+    const hasProgress =
+      Object.keys(xpGained).length > 0 || Object.keys(itemsGained).length > 0 || goldGained > 0
     // Only worth a popup once the player was away for a little while.
-    set({ offlineSummary: hasProgress && elapsedMs > 30_000 ? { elapsedMs, xpGained, itemsGained } : null })
+    set({
+      offlineSummary:
+        hasProgress && elapsedMs > 30_000 ? { elapsedMs, xpGained, itemsGained, goldGained } : null,
+    })
   },
 
   toSaveShape: () => {
@@ -193,6 +324,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       inventory: state.inventory,
       equipment: state.equipment,
       activeAction: state.activeAction,
+      combat: state.combat,
+      selectedFoodItemId: state.selectedFoodItemId,
     }
   },
 }))

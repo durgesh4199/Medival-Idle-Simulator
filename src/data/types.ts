@@ -29,14 +29,15 @@ export type EquipmentSlot =
   | 'shield'
 
 /**
- * Placeholder stat shape — enough for the Bank/Equipment screen to show real
- * numbers now. The Combat system is what will actually consume these in
- * accuracy/damage rolls; nothing here is final combat balance.
+ * Combat stat bonuses an equipped item grants. `attackSpeedMs` only matters
+ * on a weapon — it's here rather than on a separate weapon-only type so
+ * `EquipmentStats` stays one shape for every slot.
  */
 export interface EquipmentStats {
   accuracy?: number
   strength?: number
   defence?: number
+  attackSpeedMs?: number
 }
 
 /** Broad grouping used to filter the Bank UI. Not used by any engine logic. */
@@ -52,6 +53,8 @@ export interface Item {
   category?: ItemCategory
   /** Present only for items that can be worn/wielded. */
   equipment?: { slot: EquipmentSlot; stats: EquipmentStats }
+  /** Present only for food — HP restored when eaten in combat. */
+  healAmount?: number
 }
 
 /** A possible reward from an action, rolled independently on each attempt. */
@@ -92,4 +95,37 @@ export interface Skill {
   name: string
   icon: string
   description: string
+}
+
+/**
+ * Combat is its own major layer in the design doc (§2, §6) — separate from
+ * the production SKILLS above, not a variant of Action/Location. Attack,
+ * Strength, Defence, and Hitpoints are trained only by fighting, so they're
+ * plain string keys into the same `skillXp` map skills use, not part of
+ * SkillId — nothing about them belongs in the Skills sidebar/SkillPanel.
+ */
+export const COMBAT_SKILL_IDS = ['attack', 'strength', 'defence', 'hitpoints'] as const
+export type CombatSkillId = (typeof COMBAT_SKILL_IDS)[number]
+
+export interface Enemy {
+  id: string
+  name: string
+  icon: string
+  hp: number
+  accuracy: number
+  maxHit: number
+  attackSpeedMs: number
+  evasion: number
+  /** Bonus combat XP on kill, split evenly across the 4 combat skills. */
+  xpReward: number
+  goldDrop: [min: number, max: number]
+  /** Each entry is rolled independently — unlike Action.outputs, a kill can
+   *  drop several of these in the same event, not just one. */
+  loot: ItemDrop[]
+}
+
+export interface CombatArea {
+  id: string
+  name: string
+  enemyIds: string[]
 }

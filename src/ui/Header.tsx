@@ -3,7 +3,7 @@ import type { SkillId } from '../data/types'
 import { xpProgress } from '../engine/xp'
 import { useGameStore } from '../state/gameStore'
 
-export type View = 'skills' | 'bank'
+export type View = 'skills' | 'combat' | 'bank'
 
 interface Props {
   view: View
@@ -13,8 +13,14 @@ interface Props {
 
 const NAV_TABS: { view: View; label: string }[] = [
   { view: 'skills', label: 'Skills' },
+  { view: 'combat', label: 'Combat' },
   { view: 'bank', label: 'Bank' },
 ]
+
+const VIEW_SUBTITLE: Record<Exclude<View, 'skills'>, string> = {
+  combat: 'Automated combat — preparation matters more than the fight itself',
+  bank: 'Equipment & Inventory',
+}
 
 export function Header({ view, onChangeView, selectedSkill }: Props) {
   const gold = useGameStore((s) => s.gold)
@@ -63,7 +69,7 @@ export function Header({ view, onChangeView, selectedSkill }: Props) {
           </span>
         </div>
       ) : (
-        <div className="flex-1 text-sm text-neutral-400">Equipment & Inventory</div>
+        <div className="flex-1 truncate text-sm text-neutral-400">{VIEW_SUBTITLE[view]}</div>
       )}
 
       <div className="flex shrink-0 items-center gap-1 rounded-full bg-neutral-900 px-3 py-1 text-sm">

@@ -1,4 +1,4 @@
-import { skills, getItem } from '../data'
+import { combatSkillDisplay, getItem, skills } from '../data'
 import { useGameStore } from '../state/gameStore'
 
 function formatDuration(ms: number): string {
@@ -7,6 +7,14 @@ function formatDuration(ms: number): string {
   const minutes = totalMinutes % 60
   if (hours <= 0) return `${minutes}m`
   return `${hours}h ${minutes}m`
+}
+
+function skillDisplay(skillId: string): { icon: string; name: string } {
+  const skill = skills[skillId as keyof typeof skills]
+  if (skill) return { icon: skill.icon, name: skill.name }
+  const combatSkill = combatSkillDisplay[skillId as keyof typeof combatSkillDisplay]
+  if (combatSkill) return { icon: combatSkill.icon, name: combatSkill.label }
+  return { icon: '❔', name: skillId }
 }
 
 export function OfflineModal() {
@@ -24,17 +32,20 @@ export function OfflineModal() {
         </p>
 
         <div className="mb-4 space-y-1">
-          {Object.entries(summary.xpGained).map(([skillId, xp]) => (
-            <div key={skillId} className="flex justify-between text-sm">
-              <span>
-                {skills[skillId as keyof typeof skills]?.icon} {skills[skillId as keyof typeof skills]?.name}
-              </span>
-              <span className="text-teal-300">+{Math.floor(xp).toLocaleString()} XP</span>
-            </div>
-          ))}
+          {Object.entries(summary.xpGained).map(([skillId, xp]) => {
+            const display = skillDisplay(skillId)
+            return (
+              <div key={skillId} className="flex justify-between text-sm">
+                <span>
+                  {display.icon} {display.name}
+                </span>
+                <span className="text-teal-300">+{Math.floor(xp).toLocaleString()} XP</span>
+              </div>
+            )
+          })}
         </div>
 
-        <div className="mb-5 space-y-1">
+        <div className="mb-4 space-y-1">
           {Object.entries(summary.itemsGained).map(([itemId, qty]) => {
             const item = getItem(itemId)
             return (
@@ -46,6 +57,12 @@ export function OfflineModal() {
               </div>
             )
           })}
+          {summary.goldGained > 0 && (
+            <div className="flex justify-between text-sm">
+              <span>🪙 Gold</span>
+              <span className="text-neutral-300">+{summary.goldGained.toLocaleString()}</span>
+            </div>
+          )}
         </div>
 
         <button

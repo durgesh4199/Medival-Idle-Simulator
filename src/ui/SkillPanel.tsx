@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { actionsForLocation, getItem, locationsForSkill } from '../data'
 import type { SkillId } from '../data/types'
+import { xpProgress } from '../engine/xp'
+import { MASTERY_POOL_CAP, isMasteryPoolFull, masterySpeedBonus } from '../engine/masteryEngine'
 import { useGameStore } from '../state/gameStore'
 import { ProgressBar } from './ProgressBar'
 
@@ -19,11 +21,18 @@ export function SkillPanel({ skillId }: Props) {
   const canStartAction = useGameStore((s) => s.canStartAction)
   const startAction = useGameStore((s) => s.startAction)
   const stopAction = useGameStore((s) => s.stopAction)
+  const masteryXp = useGameStore((s) => s.masteryXp)
+  const masteryPoolXp = useGameStore((s) => s.masteryPoolXp)
 
   const actions = locationId ? actionsForLocation(locationId) : []
   const selectedAction = actions.find((a) => a.id === actionId) ?? actions[0]
   const level = levelOf(skillId)
   const isRunningHere = activeAction?.actionId === selectedAction?.id
+
+  const actionMastery = selectedAction ? xpProgress(masteryXp[selectedAction.id] ?? 0) : undefined
+  const poolXp = masteryPoolXp[skillId] ?? 0
+  const poolPercent = Math.min(100, (poolXp / MASTERY_POOL_CAP) * 100)
+  const poolFull = isMasteryPoolFull(poolXp)
 
   return (
     <div className="flex flex-1 overflow-hidden">
@@ -143,6 +152,44 @@ export function SkillPanel({ skillId }: Props) {
                 <span>📊</span>
                 <span>+{selectedAction.xp} Skill XP</span>
               </div>
+
+              {actionMastery && (
+                <div className="space-y-1.5 rounded-lg border border-neutral-800 bg-neutral-950 p-2.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-neutral-400">
+                      🎖️ Mastery Level{' '}
+                      <span className="font-semibold text-neutral-200">{actionMastery.level}</span>
+                    </span>
+                    <span className="text-neutral-500">
+                      +{(masterySpeedBonus(actionMastery.level) * 100).toFixed(1)}% speed
+                    </span>
+                  </div>
+                  <div className="h-1.5 overflow-hidden rounded-full bg-neutral-800">
+                    <div
+                      className="h-full rounded-full bg-amber-400"
+                      style={{ width: `${actionMastery.percent}%` }}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-neutral-400">
+                      {skillId} Mastery Pool {poolFull && <span className="text-amber-400">(FULL)</span>}
+                    </span>
+                    <span className="text-neutral-500">{poolPercent.toFixed(1)}%</span>
+                  </div>
+                  <div className="h-1.5 overflow-hidden rounded-full bg-neutral-800">
+                    <div
+                      className="h-full rounded-full bg-amber-500/70"
+                      style={{ width: `${poolPercent}%` }}
+                    />
+                  </div>
+                  {poolFull && (
+                    <p className="text-[11px] text-neutral-500">
+                      10% chance to double a completion's output on every action in this skill.
+                    </p>
+                  )}
+                </div>
+              )}
 
               {selectedAction.specialOutputs && selectedAction.specialOutputs.length > 0 && (
                 <div>

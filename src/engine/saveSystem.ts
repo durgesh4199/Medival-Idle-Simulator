@@ -35,6 +35,10 @@ export interface SaveData {
   combat: CombatSave | null
   /** Persists independent of whether a fight is active, like equipment. */
   selectedFoodItemId: string | null
+  /** Per-action mastery XP, keyed by Action.id. */
+  masteryXp: Record<string, number>
+  /** Per-skill mastery pool XP, keyed by SkillId. */
+  masteryPoolXp: Record<string, number>
   /** Timestamp this save was written, used to compute offline progress. */
   savedAt: number
 }

@@ -10,6 +10,11 @@ import {
 } from '../engine/combatEngine'
 import { getBuyPrice, getSellPrice, isSellable } from '../engine/economyEngine'
 import { aggregateEquipmentStats, getWeaponAttackSpeedMs } from '../engine/equipmentEngine'
+import {
+  masteryLevelForXp,
+  masterySpeedBonus,
+  rollMasteryPoolBonus,
+} from '../engine/masteryEngine'
 import type { ActiveActionSave, CombatSave, SaveData } from '../engine/saveSystem'
 import { hasRequiredInputs, rollActionRewards, rollDurationMs } from '../engine/skillEngine'
 import { levelForXp } from '../engine/xp'
@@ -31,6 +36,10 @@ interface GameState {
   activeAction: ActiveActionSave | null
   combat: CombatSave | null
   selectedFoodItemId: string | null
+  /** Per-action mastery XP, keyed by Action.id. */
+  masteryXp: Record<string, number>
+  /** Per-skill mastery pool XP, keyed by SkillId. */
+  masteryPoolXp: Record<string, number>
   /** Wall-clock time of the most recent defeat, live or discovered on
    *  return from offline combat — lets the Combat page show a brief
    *  "you were defeated" notice without a separate dismiss action. */
@@ -38,6 +47,9 @@ interface GameState {
   offlineSummary: OfflineSummary | null
 
   levelOf: (skillId: string) => number
+  /** Mastery level for one specific action, e.g. "Pebble Bank" — separate
+   *  from the skill level, which is shared across every action in it. */
+  masteryLevelOf: (actionId: string) => number
   canStartAction: (actionId: string) => boolean
   startAction: (actionId: string) => void
   stopAction: () => void
@@ -85,10 +97,14 @@ export const useGameStore = create<GameState>((set, get) => ({
   activeAction: null,
   combat: null,
   selectedFoodItemId: null,
+  masteryXp: {},
+  masteryPoolXp: {},
   lastDefeatAt: null,
   offlineSummary: null,
 
   levelOf: (skillId) => levelForXp(get().skillXp[skillId] ?? 0),
+
+  masteryLevelOf: (actionId) => masteryLevelForXp(get().masteryXp[actionId] ?? 0),
 
   canStartAction: (actionId) => {
     const action = actionsById[actionId]
@@ -101,13 +117,14 @@ export const useGameStore = create<GameState>((set, get) => ({
   startAction: (actionId) => {
     const action = actionsById[actionId]
     if (!action || !get().canStartAction(actionId)) return
+    const speedBonus = masterySpeedBonus(get().masteryLevelOf(actionId))
     set({
       // Mutual exclusion: starting a skill action ends any fight in progress.
       combat: null,
       activeAction: {
         actionId,
         startedAt: Date.now(),
-        durationMs: rollDurationMs(action),
+        durationMs: rollDurationMs(action) * (1 - speedBonus),
       },
     })
   },
@@ -124,24 +141,36 @@ export const useGameStore = create<GameState>((set, get) => ({
       let durationMs = state.activeAction.durationMs
       const skillXp = { ...state.skillXp }
       const inventory = { ...state.inventory }
+      const masteryXp = { ...state.masteryXp }
+      const masteryPoolXp = { ...state.masteryPoolXp }
       let completions = 0
 
       while (now - cursor >= durationMs && completions < MAX_COMPLETIONS_PER_TICK) {
         if (!hasRequiredInputs(action, inventory)) {
           // Ran out of an input mid-loop (e.g. logs) — the action halts.
-          return { ...state, activeAction: null, skillXp, inventory }
+          return { ...state, activeAction: null, skillXp, inventory, masteryXp, masteryPoolXp }
         }
         for (const input of action.inputs ?? []) {
           inventory[input.itemId] = (inventory[input.itemId] ?? 0) - input.qty
         }
+
         const rewards = rollActionRewards(action)
+        const poolXp = masteryPoolXp[action.skillId] ?? 0
+        if (rollMasteryPoolBonus(poolXp)) {
+          // Pool-full perk: a flat chance to double this completion's output.
+          for (const itemId of Object.keys(rewards)) rewards[itemId] *= 2
+        }
         for (const [itemId, qty] of Object.entries(rewards)) {
           inventory[itemId] = (inventory[itemId] ?? 0) + qty
         }
+
         skillXp[action.skillId] = (skillXp[action.skillId] ?? 0) + action.xp
+        masteryXp[action.id] = (masteryXp[action.id] ?? 0) + action.xp
+        masteryPoolXp[action.skillId] = poolXp + action.xp
 
         cursor += durationMs
-        durationMs = rollDurationMs(action)
+        const speedBonus = masterySpeedBonus(masteryLevelForXp(masteryXp[action.id]))
+        durationMs = rollDurationMs(action) * (1 - speedBonus)
         completions++
       }
 
@@ -150,6 +179,8 @@ export const useGameStore = create<GameState>((set, get) => ({
         activeAction: { ...state.activeAction, startedAt: cursor, durationMs },
         skillXp,
         inventory,
+        masteryXp,
+        masteryPoolXp,
       }
     }),
 
@@ -315,6 +346,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       activeAction: save.activeAction,
       combat: save.combat ?? null,
       selectedFoodItemId: save.selectedFoodItemId ?? null,
+      masteryXp: save.masteryXp ?? {},
+      masteryPoolXp: save.masteryPoolXp ?? {},
     })
 
     const beforeXp = { ...get().skillXp }
@@ -360,6 +393,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       activeAction: state.activeAction,
       combat: state.combat,
       selectedFoodItemId: state.selectedFoodItemId,
+      masteryXp: state.masteryXp,
+      masteryPoolXp: state.masteryPoolXp,
     }
   },
 }))

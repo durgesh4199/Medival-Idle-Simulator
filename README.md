@@ -152,10 +152,35 @@ rare or equipment-tier, so the shop can't shortcut past progression. `sellItem`/
 mutations, not timed actions. `ShopPage` is Buy (curated list, price, afford-gated
 button) next to Sell (everything sellable currently owned, Sell 1 / Sell All).
 
+### Mastery
+
+Design doc §8: "reward specialization and long-term engagement... permanent bonuses
+from guild progression." Layers directly onto the completion loop `tick` already
+runs — no new timer, no new UI screen, two more trackers alongside `skillXp`:
+
+- **Per-action mastery XP** (`masteryXp`, keyed by `Action.id`) — every completion of
+  "Pebble Bank" grants Pebble Bank mastery XP, separate from every other Fishing
+  spot's. `engine/masteryEngine.ts`'s `masterySpeedBonus` turns that action's mastery
+  level into a capped speed bonus (0.3%/level, capped at 30%) applied to its rolled
+  duration in both `startAction` and `tick` — this is *why* mastery is per-action, not
+  per-skill: it rewards running the same action repeatedly, not just training the
+  skill in general.
+- **Per-skill mastery pool XP** (`masteryPoolXp`, keyed by `SkillId`) — every action in
+  a skill feeds the same pool. `MASTERY_POOL_CAP` (a milestone on `xp.ts`'s own level
+  curve, not a disconnected magic number) is the "100% full" mark; once full,
+  `rollMasteryPoolBonus` gives every completion in that skill a flat 10% chance to
+  double its output — the "permanent bonus from guild progression" made concrete
+  without needing a full task-list/guild system.
+
+Both trackers reuse `xp.ts`'s level curve rather than inventing a second one, persist
+through the normal save/offline-catchup path, and show up right where the player's
+already looking — inside the selected action's detail card in `SkillPanel`, not a
+separate screen.
+
 ## Extending the game
 
-Everything else in [the design doc](docs/design-document.md) — Mastery, Quests,
-Dungeons, Slayer, Pets, Achievements — plugs into this same shape:
+Everything else in [the design doc](docs/design-document.md) — Quests, Dungeons,
+Slayer, Pets, Achievements — plugs into this same shape:
 
 - Any further **gathering/production skill** (Farming, Ranching, ...) is just another
   data file of `Location`/`Action` — no new engine code needed, register it in
@@ -164,9 +189,6 @@ Dungeons, Slayer, Pets, Achievements — plugs into this same shape:
   prayers) is mostly data — add enemies to `data/combat/enemies.ts`, areas to
   `data/combat/areas.ts`. Prayers/spells as *modifiers* on `computePlayerCombatStats`
   would be the next engine-level combat change.
-- **Mastery** is additional modifiers layered on top of the same action-resolution
-  loop (e.g. bonus XP%, bonus drop chance) — it changes what numbers go into
-  `rollActionRewards`/`rollDurationMs`/`simulateCombat`, not any loop's shape.
 - **Quests/Dungeons/Slayer/Pets/Achievements** are the last major chunk of the design
   doc (§9) — each is its own new data shape (a Quest is a list of requirements +
   rewards, a Dungeon a fixed sequence of enemies) rather than a variant of anything

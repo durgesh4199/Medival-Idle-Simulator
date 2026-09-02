@@ -65,7 +65,7 @@ function RequirementRow({ req }: { req: QuestRequirement }) {
         {met ? '✅' : '⬜'} {label}
       </span>
       {req.type !== 'questComplete' && (
-        <span className={met ? 'text-teal-300' : 'text-neutral-500'}>
+        <span className={met ? 'text-gold' : 'text-neutral-500'}>
           {Math.min(current, target)}/{target}
         </span>
       )}
@@ -85,15 +85,15 @@ function QuestCard({ questId }: { questId: string }) {
 
   return (
     <div
-      className={`overflow-hidden rounded-xl border bg-neutral-900 ${
-        isComplete ? 'border-teal-500/30' : 'border-neutral-800'
+      className={`overflow-hidden rounded-xl border bg-panel ${
+        isComplete ? 'border-gold/30' : 'border-line'
       }`}
     >
-      <div className="flex items-center gap-2 border-b border-neutral-800 bg-neutral-950 px-4 py-2">
+      <div className="flex items-center gap-2 border-b border-line bg-rail px-4 py-2">
         <span className="text-xl">{quest.icon}</span>
         <span className="font-semibold text-neutral-100">{quest.name}</span>
         {isComplete && (
-          <span className="ml-auto rounded-full bg-teal-500/15 px-2 py-0.5 text-xs font-semibold text-teal-300">
+          <span className="ml-auto rounded-full bg-gold/15 px-2 py-0.5 text-xs font-semibold text-gold">
             ✓ Completed
           </span>
         )}
@@ -142,7 +142,7 @@ function QuestCard({ questId }: { questId: string }) {
             type="button"
             disabled={!canComplete}
             onClick={() => completeQuest(quest.id)}
-            className="w-full rounded-lg bg-teal-500 py-2 text-sm font-semibold text-neutral-950 transition-colors hover:bg-teal-400 disabled:cursor-not-allowed disabled:bg-neutral-800 disabled:text-neutral-500"
+            className="w-full rounded-lg bg-brand py-2 text-sm font-semibold text-neutral-950 transition-colors hover:bg-brand-dim disabled:cursor-not-allowed disabled:bg-panel-soft disabled:text-neutral-500"
           >
             Complete Quest
           </button>

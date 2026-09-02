@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { actionsForLocation, getItem, locationsForSkill } from '../data'
-import type { SkillId } from '../data/types'
+import { actionsById, actionsForLocation, getItem, locationsForSkill } from '../data'
+import type { Location, SkillId } from '../data/types'
 import { xpProgress } from '../engine/xp'
 import { MASTERY_POOL_CAP, isMasteryPoolFull, masterySpeedBonus } from '../engine/masteryEngine'
 import { useGameStore } from '../state/gameStore'
@@ -8,6 +8,22 @@ import { ProgressBar } from './ProgressBar'
 
 interface Props {
   skillId: SkillId
+}
+
+/** Small preview row of the distinct items obtainable at a location, shown
+ *  on its card the way the reference UI shows a location's fish icons. */
+function previewIcons(loc: Location): string[] {
+  const seen = new Set<string>()
+  const icons: string[] = []
+  for (const actionId of loc.actionIds) {
+    for (const output of actionsById[actionId]?.outputs ?? []) {
+      if (seen.has(output.itemId)) continue
+      seen.add(output.itemId)
+      icons.push(getItem(output.itemId).icon)
+      if (icons.length >= 5) return icons
+    }
+  }
+  return icons
 }
 
 export function SkillPanel({ skillId }: Props) {
@@ -36,14 +52,15 @@ export function SkillPanel({ skillId }: Props) {
 
   return (
     <div className="flex flex-1 overflow-hidden">
-      <aside className="w-64 shrink-0 overflow-y-auto border-r border-neutral-800 bg-neutral-950 p-3">
+      <aside className="w-72 shrink-0 overflow-y-auto border-r border-line bg-rail p-3">
         <h2 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">
           Select Location
         </h2>
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-2">
           {locations.map((loc) => {
             const locked = level < loc.requiredLevel
             const isSelected = loc.id === locationId
+            const icons = previewIcons(loc)
             return (
               <button
                 key={loc.id}
@@ -53,16 +70,35 @@ export function SkillPanel({ skillId }: Props) {
                   setLocationId(loc.id)
                   setActionId(undefined)
                 }}
-                className={`rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
+                className={`overflow-hidden rounded-lg border text-left transition-colors ${
                   isSelected
-                    ? 'border-teal-500/50 bg-teal-500/10 text-teal-300'
-                    : 'border-transparent text-neutral-300 hover:bg-neutral-900'
+                    ? 'border-gold bg-panel'
+                    : 'border-line bg-panel hover:border-line-soft'
                 } ${locked ? 'cursor-not-allowed opacity-40' : ''}`}
               >
-                <div className="font-medium">{loc.name}</div>
-                {locked && (
-                  <div className="text-xs text-neutral-500">Requires level {loc.requiredLevel}</div>
-                )}
+                <div
+                  className={`px-3 py-1.5 text-sm font-semibold ${
+                    isSelected ? 'bg-gold/15 text-gold' : 'bg-panel-soft text-neutral-200'
+                  }`}
+                >
+                  {loc.name}
+                </div>
+                <div className="flex items-center justify-between gap-2 px-3 py-2">
+                  {locked ? (
+                    <span className="text-xs text-neutral-500">Requires level {loc.requiredLevel}</span>
+                  ) : (
+                    <span className="text-xs text-neutral-500">
+                      {loc.actionIds.length} spot{loc.actionIds.length === 1 ? '' : 's'}
+                    </span>
+                  )}
+                  <div className="flex shrink-0 gap-1 text-base">
+                    {icons.map((icon, i) => (
+                      <span key={i} aria-hidden>
+                        {icon}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               </button>
             )
           })}
@@ -78,18 +114,22 @@ export function SkillPanel({ skillId }: Props) {
             {actions.map((action) => {
               const locked = level < action.requiredLevel
               const isSelected = action.id === selectedAction?.id
+              const isActive = activeAction?.actionId === action.id
               return (
                 <button
                   key={action.id}
                   type="button"
                   disabled={locked}
                   onClick={() => setActionId(action.id)}
-                  className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                  className={`relative rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                     isSelected
-                      ? 'border-teal-500 bg-teal-500/10 text-teal-300'
-                      : 'border-neutral-800 bg-neutral-900 text-neutral-200 hover:border-neutral-700'
+                      ? 'border-gold bg-gold/10 text-gold'
+                      : 'border-line bg-panel text-neutral-200 hover:border-line-soft'
                   } ${locked ? 'cursor-not-allowed opacity-40' : ''}`}
                 >
+                  {isActive && (
+                    <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-brand" />
+                  )}
                   {action.name}
                   {locked && <span className="ml-1 text-xs text-neutral-500">(Lv {action.requiredLevel})</span>}
                 </button>
@@ -99,8 +139,8 @@ export function SkillPanel({ skillId }: Props) {
         </div>
 
         {selectedAction && (
-          <div className="max-w-md overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900">
-            <div className="border-b border-neutral-800 bg-neutral-950 px-4 py-2 font-semibold text-teal-300">
+          <div className="max-w-md overflow-hidden rounded-xl border border-line bg-panel">
+            <div className="border-b border-line bg-panel-soft px-4 py-2 font-semibold text-gold">
               {selectedAction.name}
             </div>
 
@@ -139,7 +179,7 @@ export function SkillPanel({ skillId }: Props) {
                           {item.icon} {item.name}{' '}
                           <span className="text-neutral-500">{(output.chance * 100).toFixed(2)}%</span>
                         </span>
-                        <span className="text-neutral-400">
+                        <span className="tabular-nums text-neutral-400">
                           {output.qty} / {inventory[output.itemId] ?? 0}
                         </span>
                       </div>
@@ -148,13 +188,13 @@ export function SkillPanel({ skillId }: Props) {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 text-sm text-teal-300">
+              <div className="flex items-center gap-2 text-sm text-gold">
                 <span>📊</span>
                 <span>+{selectedAction.xp} Skill XP</span>
               </div>
 
               {actionMastery && (
-                <div className="space-y-1.5 rounded-lg border border-neutral-800 bg-neutral-950 p-2.5">
+                <div className="space-y-1.5 rounded-lg border border-line bg-panel-soft p-2.5">
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-neutral-400">
                       🎖️ Mastery Level{' '}
@@ -164,7 +204,7 @@ export function SkillPanel({ skillId }: Props) {
                       +{(masterySpeedBonus(actionMastery.level) * 100).toFixed(1)}% speed
                     </span>
                   </div>
-                  <div className="h-1.5 overflow-hidden rounded-full bg-neutral-800">
+                  <div className="h-1.5 overflow-hidden rounded-full bg-panel">
                     <div
                       className="h-full rounded-full bg-amber-400"
                       style={{ width: `${actionMastery.percent}%` }}
@@ -177,7 +217,7 @@ export function SkillPanel({ skillId }: Props) {
                     </span>
                     <span className="text-neutral-500">{poolPercent.toFixed(1)}%</span>
                   </div>
-                  <div className="h-1.5 overflow-hidden rounded-full bg-neutral-800">
+                  <div className="h-1.5 overflow-hidden rounded-full bg-panel">
                     <div
                       className="h-full rounded-full bg-amber-500/70"
                       style={{ width: `${poolPercent}%` }}
@@ -207,7 +247,7 @@ export function SkillPanel({ skillId }: Props) {
                           {item.icon} {item.name}{' '}
                           <span className="text-neutral-500">{(special.chance * 100).toFixed(2)}%</span>
                         </span>
-                        <span className="text-neutral-400">{inventory[special.itemId] ?? 0}</span>
+                        <span className="tabular-nums text-neutral-400">{inventory[special.itemId] ?? 0}</span>
                       </div>
                     )
                   })}
@@ -216,14 +256,12 @@ export function SkillPanel({ skillId }: Props) {
 
               <button
                 type="button"
-                onClick={() =>
-                  isRunningHere ? stopAction() : startAction(selectedAction.id)
-                }
+                onClick={() => (isRunningHere ? stopAction() : startAction(selectedAction.id))}
                 disabled={!isRunningHere && !canStartAction(selectedAction.id)}
                 className={`w-full rounded-lg py-2 text-sm font-semibold transition-colors ${
                   isRunningHere
                     ? 'bg-red-600 text-white hover:bg-red-500'
-                    : 'bg-teal-500 text-neutral-950 hover:bg-teal-400 disabled:cursor-not-allowed disabled:bg-neutral-800 disabled:text-neutral-500'
+                    : 'bg-brand text-neutral-950 hover:bg-brand-dim disabled:cursor-not-allowed disabled:bg-panel-soft disabled:text-neutral-500'
                 }`}
               >
                 {isRunningHere ? `Stop ${skillId}` : `Start ${skillId}`}

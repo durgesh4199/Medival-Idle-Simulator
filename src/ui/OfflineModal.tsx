@@ -25,8 +25,8 @@ export function OfflineModal() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="w-full max-w-sm rounded-xl border border-neutral-800 bg-neutral-900 p-5">
-        <h2 className="mb-1 text-lg font-semibold text-teal-300">Welcome back!</h2>
+      <div className="w-full max-w-sm rounded-xl border border-line bg-panel p-5">
+        <h2 className="mb-1 text-lg font-semibold text-gold">Welcome back!</h2>
         <p className="mb-4 text-sm text-neutral-400">
           You were away for {formatDuration(summary.elapsedMs)}. Here's what you earned:
         </p>
@@ -39,7 +39,7 @@ export function OfflineModal() {
                 <span>
                   {display.icon} {display.name}
                 </span>
-                <span className="text-teal-300">+{Math.floor(xp).toLocaleString()} XP</span>
+                <span className="text-gold">+{Math.floor(xp).toLocaleString()} XP</span>
               </div>
             )
           })}
@@ -68,7 +68,7 @@ export function OfflineModal() {
         <button
           type="button"
           onClick={dismiss}
-          className="w-full rounded-lg bg-teal-500 py-2 text-sm font-semibold text-neutral-950 hover:bg-teal-400"
+          className="w-full rounded-lg bg-brand py-2 text-sm font-semibold text-neutral-950 hover:bg-brand-dim"
         >
           Continue
         </button>

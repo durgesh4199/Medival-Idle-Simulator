@@ -37,8 +37,8 @@ function EquipmentSlotBox({ slot, label, icon }: { slot: EquipmentSlot; label: s
       title={equipped ? `Unequip ${equipped.name}` : label}
       className={`flex aspect-square flex-col items-center justify-center gap-1 rounded-lg border p-2 text-center transition-colors ${
         equipped
-          ? 'border-teal-500/50 bg-teal-500/10 hover:border-red-500/50 hover:bg-red-500/10'
-          : 'border-dashed border-neutral-800 bg-neutral-900/50'
+          ? 'border-gold bg-gold/10 hover:border-red-500/50 hover:bg-red-500/10'
+          : 'border-dashed border-line bg-panel/50'
       }`}
     >
       <span className={`text-2xl ${equipped ? '' : 'opacity-30'}`}>{equipped?.icon ?? icon}</span>
@@ -53,7 +53,7 @@ function InventoryCard({ item, qty }: { item: Item; qty: number }) {
   return (
     <div
       data-item-id={item.id}
-      className="flex flex-col items-center gap-1 rounded-lg border border-neutral-800 bg-neutral-900 p-2 text-center"
+      className="flex flex-col items-center gap-1 rounded-lg border border-line bg-panel p-2 text-center"
     >
       <span className="text-2xl">{item.icon}</span>
       <span className="w-full truncate text-xs text-neutral-200">{item.name}</span>
@@ -65,7 +65,7 @@ function InventoryCard({ item, qty }: { item: Item; qty: number }) {
         <button
           type="button"
           onClick={() => equipItem(item.id)}
-          className="mt-1 w-full rounded bg-teal-500 py-1 text-[11px] font-semibold text-neutral-950 hover:bg-teal-400"
+          className="mt-1 w-full rounded bg-brand py-1 text-[11px] font-semibold text-neutral-950 hover:bg-brand-dim"
         >
           Equip
         </button>
@@ -107,7 +107,7 @@ export function BankPage() {
         <h2 className="mb-2 mt-4 text-xs font-semibold uppercase tracking-wide text-neutral-500">
           Equipment Stats
         </h2>
-        <div className="space-y-1 rounded-lg border border-neutral-800 bg-neutral-900 p-3 text-sm">
+        <div className="space-y-1 rounded-lg border border-line bg-panel p-3 text-sm">
           <div className="flex justify-between">
             <span className="text-neutral-400">Accuracy</span>
             <span>{stats.accuracy}</span>
@@ -130,7 +130,7 @@ export function BankPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search items…"
-            className="rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-1.5 text-sm text-neutral-200 placeholder:text-neutral-600 focus:border-teal-500 focus:outline-none"
+            className="rounded-lg border border-line bg-panel px-3 py-1.5 text-sm text-neutral-200 placeholder:text-neutral-600 focus:border-gold focus:outline-none"
           />
           <div className="flex gap-1">
             {FILTERS.map((f) => (
@@ -140,8 +140,8 @@ export function BankPage() {
                 onClick={() => setFilter(f.value)}
                 className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
                   filter === f.value
-                    ? 'bg-teal-500/15 text-teal-300'
-                    : 'bg-neutral-900 text-neutral-400 hover:text-neutral-200'
+                    ? 'bg-gold/15 text-gold'
+                    : 'bg-panel text-neutral-400 hover:text-neutral-200'
                 }`}
               >
                 {f.label}

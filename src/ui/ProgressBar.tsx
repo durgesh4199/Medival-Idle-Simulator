@@ -7,9 +7,7 @@ export function ProgressBar() {
   const now = useNow()
 
   if (!activeAction) {
-    return (
-      <div className="h-2 w-full rounded-full bg-neutral-800" aria-hidden />
-    )
+    return <div className="h-2 w-full rounded-full bg-panel-soft" aria-hidden />
   }
 
   const elapsed = now - activeAction.startedAt
@@ -19,13 +17,13 @@ export function ProgressBar() {
 
   return (
     <div className="flex items-center gap-3">
-      <div className="h-2 flex-1 overflow-hidden rounded-full bg-neutral-800">
+      <div className="h-2 flex-1 overflow-hidden rounded-full bg-panel-soft">
         <div
-          className="h-full rounded-full bg-teal-400 transition-[width] duration-100 ease-linear"
+          className="h-full rounded-full bg-brand transition-[width] duration-100 ease-linear"
           style={{ width: `${percent}%` }}
         />
       </div>
-      <span className="w-28 shrink-0 text-right text-xs text-neutral-400">
+      <span className="w-28 shrink-0 text-right text-xs tabular-nums text-neutral-400">
         {action ? `${remainingS.toFixed(1)}s` : null}
       </span>
     </div>

@@ -1,5 +1,25 @@
 @import 'tailwindcss';
 
+/*
+ * Palette modeled on the Melvor-Idle-2-style reference: a near-black
+ * "rail" for chrome (top bar, nav rail, status bar), a slightly lighter
+ * "panel" surface for cards, and a warm gold accent for XP/level/currency
+ * (mirroring its XP bars and level badges) alongside a green "start action"
+ * color and Tailwind's built-in reds for combat/stop states.
+ */
+@theme {
+  --color-app: #12151b;
+  --color-rail: #0c0e12;
+  --color-panel: #1a1e25;
+  --color-panel-soft: #21262f;
+  --color-line: #2a2f3a;
+  --color-line-soft: #3a4150;
+  --color-gold: #e3b155;
+  --color-gold-dim: #8a6a35;
+  --color-brand: #3fae6b;
+  --color-brand-dim: #2c7a4a;
+}
+
 :root {
   color-scheme: dark;
 }
@@ -9,7 +29,7 @@ body,
 #root {
   height: 100%;
   margin: 0;
-  background: #14151a;
+  background: #12151b;
   color: #e5e7eb;
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;

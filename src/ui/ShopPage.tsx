@@ -33,7 +33,7 @@ export function ShopPage() {
               <div
                 key={itemId}
                 data-buy-item-id={itemId}
-                className="flex items-center gap-3 rounded-lg border border-neutral-800 bg-neutral-900 p-2"
+                className="flex items-center gap-3 rounded-lg border border-line bg-panel p-2"
               >
                 <span className="text-2xl">{item.icon}</span>
                 <div className="flex-1">
@@ -46,7 +46,7 @@ export function ShopPage() {
                   type="button"
                   disabled={!canAfford}
                   onClick={() => buyItem(itemId, 1)}
-                  className="rounded-lg bg-teal-500 px-3 py-1.5 text-xs font-semibold text-neutral-950 hover:bg-teal-400 disabled:cursor-not-allowed disabled:bg-neutral-800 disabled:text-neutral-500"
+                  className="rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-neutral-950 hover:bg-brand-dim disabled:cursor-not-allowed disabled:bg-panel-soft disabled:text-neutral-500"
                 >
                   Buy 1
                 </button>
@@ -70,7 +70,7 @@ export function ShopPage() {
                 <div
                   key={item.id}
                   data-sell-item-id={item.id}
-                  className="flex flex-col gap-1 rounded-lg border border-neutral-800 bg-neutral-900 p-2"
+                  className="flex flex-col gap-1 rounded-lg border border-line bg-panel p-2"
                 >
                   <div className="flex items-center gap-2">
                     <span className="text-xl">{item.icon}</span>
@@ -85,7 +85,7 @@ export function ShopPage() {
                     <button
                       type="button"
                       onClick={() => sellItem(item.id, 1)}
-                      className="flex-1 rounded bg-neutral-800 py-1 text-[11px] font-semibold text-neutral-200 hover:bg-neutral-700"
+                      className="flex-1 rounded bg-panel-soft py-1 text-[11px] font-semibold text-neutral-200 hover:bg-neutral-700"
                     >
                       Sell 1
                     </button>

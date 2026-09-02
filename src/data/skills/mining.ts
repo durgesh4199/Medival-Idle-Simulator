@@ -13,7 +13,7 @@ export const miningLocations: Location[] = [
     skillId: 'mining',
     name: 'Quarry',
     requiredLevel: 1,
-    actionIds: ['mine_copper', 'mine_tin', 'mine_iron', 'mine_coal'],
+    actionIds: ['mine_copper', 'mine_tin', 'mine_iron', 'mine_coal', 'mine_rune_essence'],
   },
 ]
 
@@ -57,5 +57,17 @@ export const miningActions: Action[] = [
     xp: 30,
     requiredLevel: 20,
     outputs: [{ itemId: 'coal', chance: 1, qty: 1 }],
+  },
+  // Feeds Runecrafting, mirroring "Mining -> Rune Essence -> Runecrafting"
+  // from the design doc's resource-chain list.
+  {
+    id: 'mine_rune_essence',
+    skillId: 'mining',
+    locationId: 'quarry',
+    name: 'Rune Essence Rock',
+    durationMs: [2500, 4000],
+    xp: 8,
+    requiredLevel: 1,
+    outputs: [{ itemId: 'rune_essence', chance: 1, qty: 1 }],
   },
 ]

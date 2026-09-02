@@ -35,6 +35,23 @@ export const items: Record<string, Item> = {
   cooked_herring: { id: 'cooked_herring', name: 'Cooked Herring', icon: '🍤', value: 8 },
   cooked_trout: { id: 'cooked_trout', name: 'Cooked Trout', icon: '🐟', value: 12 },
   burnt_food: { id: 'burnt_food', name: 'Burnt Food', icon: '🔥', value: 0 },
+
+  // Hunting: trapped animals drop materials, plus a rare pelt.
+  fur: { id: 'fur', name: 'Fur', icon: '🦫', value: 5 },
+  feathers: { id: 'feathers', name: 'Feathers', icon: '🪶', value: 3 },
+  raw_meat: { id: 'raw_meat', name: 'Raw Meat', icon: '🥩', value: 6 },
+  silver_fox_pelt: { id: 'silver_fox_pelt', name: 'Silver Fox Pelt', icon: '🦊', value: 300 },
+
+  // Mining -> Rune Essence feeds Runecrafting, same "Mining -> X -> next
+  // skill" shape as ore feeding Smithing.
+  rune_essence: { id: 'rune_essence', name: 'Rune Essence', icon: '💠', value: 10 },
+
+  // Runecrafting output — fuel for the (not yet built) Magic/Combat systems.
+  air_rune: { id: 'air_rune', name: 'Air Rune', icon: '🌀', value: 5 },
+  water_rune: { id: 'water_rune', name: 'Water Rune', icon: '💧', value: 5 },
+  fire_rune: { id: 'fire_rune', name: 'Fire Rune', icon: '🔺', value: 8 },
+  chaos_rune: { id: 'chaos_rune', name: 'Chaos Rune', icon: '🌪️', value: 25 },
+  death_rune: { id: 'death_rune', name: 'Death Rune', icon: '💀', value: 60 },
 }
 
 export function getItem(id: string): Item {

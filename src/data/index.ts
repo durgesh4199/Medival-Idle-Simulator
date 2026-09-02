@@ -1,7 +1,13 @@
 import { cookingActions, cookingLocations, cookingSkill } from './skills/cooking'
 import { fishingActions, fishingLocations, fishingSkill } from './skills/fishing'
 import { firemakingActions, firemakingLocations, firemakingSkill } from './skills/firemaking'
+import { huntingActions, huntingLocations, huntingSkill } from './skills/hunting'
 import { miningActions, miningLocations, miningSkill } from './skills/mining'
+import {
+  runecraftingActions,
+  runecraftingLocations,
+  runecraftingSkill,
+} from './skills/runecrafting'
 import { smithingActions, smithingLocations, smithingSkill } from './skills/smithing'
 import { woodcuttingActions, woodcuttingLocations, woodcuttingSkill } from './skills/woodcutting'
 import type { Action, Location, Skill, SkillId } from './types'
@@ -13,10 +19,9 @@ export const skills: Record<SkillId, Skill> = {
   mining: miningSkill,
   smithing: smithingSkill,
   cooking: cookingSkill,
-  // Hunting and Runecrafting plug in the same way: add a
-  // src/data/skills/<skill>.ts exporting a Skill + its Locations/Actions,
-  // then register it here. No engine or UI code has to change.
-} as Record<SkillId, Skill>
+  hunting: huntingSkill,
+  runecrafting: runecraftingSkill,
+}
 
 export const locations: Location[] = [
   ...fishingLocations,
@@ -25,6 +30,8 @@ export const locations: Location[] = [
   ...miningLocations,
   ...smithingLocations,
   ...cookingLocations,
+  ...huntingLocations,
+  ...runecraftingLocations,
 ]
 
 export const actions: Action[] = [
@@ -34,6 +41,8 @@ export const actions: Action[] = [
   ...miningActions,
   ...smithingActions,
   ...cookingActions,
+  ...huntingActions,
+  ...runecraftingActions,
 ]
 
 export const actionsById: Record<string, Action> = Object.fromEntries(

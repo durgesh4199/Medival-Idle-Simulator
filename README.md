@@ -47,12 +47,14 @@ To add a new skill: create `src/data/skills/<skill>.ts` following the same shape
 then register it in `src/data/index.ts`. That's the whole change — the engine and
 every UI component are already generic over `Action`/`Location`.
 
-**Implemented today:** Fishing, Firemaking, Woodcutting, Mining, Smithing, Cooking —
-wired into real resource chains matching the design doc's §5 (Woodcutting → Logs →
-Firemaking; Mining → Ore/Coal → Smithing's furnace → Bars → Smithing's anvil →
-Equipment items; Fishing → raw fish → Cooking, with a burn-chance failure output).
-Hunting and Runecrafting are typed in `SkillId` but have no data file yet — same
-one-file addition as any other skill.
+**Implemented today — all 8 skills from the design doc's §4/§5:** Fishing,
+Firemaking, Woodcutting, Mining, Smithing, Cooking, Hunting, Runecrafting, wired
+into real resource chains: Woodcutting → Logs → Firemaking; Mining → Ore/Coal →
+Smithing's furnace → Bars → Smithing's anvil → Equipment items; Mining → Rune
+Essence → Runecrafting → Runes; Fishing → raw fish → Cooking (with a burn-chance
+failure output). Hunting stands alone for now (fur/feathers/meat + a rare pelt) —
+Cooking accepting Raw Meat, and Runes eventually feeding a Magic/Combat system, are
+natural next links in the same chain.
 
 ### `engine/` — the generic systems
 
@@ -87,13 +89,13 @@ reads the active action's timing. No component hardcodes "Fishing" or "Firemakin
 
 ## Extending the game
 
-Everything in [the design doc](docs/design-document.md) this project is based on
-(Hunting, Runecrafting, Combat, equipment, mastery, ...) plugs into this same shape:
+Everything else in [the design doc](docs/design-document.md) — Combat, Equipment,
+the Bank, Mastery, Quests/Dungeons/Slayer/Pets/Achievements, the shop/economy —
+plugs into this same shape:
 
-- A **gathering/production skill** (Hunting, Runecrafting, or any future skill) is a
-  data file of `Location`/`Action` — no new engine code needed, just add the file and
-  register it, the same way Fishing/Firemaking/Woodcutting/Mining/Smithing/Cooking
-  already work.
+- Any further **gathering/production skill** (Farming, Ranching, ...) is just another
+  data file of `Location`/`Action` — no new engine code needed, register it in
+  `data/index.ts` the same way the 8 current skills work.
 - **Combat** is the one system that needs new engine code (accuracy/evasion rolls,
   HP, enemy AI, loot tables) rather than fitting the existing `Action` shape — plan
   for a `combatEngine.ts` alongside `skillEngine.ts`, with enemies/weapons/armor as

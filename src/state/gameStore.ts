@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 import { actionsById } from '../data'
+import { items } from '../data/items/items'
+import type { EquipmentSlot } from '../data/types'
 import { hasRequiredInputs, rollActionRewards, rollDurationMs } from '../engine/skillEngine'
 import { levelForXp } from '../engine/xp'
 import type { ActiveActionSave, SaveData } from '../engine/saveSystem'
@@ -10,10 +12,13 @@ export interface OfflineSummary {
   itemsGained: Record<string, number>
 }
 
+type Equipment = Partial<Record<EquipmentSlot, string>>
+
 interface GameState {
   gold: number
   skillXp: Record<string, number>
   inventory: Record<string, number>
+  equipment: Equipment
   activeAction: ActiveActionSave | null
   offlineSummary: OfflineSummary | null
 
@@ -23,6 +28,11 @@ interface GameState {
   stopAction: () => void
   /** Advances simulation to `now`, resolving every action completion in between. */
   tick: (now: number) => void
+  /** Moves one unit of `itemId` from inventory into its equipment slot,
+   *  returning whatever was previously worn there back to inventory. */
+  equipItem: (itemId: string) => void
+  /** Returns the item worn in `slot` back to inventory. */
+  unequipItem: (slot: EquipmentSlot) => void
   dismissOfflineSummary: () => void
   loadFromSave: (save: SaveData) => void
   toSaveShape: () => Omit<SaveData, 'version' | 'savedAt'>
@@ -37,6 +47,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   gold: 0,
   skillXp: {},
   inventory: {},
+  equipment: {},
   activeAction: null,
   offlineSummary: null,
 
@@ -103,6 +114,40 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
     }),
 
+  equipItem: (itemId) =>
+    set((state) => {
+      const equipmentDef = items[itemId]?.equipment
+      if (!equipmentDef) return state
+      const owned = state.inventory[itemId] ?? 0
+      if (owned < 1) return state
+
+      const inventory = { ...state.inventory }
+      inventory[itemId] = owned - 1
+      if (inventory[itemId] <= 0) delete inventory[itemId]
+
+      const previousItemId = state.equipment[equipmentDef.slot]
+      if (previousItemId) {
+        inventory[previousItemId] = (inventory[previousItemId] ?? 0) + 1
+      }
+
+      return {
+        ...state,
+        inventory,
+        equipment: { ...state.equipment, [equipmentDef.slot]: itemId },
+      }
+    }),
+
+  unequipItem: (slot) =>
+    set((state) => {
+      const itemId = state.equipment[slot]
+      if (!itemId) return state
+      const inventory = { ...state.inventory }
+      inventory[itemId] = (inventory[itemId] ?? 0) + 1
+      const equipment = { ...state.equipment }
+      delete equipment[slot]
+      return { ...state, inventory, equipment }
+    }),
+
   dismissOfflineSummary: () => set({ offlineSummary: null }),
 
   loadFromSave: (save) => {
@@ -110,6 +155,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       gold: save.gold,
       skillXp: save.skillXp,
       inventory: save.inventory,
+      equipment: save.equipment ?? {},
       activeAction: save.activeAction,
     })
 
@@ -145,6 +191,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       gold: state.gold,
       skillXp: state.skillXp,
       inventory: state.inventory,
+      equipment: state.equipment,
       activeAction: state.activeAction,
     }
   },

@@ -86,23 +86,46 @@ inventory becomes the "Welcome back!" summary shown on load.
 Generic, skill-agnostic components: `Sidebar` lists whatever's in `data.skills`,
 `SkillPanel` renders whatever locations/actions the selected skill has, `ProgressBar`
 reads the active action's timing. No component hardcodes "Fishing" or "Firemaking".
+`Header` doubles as the top-level nav (Skills / Bank tabs, per §13's Main Navigation),
+and `BankPage` is the Bank/Equipment screen described below.
+
+### Bank & Equipment
+
+`Item` (in `data/types.ts`) optionally carries an `equipment: { slot, stats }` field —
+`bronze_sword`, `bronze_helmet`, `bronze_shield`, `bronze_boots`, `iron_sword`, and the
+rare `rusty_ancient_dagger` all have one. Equipping is instant player configuration,
+not a timed `Action`, so it lives as two `gameStore` mutations (`equipItem`/
+`unequipItem`) rather than in `skillEngine.ts`: equip moves one unit from inventory
+into an `equipment` slot map, returning whatever was worn there back to inventory;
+unequip is the reverse. `engine/equipmentEngine.ts` is the one pure function this
+adds — `aggregateEquipmentStats` sums whatever's currently worn into totals the Bank
+page displays (Accuracy/Strength/Defence). Those numbers don't do anything yet; the
+Combat system is what will actually read them.
+
+`BankPage` renders all 9 equipment slots (paper-doll style) plus a searchable,
+category-filterable (All/Equipment/Food/Resources) grid of everything else in the
+inventory — the doc's §7 "persistent economy interface." Equipment persists through
+the same `saveGame`/`loadFromSave` path as everything else in the store.
 
 ## Extending the game
 
-Everything else in [the design doc](docs/design-document.md) — Combat, Equipment,
-the Bank, Mastery, Quests/Dungeons/Slayer/Pets/Achievements, the shop/economy —
-plugs into this same shape:
+Everything else in [the design doc](docs/design-document.md) — Combat, Mastery,
+Quests/Dungeons/Slayer/Pets/Achievements, the shop/economy — plugs into this same
+shape:
 
 - Any further **gathering/production skill** (Farming, Ranching, ...) is just another
   data file of `Location`/`Action` — no new engine code needed, register it in
   `data/index.ts` the same way the 8 current skills work.
 - **Combat** is the one system that needs new engine code (accuracy/evasion rolls,
   HP, enemy AI, loot tables) rather than fitting the existing `Action` shape — plan
-  for a `combatEngine.ts` alongside `skillEngine.ts`, with enemies/weapons/armor as
-  their own `data/` tables.
-- **Equipment/mastery/prayers** are additional modifiers layered on top of the same
+  for a `combatEngine.ts` alongside `skillEngine.ts`, with enemies as their own
+  `data/` tables. It's also the payoff for Equipment: `aggregateEquipmentStats`
+  already produces the Accuracy/Strength/Defence numbers a hit/damage roll needs.
+- **Mastery/prayers** are additional modifiers layered on top of the same
   action-resolution loop (e.g. bonus XP%, bonus drop chance) — they change what
   numbers go into `rollActionRewards`/`rollDurationMs`, not the loop's shape.
+- **Economy** (buying/selling) is mostly UI: items already carry a `value`, and gold
+  already exists on the store — a shop screen is a smaller lift than the others.
 
 ## Development
 

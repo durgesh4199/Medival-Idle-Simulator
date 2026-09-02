@@ -4,6 +4,8 @@
  * and is trivial to version/migrate later.
  */
 
+import type { EquipmentSlot } from '../data/types'
+
 const SAVE_KEY = 'medieval-idle-save'
 const SAVE_VERSION = 1
 
@@ -18,6 +20,7 @@ export interface SaveData {
   gold: number
   skillXp: Record<string, number>
   inventory: Record<string, number>
+  equipment: Partial<Record<EquipmentSlot, string>>
   activeAction: ActiveActionSave | null
   /** Timestamp this save was written, used to compute offline progress. */
   savedAt: number

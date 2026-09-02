@@ -17,6 +17,31 @@ export type SkillId =
   | 'hunting'
   | 'runecrafting'
 
+export type EquipmentSlot =
+  | 'helmet'
+  | 'body'
+  | 'legs'
+  | 'boots'
+  | 'gloves'
+  | 'ring'
+  | 'amulet'
+  | 'weapon'
+  | 'shield'
+
+/**
+ * Placeholder stat shape — enough for the Bank/Equipment screen to show real
+ * numbers now. The Combat system is what will actually consume these in
+ * accuracy/damage rolls; nothing here is final combat balance.
+ */
+export interface EquipmentStats {
+  accuracy?: number
+  strength?: number
+  defence?: number
+}
+
+/** Broad grouping used to filter the Bank UI. Not used by any engine logic. */
+export type ItemCategory = 'resource' | 'food' | 'equipment'
+
 export interface Item {
   id: string
   name: string
@@ -24,6 +49,9 @@ export interface Item {
   icon: string
   /** Base gold value when sold, if any. */
   value?: number
+  category?: ItemCategory
+  /** Present only for items that can be worn/wielded. */
+  equipment?: { slot: EquipmentSlot; stats: EquipmentStats }
 }
 
 /** A possible reward from an action, rolled independently on each attempt. */

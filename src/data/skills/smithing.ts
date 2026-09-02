@@ -20,7 +20,13 @@ export const smithingLocations: Location[] = [
     skillId: 'smithing',
     name: 'Anvil',
     requiredLevel: 1,
-    actionIds: ['smith_bronze_sword', 'smith_bronze_helmet', 'smith_iron_sword'],
+    actionIds: [
+      'smith_bronze_sword',
+      'smith_bronze_helmet',
+      'smith_bronze_shield',
+      'smith_bronze_boots',
+      'smith_iron_sword',
+    ],
   },
 ]
 
@@ -79,6 +85,28 @@ export const smithingActions: Action[] = [
     requiredLevel: 5,
     inputs: [{ itemId: 'bronze_bar', qty: 3 }],
     outputs: [{ itemId: 'bronze_helmet', chance: 1, qty: 1 }],
+  },
+  {
+    id: 'smith_bronze_shield',
+    skillId: 'smithing',
+    locationId: 'anvil',
+    name: 'Bronze Shield',
+    durationMs: [3500, 5000],
+    xp: 35,
+    requiredLevel: 5,
+    inputs: [{ itemId: 'bronze_bar', qty: 2 }],
+    outputs: [{ itemId: 'bronze_shield', chance: 1, qty: 1 }],
+  },
+  {
+    id: 'smith_bronze_boots',
+    skillId: 'smithing',
+    locationId: 'anvil',
+    name: 'Bronze Boots',
+    durationMs: [3000, 4500],
+    xp: 22,
+    requiredLevel: 3,
+    inputs: [{ itemId: 'bronze_bar', qty: 1 }],
+    outputs: [{ itemId: 'bronze_boots', chance: 1, qty: 1 }],
   },
   {
     id: 'smith_iron_sword',

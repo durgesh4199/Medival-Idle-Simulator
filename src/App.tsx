@@ -5,6 +5,7 @@ import { BankPage } from './ui/BankPage'
 import { CombatPage } from './ui/CombatPage'
 import { Header, type View } from './ui/Header'
 import { OfflineModal } from './ui/OfflineModal'
+import { ShopPage } from './ui/ShopPage'
 import { Sidebar } from './ui/Sidebar'
 import { SkillPanel } from './ui/SkillPanel'
 
@@ -27,6 +28,7 @@ function App() {
       )}
       {view === 'combat' && <CombatPage />}
       {view === 'bank' && <BankPage />}
+      {view === 'shop' && <ShopPage />}
       <OfflineModal />
     </div>
   )

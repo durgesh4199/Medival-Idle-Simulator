@@ -11,6 +11,7 @@ import {
   runecraftingLocations,
   runecraftingSkill,
 } from './skills/runecrafting'
+import { shopBuyableItemIds } from './shop'
 import { smithingActions, smithingLocations, smithingSkill } from './skills/smithing'
 import { woodcuttingActions, woodcuttingLocations, woodcuttingSkill } from './skills/woodcutting'
 import type { Action, Location, Skill, SkillId } from './types'
@@ -66,7 +67,7 @@ export function actionsForLocation(locationId: string): Action[] {
   return loc.actionIds.map((id) => actionsById[id])
 }
 
-export { combatAreas, combatSkillDisplay, combatSkillOrder, enemies }
+export { combatAreas, combatSkillDisplay, combatSkillOrder, enemies, shopBuyableItemIds }
 export const enemiesById: Record<string, (typeof enemies)[number]> = Object.fromEntries(
   enemies.map((e) => [e.id, e]),
 )

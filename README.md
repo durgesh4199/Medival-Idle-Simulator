@@ -137,10 +137,25 @@ through and combat had correctly stopped).
 other, since skilling and fighting are the same "one current activity" slot per the
 core loop (§1, §3).
 
+### Economy
+
+Design doc §14: "the economy is built around resource sinks and conversion chains."
+Every `Item` already carries a `value` (§7), so buying/selling needed no new item
+data — just `engine/economyEngine.ts`'s two pure functions, `getSellPrice` (shops pay
+60% of value — the standard idle-genre spread that stops flipping items from being
+free money) and `getBuyPrice` (150% of value), plus `isSellable` to keep worthless
+junk like `junk`/`burnt_food` (value 0) out of the sell list — they're clutter, not a
+gold sink. `data/shop.ts`'s `shopBuyableItemIds` is a short curated list (cooked fish,
+logs, a bronze bar) — staples worth a convenience purchase, deliberately nothing
+rare or equipment-tier, so the shop can't shortcut past progression. `sellItem`/
+`buyItem` on the store are the same shape as `equipItem`: instant inventory ⇄ gold
+mutations, not timed actions. `ShopPage` is Buy (curated list, price, afford-gated
+button) next to Sell (everything sellable currently owned, Sell 1 / Sell All).
+
 ## Extending the game
 
 Everything else in [the design doc](docs/design-document.md) — Mastery, Quests,
-Dungeons, Slayer, Pets, Achievements, the shop/economy — plugs into this same shape:
+Dungeons, Slayer, Pets, Achievements — plugs into this same shape:
 
 - Any further **gathering/production skill** (Farming, Ranching, ...) is just another
   data file of `Location`/`Action` — no new engine code needed, register it in
@@ -152,8 +167,10 @@ Dungeons, Slayer, Pets, Achievements, the shop/economy — plugs into this same 
 - **Mastery** is additional modifiers layered on top of the same action-resolution
   loop (e.g. bonus XP%, bonus drop chance) — it changes what numbers go into
   `rollActionRewards`/`rollDurationMs`/`simulateCombat`, not any loop's shape.
-- **Economy** (buying/selling) is mostly UI: items already carry a `value`, and gold
-  already exists on the store — a shop screen is a smaller lift than the others.
+- **Quests/Dungeons/Slayer/Pets/Achievements** are the last major chunk of the design
+  doc (§9) — each is its own new data shape (a Quest is a list of requirements +
+  rewards, a Dungeon a fixed sequence of enemies) rather than a variant of anything
+  above, similar in kind to how Combat needed its own engine file.
 
 ## Development
 

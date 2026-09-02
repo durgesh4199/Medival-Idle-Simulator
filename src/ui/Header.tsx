@@ -3,7 +3,7 @@ import type { SkillId } from '../data/types'
 import { xpProgress } from '../engine/xp'
 import { useGameStore } from '../state/gameStore'
 
-export type View = 'skills' | 'combat' | 'bank'
+export type View = 'skills' | 'combat' | 'bank' | 'shop'
 
 interface Props {
   view: View
@@ -15,11 +15,13 @@ const NAV_TABS: { view: View; label: string }[] = [
   { view: 'skills', label: 'Skills' },
   { view: 'combat', label: 'Combat' },
   { view: 'bank', label: 'Bank' },
+  { view: 'shop', label: 'Shop' },
 ]
 
 const VIEW_SUBTITLE: Record<Exclude<View, 'skills'>, string> = {
   combat: 'Automated combat — preparation matters more than the fight itself',
   bank: 'Equipment & Inventory',
+  shop: 'Buy staples, sell what you don’t need',
 }
 
 export function Header({ view, onChangeView, selectedSkill }: Props) {

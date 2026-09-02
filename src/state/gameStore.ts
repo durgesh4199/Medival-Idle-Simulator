@@ -1,16 +1,18 @@
 import { create } from 'zustand'
 import { actionsById, enemiesById } from '../data'
 import { items } from '../data/items/items'
+import { shopBuyableItemIds } from '../data/shop'
 import type { EquipmentSlot } from '../data/types'
 import {
   computePlayerCombatStats,
   simulateCombat,
   type PlayerCombatStats,
 } from '../engine/combatEngine'
+import { getBuyPrice, getSellPrice, isSellable } from '../engine/economyEngine'
 import { aggregateEquipmentStats, getWeaponAttackSpeedMs } from '../engine/equipmentEngine'
+import type { ActiveActionSave, CombatSave, SaveData } from '../engine/saveSystem'
 import { hasRequiredInputs, rollActionRewards, rollDurationMs } from '../engine/skillEngine'
 import { levelForXp } from '../engine/xp'
-import type { ActiveActionSave, CombatSave, SaveData } from '../engine/saveSystem'
 
 export interface OfflineSummary {
   elapsedMs: number
@@ -59,6 +61,11 @@ interface GameState {
   /** Advances combat to `now`, resolving every attack event in between —
    *  same shape as `tick`, so offline catch-up covers combat too. */
   combatTick: (now: number) => void
+
+  /** Sells `qty` of `itemId` for gold at the shop's buy-back price. */
+  sellItem: (itemId: string, qty: number) => void
+  /** Buys `qty` of `itemId` from the shop's stock, if affordable. */
+  buyItem: (itemId: string, qty: number) => void
 
   dismissOfflineSummary: () => void
   loadFromSave: (save: SaveData) => void
@@ -178,6 +185,33 @@ export const useGameStore = create<GameState>((set, get) => ({
       const equipment = { ...state.equipment }
       delete equipment[slot]
       return { ...state, inventory, equipment }
+    }),
+
+  sellItem: (itemId, qty) =>
+    set((state) => {
+      const item = items[itemId]
+      if (!item || qty <= 0 || !isSellable(item)) return state
+      const owned = state.inventory[itemId] ?? 0
+      const sellQty = Math.min(qty, owned)
+      if (sellQty <= 0) return state
+
+      const inventory = { ...state.inventory }
+      inventory[itemId] = owned - sellQty
+      if (inventory[itemId] <= 0) delete inventory[itemId]
+
+      return { ...state, inventory, gold: state.gold + getSellPrice(item) * sellQty }
+    }),
+
+  buyItem: (itemId, qty) =>
+    set((state) => {
+      const item = items[itemId]
+      if (!item || qty <= 0 || !shopBuyableItemIds.includes(itemId)) return state
+      const cost = getBuyPrice(item) * qty
+      if (state.gold < cost) return state
+
+      const inventory = { ...state.inventory }
+      inventory[itemId] = (inventory[itemId] ?? 0) + qty
+      return { ...state, inventory, gold: state.gold - cost }
     }),
 
   playerCombatStats: () => {

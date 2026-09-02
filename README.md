@@ -177,10 +177,32 @@ through the normal save/offline-catchup path, and show up right where the player
 already looking — inside the selected action's detail card in `SkillPanel`, not a
 separate screen.
 
+### Quests
+
+Design doc §9: "A quest can require gathering, training, crafting, defeating
+enemies, or completing a special activity, then grant rewards and unlocks." Those
+four verbs are exactly `QuestRequirement`'s four kinds (plus a fifth,
+`questComplete`, for chaining quests into each other) — `data/quests.ts` has a
+5-quest starter chain that deliberately exercises all of them and touches most
+systems already built: gather Fishing's `raw_herring` → craft it via Cooking → craft
+`bronze_bar` via Smithing → defeat `giant_rat` in Combat → a final `attack` level
+gate, with two branches (Cooking and Smithing) unlocking in parallel off the first
+quest before the last two converge on both.
+
+`engine/questEngine.ts` is pure requirement-checking (`canCompleteQuest`), the same
+role `hasRequiredInputs` plays for actions — nothing here mutates state.
+`gameStore.completeQuest` is the turn-in: consumes any `itemCount` requirements,
+grants the rewards, marks it done. Two new persistent trackers make the requirement
+kinds possible: `killCounts` (lifetime kills per enemy — deliberately separate from
+`combat.kills`, which is scoped to the *current* fight and resets on defeat or a new
+fight) and `completedQuestIds`. `QuestsPage` shows every quest's requirements as a
+live checklist (✅/⬜ plus current/target, e.g. "3/5 Raw Herring") — nothing about a
+quest's state is hidden or needs a separate "check progress" action.
+
 ## Extending the game
 
-Everything else in [the design doc](docs/design-document.md) — Quests, Dungeons,
-Slayer, Pets, Achievements — plugs into this same shape:
+Everything else in [the design doc](docs/design-document.md) — Dungeons, Slayer,
+Pets, Achievements — plugs into this same shape:
 
 - Any further **gathering/production skill** (Farming, Ranching, ...) is just another
   data file of `Location`/`Action` — no new engine code needed, register it in
@@ -189,10 +211,13 @@ Slayer, Pets, Achievements — plugs into this same shape:
   prayers) is mostly data — add enemies to `data/combat/enemies.ts`, areas to
   `data/combat/areas.ts`. Prayers/spells as *modifiers* on `computePlayerCombatStats`
   would be the next engine-level combat change.
-- **Quests/Dungeons/Slayer/Pets/Achievements** are the last major chunk of the design
-  doc (§9) — each is its own new data shape (a Quest is a list of requirements +
-  rewards, a Dungeon a fixed sequence of enemies) rather than a variant of anything
-  above, similar in kind to how Combat needed its own engine file.
+- More **quests** are just another entry in `data/quests.ts` — the requirement/reward
+  vocabulary already covers gather/train/craft/fight/chain.
+- **Dungeons** are close to a `CombatArea` but a fixed sequence instead of a pick-one
+  list, plus a completion reward — a natural extension of `combatEngine.ts` rather
+  than a new engine. **Slayer** is task assignment (a random `kills` target) layered
+  on the `killCounts` tracker Quests already introduced. **Pets/Achievements** are
+  collection trackers in the same spirit as `completedQuestIds`.
 
 ## Development
 

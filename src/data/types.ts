@@ -129,3 +129,31 @@ export interface CombatArea {
   name: string
   enemyIds: string[]
 }
+
+/**
+ * Quests (design doc §9): "A quest can require gathering, training,
+ * crafting, defeating enemies, or completing a special activity" — those
+ * four verbs are exactly the four requirement kinds below. `questComplete`
+ * is the fifth, letting quests chain into each other.
+ */
+export type QuestRequirement =
+  | { type: 'skillLevel'; skillId: string; level: number }
+  | { type: 'itemCount'; itemId: string; qty: number }
+  | { type: 'kills'; enemyId: string; count: number }
+  | { type: 'questComplete'; questId: string }
+
+export interface QuestReward {
+  gold?: number
+  /** Keyed by SkillId or CombatSkillId — same shape as skillXp. */
+  xp?: Record<string, number>
+  items?: { itemId: string; qty: number }[]
+}
+
+export interface Quest {
+  id: string
+  name: string
+  icon: string
+  description: string
+  requirements: QuestRequirement[]
+  rewards: QuestReward
+}

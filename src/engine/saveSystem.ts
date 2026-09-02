@@ -39,6 +39,11 @@ export interface SaveData {
   masteryXp: Record<string, number>
   /** Per-skill mastery pool XP, keyed by SkillId. */
   masteryPoolXp: Record<string, number>
+  /** Lifetime kills per enemy, keyed by Enemy.id — never reset by starting a
+   *  new fight, unlike CombatSave.kills (that fight's kill count only). */
+  killCounts: Record<string, number>
+  /** Turned-in quests, keyed by Quest.id. */
+  completedQuestIds: Record<string, boolean>
   /** Timestamp this save was written, used to compute offline progress. */
   savedAt: number
 }

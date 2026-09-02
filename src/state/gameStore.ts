@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { actionsById, enemiesById } from '../data'
 import { items } from '../data/items/items'
+import { questsById } from '../data/quests'
 import { shopBuyableItemIds } from '../data/shop'
 import type { EquipmentSlot } from '../data/types'
 import {
@@ -15,6 +16,7 @@ import {
   masterySpeedBonus,
   rollMasteryPoolBonus,
 } from '../engine/masteryEngine'
+import { canCompleteQuest } from '../engine/questEngine'
 import type { ActiveActionSave, CombatSave, SaveData } from '../engine/saveSystem'
 import { hasRequiredInputs, rollActionRewards, rollDurationMs } from '../engine/skillEngine'
 import { levelForXp } from '../engine/xp'
@@ -40,6 +42,11 @@ interface GameState {
   masteryXp: Record<string, number>
   /** Per-skill mastery pool XP, keyed by SkillId. */
   masteryPoolXp: Record<string, number>
+  /** Lifetime kills per enemy, keyed by Enemy.id — for Quest "kills"
+   *  requirements. Never reset by starting a new fight. */
+  killCounts: Record<string, number>
+  /** Turned-in quests, keyed by Quest.id. */
+  completedQuestIds: Record<string, boolean>
   /** Wall-clock time of the most recent defeat, live or discovered on
    *  return from offline combat — lets the Combat page show a brief
    *  "you were defeated" notice without a separate dismiss action. */
@@ -79,6 +86,13 @@ interface GameState {
   /** Buys `qty` of `itemId` from the shop's stock, if affordable. */
   buyItem: (itemId: string, qty: number) => void
 
+  /** Whether `questId`'s requirements are currently satisfied and it
+   *  hasn't already been turned in. */
+  canCompleteQuestById: (questId: string) => boolean
+  /** Turns in a quest: consumes any itemCount requirements and grants its
+   *  rewards. No-ops if requirements aren't met or it's already complete. */
+  completeQuest: (questId: string) => void
+
   dismissOfflineSummary: () => void
   loadFromSave: (save: SaveData) => void
   toSaveShape: () => Omit<SaveData, 'version' | 'savedAt'>
@@ -99,6 +113,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   selectedFoodItemId: null,
   masteryXp: {},
   masteryPoolXp: {},
+  killCounts: {},
+  completedQuestIds: {},
   lastDefeatAt: null,
   offlineSummary: null,
 
@@ -245,6 +261,55 @@ export const useGameStore = create<GameState>((set, get) => ({
       return { ...state, inventory, gold: state.gold - cost }
     }),
 
+  canCompleteQuestById: (questId) => {
+    const quest = questsById[questId]
+    if (!quest) return false
+    const state = get()
+    return canCompleteQuest(quest, {
+      levelOf: state.levelOf,
+      inventory: state.inventory,
+      killCounts: state.killCounts,
+      completedQuestIds: state.completedQuestIds,
+    })
+  },
+
+  completeQuest: (questId) =>
+    set((state) => {
+      const quest = questsById[questId]
+      if (!quest) return state
+      const canComplete = canCompleteQuest(quest, {
+        levelOf: state.levelOf,
+        inventory: state.inventory,
+        killCounts: state.killCounts,
+        completedQuestIds: state.completedQuestIds,
+      })
+      if (!canComplete) return state
+
+      const inventory = { ...state.inventory }
+      for (const req of quest.requirements) {
+        if (req.type === 'itemCount') {
+          inventory[req.itemId] = (inventory[req.itemId] ?? 0) - req.qty
+          if (inventory[req.itemId] <= 0) delete inventory[req.itemId]
+        }
+      }
+
+      const skillXp = { ...state.skillXp }
+      for (const [skillId, xp] of Object.entries(quest.rewards.xp ?? {})) {
+        skillXp[skillId] = (skillXp[skillId] ?? 0) + xp
+      }
+      for (const item of quest.rewards.items ?? []) {
+        inventory[item.itemId] = (inventory[item.itemId] ?? 0) + item.qty
+      }
+
+      return {
+        ...state,
+        inventory,
+        skillXp,
+        gold: state.gold + (quest.rewards.gold ?? 0),
+        completedQuestIds: { ...state.completedQuestIds, [questId]: true },
+      }
+    }),
+
   playerCombatStats: () => {
     const state = get()
     const levels = {
@@ -325,10 +390,20 @@ export const useGameStore = create<GameState>((set, get) => ({
         else delete inventory[state.selectedFoodItemId]
       }
 
+      // killCounts is lifetime, for Quest "kills" requirements — unlike
+      // combat.kills (this fight only), it's never reset by starting a new
+      // fight, so track it off the kills *gained this tick*, not the total.
+      const killsThisTick = result.state.kills - state.combat.kills
+      const killCounts = { ...state.killCounts }
+      if (killsThisTick > 0) {
+        killCounts[enemy.id] = (killCounts[enemy.id] ?? 0) + killsThisTick
+      }
+
       return {
         ...state,
         skillXp,
         inventory,
+        killCounts,
         gold: state.gold + result.goldGained,
         combat: result.defeated ? null : { enemyId: state.combat.enemyId, ...result.state },
         lastDefeatAt: result.defeated ? Date.now() : state.lastDefeatAt,
@@ -348,6 +423,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       selectedFoodItemId: save.selectedFoodItemId ?? null,
       masteryXp: save.masteryXp ?? {},
       masteryPoolXp: save.masteryPoolXp ?? {},
+      killCounts: save.killCounts ?? {},
+      completedQuestIds: save.completedQuestIds ?? {},
     })
 
     const beforeXp = { ...get().skillXp }
@@ -395,6 +472,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       selectedFoodItemId: state.selectedFoodItemId,
       masteryXp: state.masteryXp,
       masteryPoolXp: state.masteryPoolXp,
+      killCounts: state.killCounts,
+      completedQuestIds: state.completedQuestIds,
     }
   },
 }))

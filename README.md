@@ -5,6 +5,12 @@ actions, offline progress, and a web of skills that feed into each other. No gam
 engine — this is a plain data-driven web app (TypeScript + React + Vite), because the
 entire game is panels, progress bars, and timers, not real-time rendering.
 
+The full target design is [`docs/design-document.md`](docs/design-document.md) — a
+reverse-engineered breakdown of the Melvor Idle 2 systems this project is aiming at
+(skills, combat, equipment/bank, mastery, quests, offline progression, economy). The
+sections below describe what's actually implemented today and how it maps onto that
+document.
+
 ## Stack
 
 - **TypeScript** — content and state are typed, which matters once there are hundreds
@@ -37,9 +43,16 @@ Every skill is a data file exporting a `Skill`, its `Location[]`, and its `Actio
 do: how long it takes, what level it needs, what it consumes, what it can produce
 (a weighted output table, plus independently-rolled rare "special" drops).
 
-To add a new skill (say, Woodcutting): create `src/data/skills/woodcutting.ts`
-following the same shape, then register it in `src/data/index.ts`. That's the whole
-change — the engine and every UI component are already generic over `Action`/`Location`.
+To add a new skill: create `src/data/skills/<skill>.ts` following the same shape,
+then register it in `src/data/index.ts`. That's the whole change — the engine and
+every UI component are already generic over `Action`/`Location`.
+
+**Implemented today:** Fishing, Firemaking, Woodcutting, Mining, Smithing, Cooking —
+wired into real resource chains matching the design doc's §5 (Woodcutting → Logs →
+Firemaking; Mining → Ore/Coal → Smithing's furnace → Bars → Smithing's anvil →
+Equipment items; Fishing → raw fish → Cooking, with a burn-chance failure output).
+Hunting and Runecrafting are typed in `SkillId` but have no data file yet — same
+one-file addition as any other skill.
 
 ### `engine/` — the generic systems
 
@@ -74,13 +87,13 @@ reads the active action's timing. No component hardcodes "Fishing" or "Firemakin
 
 ## Extending the game
 
-Everything in the design doc this project is based on (Woodcutting, Mining,
-Smithing, Cooking, Hunting, Runecrafting, Combat, equipment, mastery, ...) plugs into
-this same shape:
+Everything in [the design doc](docs/design-document.md) this project is based on
+(Hunting, Runecrafting, Combat, equipment, mastery, ...) plugs into this same shape:
 
-- A **gathering/production skill** (Fishing, Firemaking, Woodcutting, Mining,
-  Smithing, Cooking, Runecrafting) is a data file of `Location`/`Action` — no new
-  engine code needed, just add the file and register it.
+- A **gathering/production skill** (Hunting, Runecrafting, or any future skill) is a
+  data file of `Location`/`Action` — no new engine code needed, just add the file and
+  register it, the same way Fishing/Firemaking/Woodcutting/Mining/Smithing/Cooking
+  already work.
 - **Combat** is the one system that needs new engine code (accuracy/evasion rolls,
   HP, enemy AI, loot tables) rather than fitting the existing `Action` shape — plan
   for a `combatEngine.ts` alongside `skillEngine.ts`, with enemies/weapons/armor as

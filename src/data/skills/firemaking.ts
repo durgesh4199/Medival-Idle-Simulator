@@ -14,7 +14,7 @@ export const firemakingLocations: Location[] = [
     skillId: 'firemaking',
     name: 'Campfire',
     requiredLevel: 1,
-    actionIds: ['burn_logs'],
+    actionIds: ['burn_logs', 'burn_oak_logs'],
   },
 ]
 
@@ -31,6 +31,20 @@ export const firemakingActions: Action[] = [
     outputs: [
       { itemId: 'ash', chance: 0.7, qty: 1 },
       { itemId: 'charcoal', chance: 0.3, qty: 1 },
+    ],
+  },
+  {
+    id: 'burn_oak_logs',
+    skillId: 'firemaking',
+    locationId: 'campfire',
+    name: 'Burn Oak Logs',
+    durationMs: [3500, 5500],
+    xp: 32,
+    requiredLevel: 10,
+    inputs: [{ itemId: 'oak_logs', qty: 1 }],
+    outputs: [
+      { itemId: 'ash', chance: 0.6, qty: 1 },
+      { itemId: 'charcoal', chance: 0.4, qty: 1 },
     ],
   },
 ]

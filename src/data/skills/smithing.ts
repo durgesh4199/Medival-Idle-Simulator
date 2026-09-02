@@ -1,0 +1,94 @@
+import type { Action, Location, Skill } from '../types'
+
+export const smithingSkill: Skill = {
+  id: 'smithing',
+  name: 'Smithing',
+  icon: '🔨',
+  description: 'Smelt ore into bars at the furnace, then forge bars into gear at the anvil.',
+}
+
+export const smithingLocations: Location[] = [
+  {
+    id: 'furnace',
+    skillId: 'smithing',
+    name: 'Furnace',
+    requiredLevel: 1,
+    actionIds: ['smelt_bronze_bar', 'smelt_iron_bar'],
+  },
+  {
+    id: 'anvil',
+    skillId: 'smithing',
+    name: 'Anvil',
+    requiredLevel: 1,
+    actionIds: ['smith_bronze_sword', 'smith_bronze_helmet', 'smith_iron_sword'],
+  },
+]
+
+export const smithingActions: Action[] = [
+  // Furnace — ore in, bars out. This is the "Ore -> Bars" link in the
+  // Mining -> Smithing -> Equipment chain.
+  {
+    id: 'smelt_bronze_bar',
+    skillId: 'smithing',
+    locationId: 'furnace',
+    name: 'Smelt Bronze Bar',
+    durationMs: [2500, 4000],
+    xp: 15,
+    requiredLevel: 1,
+    inputs: [
+      { itemId: 'copper_ore', qty: 1 },
+      { itemId: 'tin_ore', qty: 1 },
+    ],
+    outputs: [{ itemId: 'bronze_bar', chance: 1, qty: 1 }],
+  },
+  {
+    id: 'smelt_iron_bar',
+    skillId: 'smithing',
+    locationId: 'furnace',
+    name: 'Smelt Iron Bar',
+    durationMs: [3000, 5000],
+    xp: 30,
+    requiredLevel: 20,
+    inputs: [
+      { itemId: 'iron_ore', qty: 1 },
+      { itemId: 'coal', qty: 1 },
+    ],
+    outputs: [{ itemId: 'iron_bar', chance: 1, qty: 1 }],
+  },
+
+  // Anvil — bars in, equipment out. Combat stats land with the Equipment
+  // system; for now these items exist so the chain is real.
+  {
+    id: 'smith_bronze_sword',
+    skillId: 'smithing',
+    locationId: 'anvil',
+    name: 'Bronze Sword',
+    durationMs: [3000, 4500],
+    xp: 25,
+    requiredLevel: 1,
+    inputs: [{ itemId: 'bronze_bar', qty: 2 }],
+    outputs: [{ itemId: 'bronze_sword', chance: 1, qty: 1 }],
+  },
+  {
+    id: 'smith_bronze_helmet',
+    skillId: 'smithing',
+    locationId: 'anvil',
+    name: 'Bronze Helmet',
+    durationMs: [3500, 5000],
+    xp: 35,
+    requiredLevel: 5,
+    inputs: [{ itemId: 'bronze_bar', qty: 3 }],
+    outputs: [{ itemId: 'bronze_helmet', chance: 1, qty: 1 }],
+  },
+  {
+    id: 'smith_iron_sword',
+    skillId: 'smithing',
+    locationId: 'anvil',
+    name: 'Iron Sword',
+    durationMs: [4000, 6000],
+    xp: 45,
+    requiredLevel: 22,
+    inputs: [{ itemId: 'iron_bar', qty: 2 }],
+    outputs: [{ itemId: 'iron_sword', chance: 1, qty: 1 }],
+  },
+]

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { dungeons, dungeonsById, enemiesById, getItem, items } from '../data'
 import { useGameStore } from '../state/gameStore'
+import { PrayerSelector } from './PrayerSelector'
 import { useNow } from './useNow'
 
 /** How long the "cleared"/"defeated" banners stay up, whether the outcome
@@ -262,6 +263,8 @@ export function DungeonsPage() {
                 )}
               </div>
             </div>
+
+            <PrayerSelector />
           </div>
         )}
       </main>

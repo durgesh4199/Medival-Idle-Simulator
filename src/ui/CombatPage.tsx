@@ -3,6 +3,7 @@ import { combatAreas, combatSkillDisplay, combatSkillOrder, enemiesById, getItem
 import { slayerTaskProgress } from '../engine/slayerEngine'
 import { xpProgress } from '../engine/xp'
 import { useGameStore } from '../state/gameStore'
+import { PrayerSelector } from './PrayerSelector'
 import { useNow } from './useNow'
 
 /** How long the "you were defeated" banner stays up after a defeat,
@@ -286,6 +287,8 @@ export function CombatPage() {
                 </p>
               )}
             </div>
+
+            <PrayerSelector />
           </div>
         )}
       </main>

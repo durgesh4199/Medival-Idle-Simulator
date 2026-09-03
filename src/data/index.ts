@@ -3,6 +3,7 @@ import { combatAreas } from './combat/areas'
 import { combatSkillDisplay, combatSkillOrder } from './combat/combatSkills'
 import { dungeons, dungeonsById } from './combat/dungeons'
 import { enemies } from './combat/enemies'
+import { prayers, prayersById } from './combat/prayers'
 import { combatPet, petBySkillId, pets, petsById } from './pets'
 import { cookingActions, cookingLocations, cookingSkill } from './skills/cooking'
 import { fishingActions, fishingLocations, fishingSkill } from './skills/fishing'
@@ -84,6 +85,8 @@ export {
   petBySkillId,
   pets,
   petsById,
+  prayers,
+  prayersById,
   questsById,
   quests,
   shopBuyableItemIds,

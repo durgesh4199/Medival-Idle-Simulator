@@ -14,6 +14,7 @@
  */
 
 import type { AggregatedEquipmentStats } from './equipmentEngine'
+import type { PrayerModifiers } from '../data/combat/prayers'
 import type { CombatSkillId, Enemy } from '../data/types'
 
 export interface CombatantLevels {
@@ -45,12 +46,21 @@ export function computePlayerCombatStats(
   levels: CombatantLevels,
   equipmentStats: AggregatedEquipmentStats,
   weaponAttackSpeedMs: number | undefined,
+  /** The active Prayer's modifiers, if any — applied as a percentage scale
+   *  on top of the base stat (equipment + level), the one place a Prayer's
+   *  effect actually enters the simulation. */
+  prayerModifiers?: PrayerModifiers,
 ): PlayerCombatStats {
+  const accuracy = levels.attack * 4 + equipmentStats.accuracy + BASE_ACCURACY
+  const maxHit = 1 + Math.floor(levels.strength / 3) + equipmentStats.strength
+  const evasion = levels.defence * 4 + equipmentStats.defence + BASE_EVASION
+  const maxHp = levels.hitpoints * 10 + 10
+
   return {
-    accuracy: levels.attack * 4 + equipmentStats.accuracy + BASE_ACCURACY,
-    maxHit: 1 + Math.floor(levels.strength / 3) + equipmentStats.strength,
-    evasion: levels.defence * 4 + equipmentStats.defence + BASE_EVASION,
-    maxHp: levels.hitpoints * 10 + 10,
+    accuracy: Math.floor(accuracy * (1 + (prayerModifiers?.accuracyPercent ?? 0))),
+    maxHit: Math.floor(maxHit * (1 + (prayerModifiers?.maxHitPercent ?? 0))),
+    evasion: Math.floor(evasion * (1 + (prayerModifiers?.evasionPercent ?? 0))),
+    maxHp: Math.floor(maxHp * (1 + (prayerModifiers?.maxHpPercent ?? 0))),
     attackSpeedMs: weaponAttackSpeedMs ?? UNARMED_ATTACK_SPEED_MS,
   }
 }

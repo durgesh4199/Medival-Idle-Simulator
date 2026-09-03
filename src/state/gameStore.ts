@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { actionsById, dungeonsById, enemiesById } from '../data'
 import { achievementsById } from '../data/achievements'
+import { prayersById } from '../data/combat/prayers'
 import { items } from '../data/items/items'
 import { combatPet, petBySkillId } from '../data/pets'
 import { questsById } from '../data/quests'
@@ -64,6 +65,9 @@ interface GameState {
    *  parallel to killCounts. Drives Achievements' `dungeonCleared` kind. */
   dungeonClearCounts: Record<string, number>
   selectedFoodItemId: string | null
+  /** The active Prayer, if any — persists independent of an active fight,
+   *  same as `selectedFoodItemId`. */
+  selectedPrayerId: string | null
   /** Per-action mastery XP, keyed by Action.id. */
   masteryXp: Record<string, number>
   /** Per-skill mastery pool XP, keyed by SkillId. */
@@ -121,6 +125,12 @@ interface GameState {
   startCombat: (enemyId: string) => void
   stopCombat: () => void
   selectCombatFood: (itemId: string | null) => void
+  /** Whether `prayerId`'s Defence-level gate is currently met. */
+  canSelectPrayer: (prayerId: string) => boolean
+  /** Sets the active Prayer — no-ops if the level gate isn't met. Applies
+   *  to open-world combat and Dungeons alike, since both read
+   *  `playerCombatStats()`. */
+  selectPrayer: (prayerId: string | null) => void
   /** Advances combat to `now`, resolving every attack event in between —
    *  same shape as `tick`, so offline catch-up covers combat too. */
   combatTick: (now: number) => void
@@ -179,6 +189,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   dungeonRun: null,
   dungeonClearCounts: {},
   selectedFoodItemId: null,
+  selectedPrayerId: null,
   masteryXp: {},
   masteryPoolXp: {},
   killCounts: {},
@@ -463,7 +474,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
     const equipmentStats = aggregateEquipmentStats(state.equipment)
     const weaponAttackSpeedMs = getWeaponAttackSpeedMs(state.equipment)
-    return computePlayerCombatStats(levels, equipmentStats, weaponAttackSpeedMs)
+    const prayer = state.selectedPrayerId ? prayersById[state.selectedPrayerId] : undefined
+    return computePlayerCombatStats(levels, equipmentStats, weaponAttackSpeedMs, prayer?.modifiers)
   },
 
   startCombat: (enemyId) => {
@@ -490,6 +502,21 @@ export const useGameStore = create<GameState>((set, get) => ({
   selectCombatFood: (itemId) => {
     if (itemId !== null && !items[itemId]?.healAmount) return
     set({ selectedFoodItemId: itemId })
+  },
+
+  canSelectPrayer: (prayerId) => {
+    const prayer = prayersById[prayerId]
+    if (!prayer) return false
+    return get().levelOf('defence') >= prayer.requiredLevel
+  },
+
+  selectPrayer: (prayerId) => {
+    if (prayerId === null) {
+      set({ selectedPrayerId: null })
+      return
+    }
+    if (!get().canSelectPrayer(prayerId)) return
+    set({ selectedPrayerId: prayerId })
   },
 
   combatTick: (now) =>
@@ -749,6 +776,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       dungeonRun: save.dungeonRun ?? null,
       dungeonClearCounts: save.dungeonClearCounts ?? {},
       selectedFoodItemId: save.selectedFoodItemId ?? null,
+      selectedPrayerId: save.selectedPrayerId ?? null,
       masteryXp: save.masteryXp ?? {},
       masteryPoolXp: save.masteryPoolXp ?? {},
       killCounts: save.killCounts ?? {},
@@ -813,6 +841,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       dungeonRun: state.dungeonRun,
       dungeonClearCounts: state.dungeonClearCounts,
       selectedFoodItemId: state.selectedFoodItemId,
+      selectedPrayerId: state.selectedPrayerId,
       masteryXp: state.masteryXp,
       masteryPoolXp: state.masteryPoolXp,
       killCounts: state.killCounts,

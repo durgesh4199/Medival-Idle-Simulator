@@ -311,6 +311,35 @@ show their name/description/bonus, unowned ones show only their source and bonus
 preview (never spoiling the name), so it doubles as a checklist of what's left to
 find.
 
+### Prayers
+
+Design doc §6: `Combat Setup = Weapon + Armour + Food + Prayer + Spell + ...`. The
+first real *modifier* on `computePlayerCombatStats` rather than another
+gathering/reward system layered beside it — everything up to this point (Mastery,
+Pets, equipment) adds flat stats or speed; a Prayer instead scales a stat by a
+percentage at combat-stat computation time.
+
+`data/combat/prayers.ts` is deliberately small: one Prayer active at a time (mirrors
+`selectedFoodItemId`), each boosting a *different* stat (Accuracy, Max Hit, Evasion,
+or Max HP) rather than one universal "best" choice — the design doc's "different
+builds for different enemy profiles" made concrete: precision against an evasive
+enemy, protection against a hard-hitting one. No Prayer Points/drain resource —
+that would be a whole second economy layered on a feature whose point here is
+demonstrating the modifier mechanism, so the strategic choice comes entirely from
+picking one stat to lean into, not from managing a consumable. Gated on Defence
+level as a stand-in for "combat maturity," since Prayer has no skill of its own.
+
+`computePlayerCombatStats` takes an optional `PrayerModifiers` and applies it as a
+percentage scale on top of the base (level + equipment) stat, `Math.floor`ed for a
+clean integer same as every other combat number. `gameStore.playerCombatStats()`
+looks up the active Prayer and passes its `modifiers` through — the *only* call
+site that needed to change, because `combatTick`/`dungeonTick` both already read
+combat stats through that one function rather than recomputing them, so the bonus
+reaches open-world combat and Dungeons identically for free. `PrayerSelector` is one
+shared component mounted in both `CombatPage` and `DungeonsPage`, rather than the
+food-selector's duplicated-per-page pattern, since there's only one Prayer state to
+read regardless of where it's set from.
+
 ## Extending the game
 
 Every system in [the design doc](docs/design-document.md) is now built. Adding more
@@ -319,10 +348,10 @@ of any of them stays additive:
 - Any further **gathering/production skill** (Farming, Ranching, ...) is just another
   data file of `Location`/`Action` — no new engine code needed, register it in
   `data/index.ts` the same way the 8 current skills work.
-- More **combat content** (new enemies, a second `CombatArea`, attack styles, spells,
-  prayers) is mostly data — add enemies to `data/combat/enemies.ts`, areas to
-  `data/combat/areas.ts`. Prayers/spells as *modifiers* on `computePlayerCombatStats`
-  would be the next engine-level combat change.
+- More **combat content** (new enemies, a second `CombatArea`) is mostly data — add
+  enemies to `data/combat/enemies.ts`, areas to `data/combat/areas.ts`. Spells (an
+  alternate attack style with a rune cost, per the design doc) would be the next
+  engine-level combat change, alongside Prayers.
 - More **quests** are just another entry in `data/quests.ts` — the requirement/reward
   vocabulary already covers gather/train/craft/fight/chain.
 - More **dungeons** are just another entry in `data/combat/dungeons.ts`.
@@ -330,11 +359,8 @@ of any of them stays additive:
 - More **pets** are just another entry in `data/pets.ts` — one more `{source, bonusPercent}`
   pair; `petBySkillId`/`combatPet` and the roll sites in `tick`/`combatTick`/
   `dungeonTick` already generalize over the whole list.
-
-Beyond the design doc's own system list, the next natural steps are broadening what
-already exists rather than new top-level systems: more enemies and a second
-`CombatArea`/`Dungeon` (pure data), and prayers/spells as the first real modifier on
-`computePlayerCombatStats`.
+- More **prayers** are just another entry in `data/combat/prayers.ts` — one more
+  `{requiredLevel, modifiers}` pair; nothing else needs to change.
 
 ## Development
 

@@ -3,6 +3,7 @@ import { actionsById, enemiesById } from '../data'
 import { items } from '../data/items/items'
 import { questsById } from '../data/quests'
 import { shopBuyableItemIds } from '../data/shop'
+import { SLAYER_BONUS_GOLD_PER_KILL, SLAYER_XP_PER_KILL } from '../data/slayer'
 import type { EquipmentSlot } from '../data/types'
 import {
   computePlayerCombatStats,
@@ -19,6 +20,12 @@ import {
 import { canCompleteQuest } from '../engine/questEngine'
 import type { ActiveActionSave, CombatSave, SaveData } from '../engine/saveSystem'
 import { hasRequiredInputs, rollActionRewards, rollDurationMs } from '../engine/skillEngine'
+import {
+  isSlayerTaskComplete,
+  rollSlayerTask,
+  slayerTaskProgress,
+  type SlayerTaskState,
+} from '../engine/slayerEngine'
 import { levelForXp } from '../engine/xp'
 
 export interface OfflineSummary {
@@ -47,6 +54,10 @@ interface GameState {
   killCounts: Record<string, number>
   /** Turned-in quests, keyed by Quest.id. */
   completedQuestIds: Record<string, boolean>
+  /** The player's current Slayer task — a random enemy + kill target drawn
+   *  from `data/slayer.ts`, layered on the same `killCounts` tracker Quests
+   *  use. Auto-reassigned the moment it's completed (see `combatTick`). */
+  slayerTask: SlayerTaskState | null
   /** Wall-clock time of the most recent defeat, live or discovered on
    *  return from offline combat — lets the Combat page show a brief
    *  "you were defeated" notice without a separate dismiss action. */
@@ -93,6 +104,10 @@ interface GameState {
    *  rewards. No-ops if requirements aren't met or it's already complete. */
   completeQuest: (questId: string) => void
 
+  /** Assigns a fresh Slayer task only if one isn't already set — safe to
+   *  call unconditionally on load/init. */
+  ensureSlayerTask: () => void
+
   dismissOfflineSummary: () => void
   loadFromSave: (save: SaveData) => void
   toSaveShape: () => Omit<SaveData, 'version' | 'savedAt'>
@@ -115,6 +130,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   masteryPoolXp: {},
   killCounts: {},
   completedQuestIds: {},
+  slayerTask: null,
   lastDefeatAt: null,
   offlineSummary: null,
 
@@ -310,6 +326,9 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
     }),
 
+  ensureSlayerTask: () =>
+    set((state) => (state.slayerTask ? state : { ...state, slayerTask: rollSlayerTask(state.killCounts) })),
+
   playerCombatStats: () => {
     const state = get()
     const levels = {
@@ -399,12 +418,35 @@ export const useGameStore = create<GameState>((set, get) => ({
         killCounts[enemy.id] = (killCounts[enemy.id] ?? 0) + killsThisTick
       }
 
+      // Slayer: every kill still owed toward the current task pays a bonus
+      // on top of the enemy's normal XP/gold, capped at however many kills
+      // were actually still needed — killing past the target this tick
+      // doesn't overpay. Completing it reassigns a fresh task immediately,
+      // same "no separate claim step" idea as the Mastery pool bonus.
+      let slayerTask = state.slayerTask
+      let slayerGold = 0
+      if (slayerTask && killsThisTick > 0 && enemy.id === slayerTask.enemyId) {
+        const owedBefore = Math.max(
+          0,
+          slayerTask.targetKills - slayerTaskProgress(slayerTask, state.killCounts),
+        )
+        const creditedKills = Math.min(killsThisTick, owedBefore)
+        if (creditedKills > 0) {
+          skillXp.slayer = (skillXp.slayer ?? 0) + creditedKills * SLAYER_XP_PER_KILL
+          slayerGold = creditedKills * SLAYER_BONUS_GOLD_PER_KILL
+        }
+        if (isSlayerTaskComplete(slayerTask, killCounts)) {
+          slayerTask = rollSlayerTask(killCounts)
+        }
+      }
+
       return {
         ...state,
         skillXp,
         inventory,
         killCounts,
-        gold: state.gold + result.goldGained,
+        slayerTask,
+        gold: state.gold + result.goldGained + slayerGold,
         combat: result.defeated ? null : { enemyId: state.combat.enemyId, ...result.state },
         lastDefeatAt: result.defeated ? Date.now() : state.lastDefeatAt,
       }
@@ -425,6 +467,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       masteryPoolXp: save.masteryPoolXp ?? {},
       killCounts: save.killCounts ?? {},
       completedQuestIds: save.completedQuestIds ?? {},
+      slayerTask: save.slayerTask ?? null,
     })
 
     const beforeXp = { ...get().skillXp }
@@ -474,6 +517,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       masteryPoolXp: state.masteryPoolXp,
       killCounts: state.killCounts,
       completedQuestIds: state.completedQuestIds,
+      slayerTask: state.slayerTask,
     }
   },
 }))

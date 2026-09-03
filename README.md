@@ -199,10 +199,35 @@ fight) and `completedQuestIds`. `QuestsPage` shows every quest's requirements as
 live checklist (✅/⬜ plus current/target, e.g. "3/5 Raw Herring") — nothing about a
 quest's state is hidden or needs a separate "check progress" action.
 
+### Slayer
+
+Design doc §9: "Slayer adds target selection and task-driven combat." Exactly the
+extension README already called out: task assignment layered on the `killCounts`
+tracker Quests introduced, no new timer or tick — it rides `combatTick`.
+
+`data/slayer.ts` is a small pool of `{enemyId, minKills, maxKills}` defs (every
+current enemy is assignable) plus two per-kill reward constants.
+`engine/slayerEngine.ts` is pure, the same role `questEngine.ts`/`masteryEngine.ts`
+play: `rollSlayerTask` picks a random def and rolls a kill target, capturing
+`killsAtAssignment` as a baseline — because `killCounts` is lifetime (Quests need
+that), a task's own progress has to be the *delta* from when it was assigned, not
+the raw lifetime count. `slayerTaskProgress`/`isSlayerTaskComplete` read that delta.
+
+`combatTick` credits `SLAYER_XP_PER_KILL` skill XP (into `skillXp.slayer`, the same
+generic map every skill/combat-stat already shares) and `SLAYER_BONUS_GOLD_PER_KILL`
+gold for every kill still owed toward the active task — matching Melvor's own
+per-kill Slayer-coin bonus rather than a lump sum on completion, so it needs no
+separate "claim reward" step. The moment a task is filled, `combatTick` rolls the
+next one in the same state update — there's no idle gap waiting on a Slayer Master.
+`ensureSlayerTask` (called once from `initGame`) guarantees a task exists for both a
+brand-new save and an old save saved before Slayer existed. `CombatPage` shows the
+current task — enemy, progress, Slayer level — as a card that also jumps the enemy
+list straight to it.
+
 ## Extending the game
 
-Everything else in [the design doc](docs/design-document.md) — Dungeons, Slayer,
-Pets, Achievements — plugs into this same shape:
+Everything else in [the design doc](docs/design-document.md) — Dungeons, Pets,
+Achievements — plugs into this same shape:
 
 - Any further **gathering/production skill** (Farming, Ranching, ...) is just another
   data file of `Location`/`Action` — no new engine code needed, register it in
@@ -215,9 +240,8 @@ Pets, Achievements — plugs into this same shape:
   vocabulary already covers gather/train/craft/fight/chain.
 - **Dungeons** are close to a `CombatArea` but a fixed sequence instead of a pick-one
   list, plus a completion reward — a natural extension of `combatEngine.ts` rather
-  than a new engine. **Slayer** is task assignment (a random `kills` target) layered
-  on the `killCounts` tracker Quests already introduced. **Pets/Achievements** are
-  collection trackers in the same spirit as `completedQuestIds`.
+  than a new engine. **Pets/Achievements** are collection trackers in the same spirit
+  as `completedQuestIds`.
 
 ## Development
 

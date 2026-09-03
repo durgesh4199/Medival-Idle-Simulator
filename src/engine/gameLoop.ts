@@ -27,6 +27,9 @@ export function initGame(): void {
   if (save) {
     useGameStore.getState().loadFromSave(save)
   }
+  // Covers both a brand-new save (never had one) and an old save predating
+  // Slayer (field just missing) — a no-op once a task is already assigned.
+  useGameStore.getState().ensureSlayerTask()
 
   if (tickHandle === undefined) {
     tickHandle = window.setInterval(() => {

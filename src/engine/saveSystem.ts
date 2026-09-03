@@ -5,6 +5,7 @@
  */
 
 import type { EquipmentSlot } from '../data/types'
+import type { SlayerTaskState } from './slayerEngine'
 
 const SAVE_KEY = 'medieval-idle-save'
 const SAVE_VERSION = 1
@@ -44,6 +45,8 @@ export interface SaveData {
   killCounts: Record<string, number>
   /** Turned-in quests, keyed by Quest.id. */
   completedQuestIds: Record<string, boolean>
+  /** The player's current Slayer task, if one has been assigned yet. */
+  slayerTask: SlayerTaskState | null
   /** Timestamp this save was written, used to compute offline progress. */
   savedAt: number
 }

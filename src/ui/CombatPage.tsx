@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { combatAreas, combatSkillDisplay, combatSkillOrder, enemiesById, getItem, items } from '../data'
+import { slayerTaskProgress } from '../engine/slayerEngine'
+import { xpProgress } from '../engine/xp'
 import { useGameStore } from '../state/gameStore'
 import { useNow } from './useNow'
 
@@ -24,6 +26,47 @@ function Stat({ label, value }: { label: string; value: string | number }) {
     <div className="flex justify-between">
       <span className="text-neutral-400">{label}</span>
       <span className="tabular-nums text-neutral-100">{value}</span>
+    </div>
+  )
+}
+
+function SlayerTaskCard({ onViewEnemy }: { onViewEnemy: (enemyId: string) => void }) {
+  const slayerTask = useGameStore((s) => s.slayerTask)
+  const killCounts = useGameStore((s) => s.killCounts)
+  const skillXp = useGameStore((s) => s.skillXp)
+
+  if (!slayerTask) return null
+  const enemy = enemiesById[slayerTask.enemyId]
+  if (!enemy) return null
+
+  const progress = slayerTaskProgress(slayerTask, killCounts)
+  const percent = Math.min(100, (progress / slayerTask.targetKills) * 100)
+  const level = xpProgress(skillXp.slayer ?? 0).level
+
+  return (
+    <div className="space-y-1.5 rounded-lg border border-line bg-panel p-3 text-sm">
+      <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-neutral-500">
+        <span>🎯 Slayer Task</span>
+        <span className="text-neutral-400">Lv {level}</span>
+      </div>
+      <button
+        type="button"
+        onClick={() => onViewEnemy(slayerTask.enemyId)}
+        className="flex w-full items-center gap-2 rounded-md border border-line-soft bg-panel-soft px-2 py-1.5 text-left hover:border-gold/50"
+      >
+        <span className="text-lg">{enemy.icon}</span>
+        <span className="flex-1 font-medium text-neutral-100">{enemy.name}</span>
+        <span className="tabular-nums text-neutral-400">
+          {progress}/{slayerTask.targetKills}
+        </span>
+      </button>
+      <div className="h-1.5 overflow-hidden rounded-full bg-panel-soft">
+        <div className="h-full rounded-full bg-gold" style={{ width: `${percent}%` }} />
+      </div>
+      <p className="text-[11px] text-neutral-500">
+        Bonus XP and gold on every kill toward this task — a new one is assigned the
+        moment it's complete.
+      </p>
     </div>
   )
 }
@@ -101,6 +144,11 @@ export function CombatPage() {
           <Stat label="Evasion" value={player.evasion} />
           <Stat label="Attack Speed" value={`${(player.attackSpeedMs / 1000).toFixed(1)}s`} />
         </div>
+
+        <h2 className="mb-2 mt-4 px-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+          Slayer
+        </h2>
+        <SlayerTaskCard onViewEnemy={setSelectedEnemyId} />
       </aside>
 
       <main className="flex-1 overflow-y-auto p-4">

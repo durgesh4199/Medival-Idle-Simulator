@@ -67,6 +67,9 @@ export interface SaveData {
   dungeonClearCounts: Record<string, number>
   /** Claimed achievements, keyed by Achievement.id. */
   completedAchievementIds: Record<string, boolean>
+  /** Pets found, keyed by Pet.id — permanent once true, same shape as
+   *  completedQuestIds. */
+  ownedPetIds: Record<string, boolean>
   /** Timestamp this save was written, used to compute offline progress. */
   savedAt: number
 }

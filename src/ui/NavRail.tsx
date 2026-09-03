@@ -18,6 +18,7 @@ const EXTRA_TABS: { view: Exclude<View, 'skills'>; icon: string; label: string }
   { view: 'shop', icon: '🛒', label: 'Shop' },
   { view: 'quests', icon: '📜', label: 'Quests' },
   { view: 'achievements', icon: '🏆', label: 'Achievements' },
+  { view: 'pets', icon: '🐾', label: 'Pets' },
 ]
 
 const RING_SIZE = 44

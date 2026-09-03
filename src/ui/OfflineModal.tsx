@@ -1,4 +1,4 @@
-import { combatSkillDisplay, getItem, skills } from '../data'
+import { combatSkillDisplay, getItem, petsById, skills } from '../data'
 import { useGameStore } from '../state/gameStore'
 
 function formatDuration(ms: number): string {
@@ -64,6 +64,21 @@ export function OfflineModal() {
             </div>
           )}
         </div>
+
+        {summary.petsGained.length > 0 && (
+          <div className="mb-4 space-y-1 rounded-lg border border-gold/30 bg-gold/10 p-2.5">
+            {summary.petsGained.map((petId) => {
+              const pet = petsById[petId]
+              if (!pet) return null
+              return (
+                <div key={petId} className="flex items-center gap-2 text-sm text-gold">
+                  <span className="text-lg">{pet.icon}</span>
+                  <span>You found a pet: {pet.name}!</span>
+                </div>
+              )
+            })}
+          </div>
+        )}
 
         <button
           type="button"

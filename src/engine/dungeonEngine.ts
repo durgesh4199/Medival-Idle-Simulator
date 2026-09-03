@@ -30,6 +30,9 @@ export interface DungeonRunResult {
   lootGained: Record<string, number>
   goldGained: number
   foodEaten: number
+  /** Enemies defeated this call — for Pets' per-kill Combat pet roll, the
+   *  same role `killsThisTick` plays in `combatTick`. */
+  kills: number
 }
 
 export function advanceDungeonRun(params: {
@@ -50,6 +53,7 @@ export function advanceDungeonRun(params: {
   const xpGained: Record<CombatSkillId, number> = { attack: 0, strength: 0, defence: 0, hitpoints: 0 }
   const lootGained: Record<string, number> = {}
   let goldGained = 0
+  let kills = 0
 
   // At most one enemy advance per iteration, so this can never loop more
   // than the sequence is long — a real bound, not a MAX_EVENTS-style cap.
@@ -100,6 +104,7 @@ export function advanceDungeonRun(params: {
     }
 
     if (!result.stoppedAtMaxKills) break // still fighting this enemy — out of simulated time
+    kills++
 
     const nextIndex = run.enemyIndex + 1
     if (nextIndex >= dungeon.enemyIds.length) {
@@ -118,5 +123,6 @@ export function advanceDungeonRun(params: {
     lootGained,
     goldGained,
     foodEaten,
+    kills,
   }
 }

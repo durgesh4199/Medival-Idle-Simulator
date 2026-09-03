@@ -273,10 +273,48 @@ consume. `AchievementsPage` mirrors `QuestsPage`'s card-grid-with-checklist layo
 seven achievements ship spanning skills, combat, the quest chain, and Dungeons, so
 every system already built has at least one milestone attached to it.
 
+### Pets
+
+Design doc §9: "Pets provide rare collection rewards plus passive bonuses." One pet
+per gathering/production skill plus one Combat pet — `ownedPetIds` is a collection
+tracker in the same spirit as `completedQuestIds`, but unlike Quests/Achievements,
+finding a pet isn't a requirement check against existing trackers: it's a live
+random roll, so this is the one system here with real new engine surface rather
+than being purely additive data.
+
+`engine/petEngine.ts`'s `petDropChance(level)` is a small base chance that scales
+with the relevant level — a skill pet's own action's Mastery level, or average
+combat level for the Combat pet — capped at 2% so it stays a rare find at any
+level. `tick` rolls a skill pet once per completion (same place Mastery XP is
+already granted); `combatTick`/`dungeonTick` roll the Combat pet once per kill
+still resolved in that call — both stop rolling entirely the moment the relevant
+pet is owned, so there's no wasted work or "duplicate" case to handle. Both use the
+same live-roll pattern the rest of the engine avoids: everything else here (Quests,
+Slayer, Achievements, Dungeon rewards) is a deterministic function of tracked
+state, so it doesn't matter *when* it's checked; a pet only fires from directly
+observing an event as it's resolved. That's also why the same call site rolls
+identically whether it's a single live tick or a `tick`/`combatTick` call replaying
+hundreds of offline completions at once: each completion or kill gets its own
+independent roll either way.
+
+The bonus itself is genuinely woven into the simulation, not just flavor: owning a
+skill's pet adds a flat `petSpeedBonus` on top of Mastery's own (capped-at-30%)
+speed bonus in both `startAction`'s initial duration roll and `tick`'s per-completion
+recalculation; owning the Combat pet runs every combat-skill XP gain through
+`applyCombatPetBonus` before it's added to `skillXp`, shared by `combatTick` and
+`dungeonTick` since both produce XP through the same `simulateCombat` shape. A pet
+found live surfaces as a brief global toast (`PetFoundToast`, mounted once in
+`App.tsx` so it fires regardless of which page you're on); one found while away is
+folded into the existing offline-summary diff (`OfflineSummary.petsGained`) the
+same way XP/items/gold already are. `PetsPage` is a collection gallery — owned pets
+show their name/description/bonus, unowned ones show only their source and bonus
+preview (never spoiling the name), so it doubles as a checklist of what's left to
+find.
+
 ## Extending the game
 
-Everything else in [the design doc](docs/design-document.md) — Pets — plugs into
-this same shape:
+Every system in [the design doc](docs/design-document.md) is now built. Adding more
+of any of them stays additive:
 
 - Any further **gathering/production skill** (Farming, Ranching, ...) is just another
   data file of `Location`/`Action` — no new engine code needed, register it in
@@ -289,10 +327,14 @@ this same shape:
   vocabulary already covers gather/train/craft/fight/chain.
 - More **dungeons** are just another entry in `data/combat/dungeons.ts`.
 - More **achievements** are just another entry in `data/achievements.ts`.
-- **Pets** are the one remaining collection tracker in the same spirit as
-  `completedQuestIds` — the interesting part is applying their passive bonus
-  (design doc: "passive bonuses"), which would touch `tick`/`combatTick`'s
-  speed/XP math rather than being purely additive data like everything above.
+- More **pets** are just another entry in `data/pets.ts` — one more `{source, bonusPercent}`
+  pair; `petBySkillId`/`combatPet` and the roll sites in `tick`/`combatTick`/
+  `dungeonTick` already generalize over the whole list.
+
+Beyond the design doc's own system list, the next natural steps are broadening what
+already exists rather than new top-level systems: more enemies and a second
+`CombatArea`/`Dungeon` (pure data), and prayers/spells as the first real modifier on
+`computePlayerCombatStats`.
 
 ## Development
 

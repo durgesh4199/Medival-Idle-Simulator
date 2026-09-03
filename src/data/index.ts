@@ -3,6 +3,7 @@ import { combatAreas } from './combat/areas'
 import { combatSkillDisplay, combatSkillOrder } from './combat/combatSkills'
 import { dungeons, dungeonsById } from './combat/dungeons'
 import { enemies } from './combat/enemies'
+import { combatPet, petBySkillId, pets, petsById } from './pets'
 import { cookingActions, cookingLocations, cookingSkill } from './skills/cooking'
 import { fishingActions, fishingLocations, fishingSkill } from './skills/fishing'
 import { firemakingActions, firemakingLocations, firemakingSkill } from './skills/firemaking'
@@ -74,11 +75,15 @@ export {
   achievements,
   achievementsById,
   combatAreas,
+  combatPet,
   combatSkillDisplay,
   combatSkillOrder,
   dungeons,
   dungeonsById,
   enemies,
+  petBySkillId,
+  pets,
+  petsById,
   questsById,
   quests,
   shopBuyableItemIds,

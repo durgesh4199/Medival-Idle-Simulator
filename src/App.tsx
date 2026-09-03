@@ -8,6 +8,8 @@ import { DungeonsPage } from './ui/DungeonsPage'
 import { Header, type View } from './ui/Header'
 import { NavRail } from './ui/NavRail'
 import { OfflineModal } from './ui/OfflineModal'
+import { PetFoundToast } from './ui/PetFoundToast'
+import { PetsPage } from './ui/PetsPage'
 import { QuestsPage } from './ui/QuestsPage'
 import { ShopPage } from './ui/ShopPage'
 import { SkillPanel } from './ui/SkillPanel'
@@ -38,8 +40,10 @@ function App() {
         {view === 'shop' && <ShopPage />}
         {view === 'quests' && <QuestsPage />}
         {view === 'achievements' && <AchievementsPage />}
+        {view === 'pets' && <PetsPage />}
       </div>
       <StatusBar />
+      <PetFoundToast />
       <OfflineModal />
     </div>
   )

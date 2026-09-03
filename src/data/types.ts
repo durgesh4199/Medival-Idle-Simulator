@@ -188,3 +188,25 @@ export interface Achievement {
   requirements: AchievementRequirement[]
   reward?: AchievementReward
 }
+
+/**
+ * Pets (design doc §9): "rare collection rewards plus passive bonuses."
+ * One pet per gathering/production skill (a small permanent speed bonus on
+ * that skill once found) plus one Combat pet (a permanent bonus to all
+ * combat-skill XP). Ownership is binary and permanent — ownedPetIds is a
+ * collection tracker in the same spirit as completedQuestIds, not a
+ * stacking buff: finding a pet again (if it were possible) wouldn't do
+ * anything further.
+ */
+export type PetSource = { type: 'skill'; skillId: SkillId } | { type: 'combat' }
+
+export interface Pet {
+  id: string
+  name: string
+  icon: string
+  description: string
+  source: PetSource
+  /** 0-1. A skill pet reduces that skill's action duration by this much;
+   *  the Combat pet increases all combat-skill XP gained by this much. */
+  bonusPercent: number
+}

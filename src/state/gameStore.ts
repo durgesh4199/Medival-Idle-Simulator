@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { actionsById, dungeonsById, enemiesById } from '../data'
 import { achievementsById } from '../data/achievements'
 import { items } from '../data/items/items'
+import { combatPet, petBySkillId } from '../data/pets'
 import { questsById } from '../data/quests'
 import { shopBuyableItemIds } from '../data/shop'
 import { SLAYER_BONUS_GOLD_PER_KILL, SLAYER_XP_PER_KILL } from '../data/slayer'
@@ -20,6 +21,7 @@ import {
   masterySpeedBonus,
   rollMasteryPoolBonus,
 } from '../engine/masteryEngine'
+import { applyCombatPetBonus, petSpeedBonus, rollPetDrop } from '../engine/petEngine'
 import { canCompleteQuest } from '../engine/questEngine'
 import type {
   ActiveActionSave,
@@ -41,6 +43,9 @@ export interface OfflineSummary {
   xpGained: Record<string, number>
   itemsGained: Record<string, number>
   goldGained: number
+  /** Pet.id values found during this catch-up — worth its own callout,
+   *  same as items/XP/gold, rather than buried in the XP numbers. */
+  petsGained: string[]
 }
 
 type Equipment = Partial<Record<EquipmentSlot, string>>
@@ -70,6 +75,15 @@ interface GameState {
   completedQuestIds: Record<string, boolean>
   /** Claimed achievements, keyed by Achievement.id. */
   completedAchievementIds: Record<string, boolean>
+  /** Pets found, keyed by Pet.id — permanent once true, drives both the
+   *  Pets collection page and the passive speed/XP bonuses in tick/
+   *  combatTick/dungeonTick. */
+  ownedPetIds: Record<string, boolean>
+  /** Which Pet was most recently found live, and when — same "brief
+   *  banner, no dismiss action" idea as `lastDefeatAt`/`lastDungeonClear`.
+   *  Not persisted; a pet found while away surfaces via `offlineSummary`
+   *  instead. */
+  lastPetFound: { petId: string; at: number } | null
   /** The player's current Slayer task — a random enemy + kill target drawn
    *  from `data/slayer.ts`, layered on the same `killCounts` tracker Quests
    *  use. Auto-reassigned the moment it's completed (see `combatTick`). */
@@ -170,6 +184,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   killCounts: {},
   completedQuestIds: {},
   completedAchievementIds: {},
+  ownedPetIds: {},
+  lastPetFound: null,
   slayerTask: null,
   lastDefeatAt: null,
   lastDungeonClear: null,
@@ -190,7 +206,10 @@ export const useGameStore = create<GameState>((set, get) => ({
   startAction: (actionId) => {
     const action = actionsById[actionId]
     if (!action || !get().canStartAction(actionId)) return
-    const speedBonus = masterySpeedBonus(get().masteryLevelOf(actionId))
+    const state = get()
+    const speedBonus =
+      masterySpeedBonus(state.masteryLevelOf(actionId)) +
+      petSpeedBonus(state.ownedPetIds, action.skillId)
     set({
       // Mutual exclusion: starting a skill action ends any fight or Dungeon
       // run in progress.
@@ -218,12 +237,24 @@ export const useGameStore = create<GameState>((set, get) => ({
       const inventory = { ...state.inventory }
       const masteryXp = { ...state.masteryXp }
       const masteryPoolXp = { ...state.masteryPoolXp }
+      let ownedPetIds = state.ownedPetIds
+      let lastPetFound = state.lastPetFound
+      const skillPet = petBySkillId[action.skillId]
       let completions = 0
 
       while (now - cursor >= durationMs && completions < MAX_COMPLETIONS_PER_TICK) {
         if (!hasRequiredInputs(action, inventory)) {
           // Ran out of an input mid-loop (e.g. logs) — the action halts.
-          return { ...state, activeAction: null, skillXp, inventory, masteryXp, masteryPoolXp }
+          return {
+            ...state,
+            activeAction: null,
+            skillXp,
+            inventory,
+            masteryXp,
+            masteryPoolXp,
+            ownedPetIds,
+            lastPetFound,
+          }
         }
         for (const input of action.inputs ?? []) {
           inventory[input.itemId] = (inventory[input.itemId] ?? 0) - input.qty
@@ -243,8 +274,17 @@ export const useGameStore = create<GameState>((set, get) => ({
         masteryXp[action.id] = (masteryXp[action.id] ?? 0) + action.xp
         masteryPoolXp[action.skillId] = poolXp + action.xp
 
+        const masteryLevel = masteryLevelForXp(masteryXp[action.id])
+        // Pets: a rare per-completion find, chance scaled by this action's
+        // own mastery level — same "gets a little more likely with
+        // experience" idea the Mastery pool bonus already uses.
+        if (skillPet && !ownedPetIds[skillPet.id] && rollPetDrop(masteryLevel)) {
+          ownedPetIds = { ...ownedPetIds, [skillPet.id]: true }
+          lastPetFound = { petId: skillPet.id, at: Date.now() }
+        }
+
         cursor += durationMs
-        const speedBonus = masterySpeedBonus(masteryLevelForXp(masteryXp[action.id]))
+        const speedBonus = masterySpeedBonus(masteryLevel) + petSpeedBonus(ownedPetIds, action.skillId)
         durationMs = rollDurationMs(action) * (1 - speedBonus)
         completions++
       }
@@ -256,6 +296,8 @@ export const useGameStore = create<GameState>((set, get) => ({
         inventory,
         masteryXp,
         masteryPoolXp,
+        ownedPetIds,
+        lastPetFound,
       }
     }),
 
@@ -477,8 +519,9 @@ export const useGameStore = create<GameState>((set, get) => ({
         foodAvailableQty,
       })
 
+      const boostedXp = applyCombatPetBonus(result.xpGained, state.ownedPetIds)
       const skillXp = { ...state.skillXp }
-      for (const [skillId, xp] of Object.entries(result.xpGained)) {
+      for (const [skillId, xp] of Object.entries(boostedXp)) {
         if (xp > 0) skillXp[skillId] = (skillXp[skillId] ?? 0) + xp
       }
 
@@ -499,6 +542,28 @@ export const useGameStore = create<GameState>((set, get) => ({
       const killCounts = { ...state.killCounts }
       if (killsThisTick > 0) {
         killCounts[enemy.id] = (killCounts[enemy.id] ?? 0) + killsThisTick
+      }
+
+      // Pets: an independent roll per kill this tick for the Combat pet,
+      // chance scaled by average combat level — stops rolling the moment
+      // it's found, same "collection, not a stacking buff" idea as Slayer
+      // tasks stop needing a specific enemy once a task is done.
+      let ownedPetIds = state.ownedPetIds
+      let lastPetFound = state.lastPetFound
+      if (!ownedPetIds[combatPet.id] && killsThisTick > 0) {
+        const avgCombatLevel =
+          (state.levelOf('attack') +
+            state.levelOf('strength') +
+            state.levelOf('defence') +
+            state.levelOf('hitpoints')) /
+          4
+        for (let i = 0; i < killsThisTick; i++) {
+          if (rollPetDrop(avgCombatLevel)) {
+            ownedPetIds = { ...ownedPetIds, [combatPet.id]: true }
+            lastPetFound = { petId: combatPet.id, at: Date.now() }
+            break
+          }
+        }
       }
 
       // Slayer: every kill still owed toward the current task pays a bonus
@@ -529,6 +594,8 @@ export const useGameStore = create<GameState>((set, get) => ({
         inventory,
         killCounts,
         slayerTask,
+        ownedPetIds,
+        lastPetFound,
         gold: state.gold + result.goldGained + slayerGold,
         combat: result.defeated ? null : { enemyId: state.combat.enemyId, ...result.state },
         lastDefeatAt: result.defeated ? Date.now() : state.lastDefeatAt,
@@ -594,8 +661,9 @@ export const useGameStore = create<GameState>((set, get) => ({
         foodAvailableQty,
       })
 
+      const boostedXp = applyCombatPetBonus(result.xpGained, state.ownedPetIds)
       const skillXp = { ...state.skillXp }
-      for (const [skillId, xp] of Object.entries(result.xpGained)) {
+      for (const [skillId, xp] of Object.entries(boostedXp)) {
         if (xp > 0) skillXp[skillId] = (skillXp[skillId] ?? 0) + xp
       }
 
@@ -607,6 +675,26 @@ export const useGameStore = create<GameState>((set, get) => ({
         const remaining = (inventory[state.selectedFoodItemId] ?? 0) - result.foodEaten
         if (remaining > 0) inventory[state.selectedFoodItemId] = remaining
         else delete inventory[state.selectedFoodItemId]
+      }
+
+      // Pets: same per-kill Combat pet roll as combatTick, using the
+      // dungeon's own kill count for this call.
+      let ownedPetIds = state.ownedPetIds
+      let lastPetFound = state.lastPetFound
+      if (!ownedPetIds[combatPet.id] && result.kills > 0) {
+        const avgCombatLevel =
+          (state.levelOf('attack') +
+            state.levelOf('strength') +
+            state.levelOf('defence') +
+            state.levelOf('hitpoints')) /
+          4
+        for (let i = 0; i < result.kills; i++) {
+          if (rollPetDrop(avgCombatLevel)) {
+            ownedPetIds = { ...ownedPetIds, [combatPet.id]: true }
+            lastPetFound = { petId: combatPet.id, at: Date.now() }
+            break
+          }
+        }
       }
 
       let gold = state.gold + result.goldGained
@@ -641,6 +729,8 @@ export const useGameStore = create<GameState>((set, get) => ({
         gold,
         dungeonRun: result.state ? { dungeonId: dungeon.id, ...result.state } : null,
         dungeonClearCounts,
+        ownedPetIds,
+        lastPetFound,
         lastDefeatAt: result.defeated ? Date.now() : state.lastDefeatAt,
         lastDungeonClear,
       }
@@ -664,12 +754,14 @@ export const useGameStore = create<GameState>((set, get) => ({
       killCounts: save.killCounts ?? {},
       completedQuestIds: save.completedQuestIds ?? {},
       completedAchievementIds: save.completedAchievementIds ?? {},
+      ownedPetIds: save.ownedPetIds ?? {},
       slayerTask: save.slayerTask ?? null,
     })
 
     const beforeXp = { ...get().skillXp }
     const beforeInventory = { ...get().inventory }
     const beforeGold = get().gold
+    const beforeOwnedPetIds = { ...get().ownedPetIds }
 
     // Clamp how far we simulate forward so an ancient save doesn't spin the
     // tab for minutes on load.
@@ -690,14 +782,22 @@ export const useGameStore = create<GameState>((set, get) => ({
       if (gained > 0) itemsGained[itemId] = gained
     }
     const goldGained = afterState.gold - beforeGold
+    const petsGained = Object.keys(afterState.ownedPetIds).filter(
+      (petId) => !beforeOwnedPetIds[petId],
+    )
 
     const elapsedMs = effectiveNow - save.savedAt
     const hasProgress =
-      Object.keys(xpGained).length > 0 || Object.keys(itemsGained).length > 0 || goldGained > 0
+      Object.keys(xpGained).length > 0 ||
+      Object.keys(itemsGained).length > 0 ||
+      goldGained > 0 ||
+      petsGained.length > 0
     // Only worth a popup once the player was away for a little while.
     set({
       offlineSummary:
-        hasProgress && elapsedMs > 30_000 ? { elapsedMs, xpGained, itemsGained, goldGained } : null,
+        hasProgress && elapsedMs > 30_000
+          ? { elapsedMs, xpGained, itemsGained, goldGained, petsGained }
+          : null,
     })
   },
 
@@ -718,6 +818,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       killCounts: state.killCounts,
       completedQuestIds: state.completedQuestIds,
       completedAchievementIds: state.completedAchievementIds,
+      ownedPetIds: state.ownedPetIds,
       slayerTask: state.slayerTask,
     }
   },

@@ -3,7 +3,15 @@ import type { SkillId } from '../data/types'
 import { xpProgress } from '../engine/xp'
 import { useGameStore } from '../state/gameStore'
 
-export type View = 'skills' | 'combat' | 'dungeons' | 'bank' | 'shop' | 'quests' | 'achievements'
+export type View =
+  | 'skills'
+  | 'combat'
+  | 'dungeons'
+  | 'bank'
+  | 'shop'
+  | 'quests'
+  | 'achievements'
+  | 'pets'
 
 interface Props {
   view: View
@@ -28,6 +36,11 @@ const VIEW_META: Record<Exclude<View, 'skills'>, { icon: string; title: string; 
     icon: '🏆',
     title: 'Achievements',
     subtitle: 'Secondary objectives across everything you\'ve already built',
+  },
+  pets: {
+    icon: '🐾',
+    title: 'Pets',
+    subtitle: 'Rare collection rewards with a small passive bonus once found',
   },
 }
 

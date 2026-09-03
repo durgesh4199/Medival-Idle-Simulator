@@ -1,5 +1,6 @@
 import { combatAreas } from './combat/areas'
 import { combatSkillDisplay, combatSkillOrder } from './combat/combatSkills'
+import { dungeons, dungeonsById } from './combat/dungeons'
 import { enemies } from './combat/enemies'
 import { cookingActions, cookingLocations, cookingSkill } from './skills/cooking'
 import { fishingActions, fishingLocations, fishingSkill } from './skills/fishing'
@@ -68,7 +69,17 @@ export function actionsForLocation(locationId: string): Action[] {
   return loc.actionIds.map((id) => actionsById[id])
 }
 
-export { combatAreas, combatSkillDisplay, combatSkillOrder, enemies, questsById, quests, shopBuyableItemIds }
+export {
+  combatAreas,
+  combatSkillDisplay,
+  combatSkillOrder,
+  dungeons,
+  dungeonsById,
+  enemies,
+  questsById,
+  quests,
+  shopBuyableItemIds,
+}
 export const enemiesById: Record<string, (typeof enemies)[number]> = Object.fromEntries(
   enemies.map((e) => [e.id, e]),
 )

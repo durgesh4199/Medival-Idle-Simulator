@@ -1,4 +1,4 @@
-import { actionsById, enemiesById, locationsById, skills } from '../data'
+import { actionsById, dungeonsById, enemiesById, locationsById, skills } from '../data'
 import { xpProgress } from '../engine/xp'
 import { useGameStore } from '../state/gameStore'
 import { useNow } from './useNow'
@@ -9,6 +9,7 @@ import { useNow } from './useNow'
 export function StatusBar() {
   const activeAction = useGameStore((s) => s.activeAction)
   const combat = useGameStore((s) => s.combat)
+  const dungeonRun = useGameStore((s) => s.dungeonRun)
   const skillXp = useGameStore((s) => s.skillXp)
   const playerCombatStats = useGameStore((s) => s.playerCombatStats)
   const now = useNow(200)
@@ -73,6 +74,40 @@ export function StatusBar() {
           </div>
         </div>
         <span className="shrink-0 tabular-nums text-neutral-500">Kills: {combat.kills}</span>
+      </footer>
+    )
+  }
+
+  if (dungeonRun) {
+    const dungeon = dungeonsById[dungeonRun.dungeonId]
+    const enemy = enemiesById[dungeon?.enemyIds[dungeonRun.enemyIndex] ?? '']
+    const player = playerCombatStats()
+    const playerPercent = Math.max(0, Math.min(100, (dungeonRun.playerHp / player.maxHp) * 100))
+    const enemyPercent = enemy
+      ? Math.max(0, Math.min(100, (dungeonRun.enemyHp / enemy.hp) * 100))
+      : 0
+
+    return (
+      <footer className="flex h-9 shrink-0 items-center gap-3 border-t border-line bg-rail px-4 text-xs">
+        <span className="flex shrink-0 items-center gap-1.5 font-medium text-neutral-200">
+          <span aria-hidden>{dungeon?.icon ?? '🗝️'}</span>
+          <span>{dungeon?.name ?? 'Dungeon'}</span>
+        </span>
+        <div className="flex w-28 shrink-0 items-center gap-1.5">
+          <span className="text-neutral-500">You</span>
+          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-panel">
+            <div className="h-full rounded-full bg-brand" style={{ width: `${playerPercent}%` }} />
+          </div>
+        </div>
+        <div className="flex w-28 shrink-0 items-center gap-1.5">
+          <span className="text-neutral-500">{enemy?.name ?? 'Enemy'}</span>
+          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-panel">
+            <div className="h-full rounded-full bg-red-500" style={{ width: `${enemyPercent}%` }} />
+          </div>
+        </div>
+        <span className="shrink-0 tabular-nums text-neutral-500">
+          Enemy {dungeonRun.enemyIndex + 1}/{dungeon?.enemyIds.length ?? '?'}
+        </span>
       </footer>
     )
   }

@@ -224,10 +224,36 @@ brand-new save and an old save saved before Slayer existed. `CombatPage` shows t
 current task — enemy, progress, Slayer level — as a card that also jumps the enemy
 list straight to it.
 
+### Dungeons
+
+Design doc §9: "package multiple automated encounters into a larger risk/reward
+run." Structurally close to a `CombatArea`, but a *fixed sequence* fought once
+through instead of a pick-one grind list, plus a one-time completion reward — and
+real risk: dying partway through ends the run with nothing, same as any other
+combat defeat, unlike Quests/Slayer which never lose progress.
+
+`data/combat/dungeons.ts` is a `Dungeon` — an ordered `enemyIds` list plus a
+`completionReward` — remixing the existing 3 enemies into an escalating run rather
+than needing new bestiary data. The one new engine piece is
+`engine/dungeonEngine.ts`'s `advanceDungeonRun`, which chains `simulateCombat` calls
+across that sequence: each call is capped with a new `maxKills: 1` parameter on
+`simulateCombat` so the current enemy doesn't respawn (open-world combat's normal
+behavior) but instead hands any leftover simulated time to the next enemy in line.
+The outer loop is bounded by the dungeon's own length, so — like `tick`/`combatTick`
+— an arbitrarily long offline absence still resolves correctly in one call: a
+seeded run started an hour in the past against a strong player comes back from load
+already cleared, completion reward included.
+
+`gameStore.dungeonRun` is a third slot alongside `activeAction`/`combat`, and all
+three stay mutually exclusive (still "one activity" per the core loop). `DungeonsPage`
+shows the encounter order as a strip of enemy icons (cleared/current/upcoming), live
+HP bars while a run is active, and the reward preview up front — same "what am I
+doing, what will I gain" answer the design doc's UI section asks for.
+
 ## Extending the game
 
-Everything else in [the design doc](docs/design-document.md) — Dungeons, Pets,
-Achievements — plugs into this same shape:
+Everything else in [the design doc](docs/design-document.md) — Pets, Achievements —
+plugs into this same shape:
 
 - Any further **gathering/production skill** (Farming, Ranching, ...) is just another
   data file of `Location`/`Action` — no new engine code needed, register it in
@@ -238,10 +264,9 @@ Achievements — plugs into this same shape:
   would be the next engine-level combat change.
 - More **quests** are just another entry in `data/quests.ts` — the requirement/reward
   vocabulary already covers gather/train/craft/fight/chain.
-- **Dungeons** are close to a `CombatArea` but a fixed sequence instead of a pick-one
-  list, plus a completion reward — a natural extension of `combatEngine.ts` rather
-  than a new engine. **Pets/Achievements** are collection trackers in the same spirit
-  as `completedQuestIds`.
+- More **dungeons** are just another entry in `data/combat/dungeons.ts`.
+- **Pets/Achievements** are collection trackers in the same spirit as
+  `completedQuestIds`.
 
 ## Development
 

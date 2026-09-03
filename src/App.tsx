@@ -3,6 +3,7 @@ import { initGame } from './engine/gameLoop'
 import type { SkillId } from './data/types'
 import { BankPage } from './ui/BankPage'
 import { CombatPage } from './ui/CombatPage'
+import { DungeonsPage } from './ui/DungeonsPage'
 import { Header, type View } from './ui/Header'
 import { NavRail } from './ui/NavRail'
 import { OfflineModal } from './ui/OfflineModal'
@@ -31,6 +32,7 @@ function App() {
         />
         {view === 'skills' && <SkillPanel key={selectedSkill} skillId={selectedSkill} />}
         {view === 'combat' && <CombatPage />}
+        {view === 'dungeons' && <DungeonsPage />}
         {view === 'bank' && <BankPage />}
         {view === 'shop' && <ShopPage />}
         {view === 'quests' && <QuestsPage />}

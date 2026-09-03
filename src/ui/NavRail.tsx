@@ -13,6 +13,7 @@ interface Props {
 
 const EXTRA_TABS: { view: Exclude<View, 'skills'>; icon: string; label: string }[] = [
   { view: 'combat', icon: '⚔️', label: 'Combat' },
+  { view: 'dungeons', icon: '🗝️', label: 'Dungeons' },
   { view: 'bank', icon: '🎒', label: 'Bank' },
   { view: 'shop', icon: '🛒', label: 'Shop' },
   { view: 'quests', icon: '📜', label: 'Quests' },

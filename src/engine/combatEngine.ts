@@ -95,6 +95,10 @@ export interface CombatSimResult {
   state: CombatSimState
   /** True once playerHp hit 0 — the caller stops combat and heals on next start. */
   defeated: boolean
+  /** True once `maxKills` was reached — the caller (Dungeons) swaps in the
+   *  next enemy in its sequence and keeps simulating with `state` as-is,
+   *  rather than this enemy respawning like open-world combat does. */
+  stoppedAtMaxKills: boolean
   xpGained: Record<CombatSkillId, number>
   lootGained: Record<string, number>
   goldGained: number
@@ -108,12 +112,18 @@ export function simulateCombat(params: {
   state: CombatSimState
   foodHealAmount: number
   foodAvailableQty: number
+  /** Stop once this many kills have happened in this call, instead of
+   *  respawning `enemy` past that point — Dungeons fight each enemy in
+   *  their sequence exactly once, unlike open-world combat's endless
+   *  respawn-on-kill grind. Omit for the normal unlimited behavior. */
+  maxKills?: number
 }): CombatSimResult {
   const { now, enemy, player } = params
   let { enemyHp, playerHp, nextPlayerAttackAt, nextEnemyAttackAt, kills } = params.state
   let foodAvailableQty = params.foodAvailableQty
   let foodEaten = 0
   let defeated = false
+  let stoppedAtMaxKills = false
   let events = 0
   const xpGained: Record<CombatSkillId, number> = { attack: 0, strength: 0, defence: 0, hitpoints: 0 }
   const lootGained: Record<string, number> = {}
@@ -150,6 +160,11 @@ export function simulateCombat(params: {
         }
       }
       nextPlayerAttackAt += player.attackSpeedMs
+
+      if (params.maxKills !== undefined && kills - params.state.kills >= params.maxKills) {
+        stoppedAtMaxKills = true
+        break
+      }
     } else {
       // Enemy's swing.
       if (Math.random() < hitChance(enemy.accuracy, player.evasion)) {
@@ -177,6 +192,7 @@ export function simulateCombat(params: {
   return {
     state: { enemyHp, playerHp, nextPlayerAttackAt, nextEnemyAttackAt, kills },
     defeated,
+    stoppedAtMaxKills,
     xpGained,
     lootGained,
     goldGained,

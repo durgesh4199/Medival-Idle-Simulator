@@ -3,7 +3,7 @@ import type { SkillId } from '../data/types'
 import { xpProgress } from '../engine/xp'
 import { useGameStore } from '../state/gameStore'
 
-export type View = 'skills' | 'combat' | 'bank' | 'shop' | 'quests'
+export type View = 'skills' | 'combat' | 'dungeons' | 'bank' | 'shop' | 'quests'
 
 interface Props {
   view: View
@@ -15,6 +15,11 @@ const VIEW_META: Record<Exclude<View, 'skills'>, { icon: string; title: string; 
     icon: '⚔️',
     title: 'Combat',
     subtitle: 'Automated combat — preparation matters more than the fight itself',
+  },
+  dungeons: {
+    icon: '🗝️',
+    title: 'Dungeons',
+    subtitle: 'A fixed encounter sequence and a one-time reward — real risk, real reward',
   },
   bank: { icon: '🎒', title: 'Bank', subtitle: 'Equipment & Inventory' },
   shop: { icon: '🛒', title: 'Shop', subtitle: 'Buy staples, sell what you don’t need' },

@@ -36,6 +36,7 @@ export function initGame(): void {
       const now = Date.now()
       useGameStore.getState().tick(now)
       useGameStore.getState().combatTick(now)
+      useGameStore.getState().dungeonTick(now)
     }, TICK_INTERVAL_MS)
   }
 
@@ -54,6 +55,7 @@ function onVisibilityChange() {
     const now = Date.now()
     useGameStore.getState().tick(now)
     useGameStore.getState().combatTick(now)
+    useGameStore.getState().dungeonTick(now)
   }
 }
 

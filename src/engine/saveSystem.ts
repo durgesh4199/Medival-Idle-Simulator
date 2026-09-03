@@ -26,6 +26,19 @@ export interface CombatSave {
   kills: number
 }
 
+/** An in-progress Dungeon run — which dungeon, how far through its fixed
+ *  enemy sequence, and the current enemy's fight state. No `kills` field
+ *  (unlike CombatSave): `enemyIndex` already tracks progress, since each
+ *  enemy in the sequence is fought exactly once. */
+export interface DungeonRunSave {
+  dungeonId: string
+  enemyIndex: number
+  enemyHp: number
+  playerHp: number
+  nextPlayerAttackAt: number
+  nextEnemyAttackAt: number
+}
+
 export interface SaveData {
   version: number
   gold: number
@@ -47,6 +60,8 @@ export interface SaveData {
   completedQuestIds: Record<string, boolean>
   /** The player's current Slayer task, if one has been assigned yet. */
   slayerTask: SlayerTaskState | null
+  /** The player's current Dungeon run, if one is in progress. */
+  dungeonRun: DungeonRunSave | null
   /** Timestamp this save was written, used to compute offline progress. */
   savedAt: number
 }

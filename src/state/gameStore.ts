@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { actionsById, enemiesById } from '../data'
+import { actionsById, dungeonsById, enemiesById } from '../data'
 import { items } from '../data/items/items'
 import { questsById } from '../data/quests'
 import { shopBuyableItemIds } from '../data/shop'
@@ -10,6 +10,7 @@ import {
   simulateCombat,
   type PlayerCombatStats,
 } from '../engine/combatEngine'
+import { advanceDungeonRun } from '../engine/dungeonEngine'
 import { getBuyPrice, getSellPrice, isSellable } from '../engine/economyEngine'
 import { aggregateEquipmentStats, getWeaponAttackSpeedMs } from '../engine/equipmentEngine'
 import {
@@ -18,7 +19,12 @@ import {
   rollMasteryPoolBonus,
 } from '../engine/masteryEngine'
 import { canCompleteQuest } from '../engine/questEngine'
-import type { ActiveActionSave, CombatSave, SaveData } from '../engine/saveSystem'
+import type {
+  ActiveActionSave,
+  CombatSave,
+  DungeonRunSave,
+  SaveData,
+} from '../engine/saveSystem'
 import { hasRequiredInputs, rollActionRewards, rollDurationMs } from '../engine/skillEngine'
 import {
   isSlayerTaskComplete,
@@ -44,6 +50,9 @@ interface GameState {
   equipment: Equipment
   activeAction: ActiveActionSave | null
   combat: CombatSave | null
+  /** The player's current Dungeon run, if one is in progress — mutually
+   *  exclusive with `activeAction`/`combat`, same "one activity" slot. */
+  dungeonRun: DungeonRunSave | null
   selectedFoodItemId: string | null
   /** Per-action mastery XP, keyed by Action.id. */
   masteryXp: Record<string, number>
@@ -62,6 +71,9 @@ interface GameState {
    *  return from offline combat — lets the Combat page show a brief
    *  "you were defeated" notice without a separate dismiss action. */
   lastDefeatAt: number | null
+  /** Which Dungeon was most recently cleared, and when — same "brief
+   *  banner, no dismiss action" idea as `lastDefeatAt`. Not persisted. */
+  lastDungeonClear: { dungeonId: string; at: number } | null
   offlineSummary: OfflineSummary | null
 
   levelOf: (skillId: string) => number
@@ -91,6 +103,16 @@ interface GameState {
   /** Advances combat to `now`, resolving every attack event in between —
    *  same shape as `tick`, so offline catch-up covers combat too. */
   combatTick: (now: number) => void
+
+  /** Whether `dungeonId`'s level gate is currently met. */
+  canStartDungeon: (dungeonId: string) => boolean
+  /** Stops any skill action or open-world fight (same "one activity" slot)
+   *  and starts a fresh run at the dungeon's first enemy. */
+  startDungeon: (dungeonId: string) => void
+  stopDungeon: () => void
+  /** Advances the current Dungeon run to `now` — same shape as `tick`/
+   *  `combatTick`, so offline catch-up covers Dungeons too. */
+  dungeonTick: (now: number) => void
 
   /** Sells `qty` of `itemId` for gold at the shop's buy-back price. */
   sellItem: (itemId: string, qty: number) => void
@@ -125,6 +147,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   equipment: {},
   activeAction: null,
   combat: null,
+  dungeonRun: null,
   selectedFoodItemId: null,
   masteryXp: {},
   masteryPoolXp: {},
@@ -132,6 +155,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   completedQuestIds: {},
   slayerTask: null,
   lastDefeatAt: null,
+  lastDungeonClear: null,
   offlineSummary: null,
 
   levelOf: (skillId) => levelForXp(get().skillXp[skillId] ?? 0),
@@ -151,8 +175,10 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (!action || !get().canStartAction(actionId)) return
     const speedBonus = masterySpeedBonus(get().masteryLevelOf(actionId))
     set({
-      // Mutual exclusion: starting a skill action ends any fight in progress.
+      // Mutual exclusion: starting a skill action ends any fight or Dungeon
+      // run in progress.
       combat: null,
+      dungeonRun: null,
       activeAction: {
         actionId,
         startedAt: Date.now(),
@@ -349,6 +375,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     const now = Date.now()
     set({
       activeAction: null,
+      dungeonRun: null,
       combat: {
         enemyId,
         enemyHp: enemy.hp,
@@ -452,6 +479,109 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
     }),
 
+  canStartDungeon: (dungeonId) => {
+    const dungeon = dungeonsById[dungeonId]
+    if (!dungeon) return false
+    return get().levelOf('attack') >= dungeon.requiredLevel
+  },
+
+  startDungeon: (dungeonId) => {
+    const dungeon = dungeonsById[dungeonId]
+    if (!dungeon || dungeon.enemyIds.length === 0 || !get().canStartDungeon(dungeonId)) return
+    const firstEnemy = enemiesById[dungeon.enemyIds[0]]
+    if (!firstEnemy) return
+    const stats = get().playerCombatStats()
+    const now = Date.now()
+    set({
+      // Mutual exclusion: entering a Dungeon ends any skill action or
+      // open-world fight in progress.
+      activeAction: null,
+      combat: null,
+      dungeonRun: {
+        dungeonId,
+        enemyIndex: 0,
+        enemyHp: firstEnemy.hp,
+        playerHp: stats.maxHp,
+        nextPlayerAttackAt: now + stats.attackSpeedMs,
+        nextEnemyAttackAt: now + firstEnemy.attackSpeedMs,
+      },
+    })
+  },
+
+  stopDungeon: () => set({ dungeonRun: null }),
+
+  dungeonTick: (now) =>
+    set((state) => {
+      if (!state.dungeonRun) return state
+      const dungeon = dungeonsById[state.dungeonRun.dungeonId]
+      if (!dungeon) return { ...state, dungeonRun: null }
+
+      const player = state.playerCombatStats()
+      const foodItem = state.selectedFoodItemId ? items[state.selectedFoodItemId] : undefined
+      const foodAvailableQty = state.selectedFoodItemId
+        ? (state.inventory[state.selectedFoodItemId] ?? 0)
+        : 0
+
+      const result = advanceDungeonRun({
+        now,
+        dungeon,
+        enemiesById,
+        player,
+        state: {
+          enemyIndex: state.dungeonRun.enemyIndex,
+          enemyHp: state.dungeonRun.enemyHp,
+          playerHp: state.dungeonRun.playerHp,
+          nextPlayerAttackAt: state.dungeonRun.nextPlayerAttackAt,
+          nextEnemyAttackAt: state.dungeonRun.nextEnemyAttackAt,
+        },
+        foodHealAmount: foodItem?.healAmount ?? 0,
+        foodAvailableQty,
+      })
+
+      const skillXp = { ...state.skillXp }
+      for (const [skillId, xp] of Object.entries(result.xpGained)) {
+        if (xp > 0) skillXp[skillId] = (skillXp[skillId] ?? 0) + xp
+      }
+
+      const inventory = { ...state.inventory }
+      for (const [itemId, qty] of Object.entries(result.lootGained)) {
+        inventory[itemId] = (inventory[itemId] ?? 0) + qty
+      }
+      if (result.foodEaten > 0 && state.selectedFoodItemId) {
+        const remaining = (inventory[state.selectedFoodItemId] ?? 0) - result.foodEaten
+        if (remaining > 0) inventory[state.selectedFoodItemId] = remaining
+        else delete inventory[state.selectedFoodItemId]
+      }
+
+      let gold = state.gold + result.goldGained
+      let lastDungeonClear = state.lastDungeonClear
+
+      if (result.cleared) {
+        // One-time completion reward — same "no separate claim step" idea
+        // as a Quest turn-in, just granted automatically since Dungeons
+        // (unlike Quests) have no other requirement left to check.
+        const reward = dungeon.completionReward
+        for (const [skillId, xp] of Object.entries(reward.xp ?? {})) {
+          skillXp[skillId] = (skillXp[skillId] ?? 0) + xp
+        }
+        for (const item of reward.items ?? []) {
+          inventory[item.itemId] = (inventory[item.itemId] ?? 0) + item.qty
+        }
+        gold += reward.gold ?? 0
+        lastDungeonClear = { dungeonId: dungeon.id, at: Date.now() }
+      }
+
+      return {
+        ...state,
+        skillXp,
+        inventory,
+        gold,
+        dungeonRun: result.state ? { dungeonId: dungeon.id, ...result.state } : null,
+        lastDefeatAt: result.defeated ? Date.now() : state.lastDefeatAt,
+        lastDungeonClear,
+      }
+    }),
+
   dismissOfflineSummary: () => set({ offlineSummary: null }),
 
   loadFromSave: (save) => {
@@ -462,6 +592,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       equipment: save.equipment ?? {},
       activeAction: save.activeAction,
       combat: save.combat ?? null,
+      dungeonRun: save.dungeonRun ?? null,
       selectedFoodItemId: save.selectedFoodItemId ?? null,
       masteryXp: save.masteryXp ?? {},
       masteryPoolXp: save.masteryPoolXp ?? {},
@@ -479,6 +610,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     const effectiveNow = Math.min(Date.now(), save.savedAt + MAX_OFFLINE_MS)
     get().tick(effectiveNow)
     get().combatTick(effectiveNow)
+    get().dungeonTick(effectiveNow)
 
     const afterState = get()
     const xpGained: Record<string, number> = {}
@@ -512,6 +644,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       equipment: state.equipment,
       activeAction: state.activeAction,
       combat: state.combat,
+      dungeonRun: state.dungeonRun,
       selectedFoodItemId: state.selectedFoodItemId,
       masteryXp: state.masteryXp,
       masteryPoolXp: state.masteryPoolXp,

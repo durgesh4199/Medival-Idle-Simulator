@@ -3,7 +3,7 @@ import type { SkillId } from '../data/types'
 import { xpProgress } from '../engine/xp'
 import { useGameStore } from '../state/gameStore'
 
-export type View = 'skills' | 'combat' | 'dungeons' | 'bank' | 'shop' | 'quests'
+export type View = 'skills' | 'combat' | 'dungeons' | 'bank' | 'shop' | 'quests' | 'achievements'
 
 interface Props {
   view: View
@@ -24,6 +24,11 @@ const VIEW_META: Record<Exclude<View, 'skills'>, { icon: string; title: string; 
   bank: { icon: '🎒', title: 'Bank', subtitle: 'Equipment & Inventory' },
   shop: { icon: '🛒', title: 'Shop', subtitle: 'Buy staples, sell what you don’t need' },
   quests: { icon: '📜', title: 'Quests', subtitle: 'Narrative direction and mechanical gates' },
+  achievements: {
+    icon: '🏆',
+    title: 'Achievements',
+    subtitle: 'Secondary objectives across everything you\'ve already built',
+  },
 }
 
 export function Header({ view, selectedSkill }: Props) {

@@ -1,10 +1,12 @@
 import { create } from 'zustand'
 import { actionsById, dungeonsById, enemiesById } from '../data'
+import { achievementsById } from '../data/achievements'
 import { items } from '../data/items/items'
 import { questsById } from '../data/quests'
 import { shopBuyableItemIds } from '../data/shop'
 import { SLAYER_BONUS_GOLD_PER_KILL, SLAYER_XP_PER_KILL } from '../data/slayer'
 import type { EquipmentSlot } from '../data/types'
+import { canCompleteAchievement } from '../engine/achievementEngine'
 import {
   computePlayerCombatStats,
   simulateCombat,
@@ -53,6 +55,9 @@ interface GameState {
   /** The player's current Dungeon run, if one is in progress — mutually
    *  exclusive with `activeAction`/`combat`, same "one activity" slot. */
   dungeonRun: DungeonRunSave | null
+  /** Lifetime clears per dungeon, keyed by Dungeon.id — never reset,
+   *  parallel to killCounts. Drives Achievements' `dungeonCleared` kind. */
+  dungeonClearCounts: Record<string, number>
   selectedFoodItemId: string | null
   /** Per-action mastery XP, keyed by Action.id. */
   masteryXp: Record<string, number>
@@ -63,6 +68,8 @@ interface GameState {
   killCounts: Record<string, number>
   /** Turned-in quests, keyed by Quest.id. */
   completedQuestIds: Record<string, boolean>
+  /** Claimed achievements, keyed by Achievement.id. */
+  completedAchievementIds: Record<string, boolean>
   /** The player's current Slayer task — a random enemy + kill target drawn
    *  from `data/slayer.ts`, layered on the same `killCounts` tracker Quests
    *  use. Auto-reassigned the moment it's completed (see `combatTick`). */
@@ -126,6 +133,14 @@ interface GameState {
    *  rewards. No-ops if requirements aren't met or it's already complete. */
   completeQuest: (questId: string) => void
 
+  /** Whether `achievementId`'s requirements are currently satisfied and it
+   *  hasn't already been claimed. */
+  canCompleteAchievementById: (achievementId: string) => boolean
+  /** Claims an achievement: grants its reward (no consumption — achievement
+   *  requirements are permanent milestones, unlike a Quest's itemCount).
+   *  No-op if requirements aren't met or it's already claimed. */
+  completeAchievement: (achievementId: string) => void
+
   /** Assigns a fresh Slayer task only if one isn't already set — safe to
    *  call unconditionally on load/init. */
   ensureSlayerTask: () => void
@@ -148,11 +163,13 @@ export const useGameStore = create<GameState>((set, get) => ({
   activeAction: null,
   combat: null,
   dungeonRun: null,
+  dungeonClearCounts: {},
   selectedFoodItemId: null,
   masteryXp: {},
   masteryPoolXp: {},
   killCounts: {},
   completedQuestIds: {},
+  completedAchievementIds: {},
   slayerTask: null,
   lastDefeatAt: null,
   lastDungeonClear: null,
@@ -349,6 +366,45 @@ export const useGameStore = create<GameState>((set, get) => ({
         skillXp,
         gold: state.gold + (quest.rewards.gold ?? 0),
         completedQuestIds: { ...state.completedQuestIds, [questId]: true },
+      }
+    }),
+
+  canCompleteAchievementById: (achievementId) => {
+    const achievement = achievementsById[achievementId]
+    if (!achievement) return false
+    const state = get()
+    return canCompleteAchievement(achievement, {
+      levelOf: state.levelOf,
+      killCounts: state.killCounts,
+      completedQuestIds: state.completedQuestIds,
+      dungeonClearCounts: state.dungeonClearCounts,
+      completedAchievementIds: state.completedAchievementIds,
+    })
+  },
+
+  completeAchievement: (achievementId) =>
+    set((state) => {
+      const achievement = achievementsById[achievementId]
+      if (!achievement) return state
+      const canComplete = canCompleteAchievement(achievement, {
+        levelOf: state.levelOf,
+        killCounts: state.killCounts,
+        completedQuestIds: state.completedQuestIds,
+        dungeonClearCounts: state.dungeonClearCounts,
+        completedAchievementIds: state.completedAchievementIds,
+      })
+      if (!canComplete) return state
+
+      const skillXp = { ...state.skillXp }
+      for (const [skillId, xp] of Object.entries(achievement.reward?.xp ?? {})) {
+        skillXp[skillId] = (skillXp[skillId] ?? 0) + xp
+      }
+
+      return {
+        ...state,
+        skillXp,
+        gold: state.gold + (achievement.reward?.gold ?? 0),
+        completedAchievementIds: { ...state.completedAchievementIds, [achievementId]: true },
       }
     }),
 
@@ -555,6 +611,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
       let gold = state.gold + result.goldGained
       let lastDungeonClear = state.lastDungeonClear
+      let dungeonClearCounts = state.dungeonClearCounts
 
       if (result.cleared) {
         // One-time completion reward — same "no separate claim step" idea
@@ -569,6 +626,12 @@ export const useGameStore = create<GameState>((set, get) => ({
         }
         gold += reward.gold ?? 0
         lastDungeonClear = { dungeonId: dungeon.id, at: Date.now() }
+        // Lifetime clear count, for Achievements' `dungeonCleared` kind —
+        // same "never resets" idea as killCounts vs a single fight's kills.
+        dungeonClearCounts = {
+          ...dungeonClearCounts,
+          [dungeon.id]: (dungeonClearCounts[dungeon.id] ?? 0) + 1,
+        }
       }
 
       return {
@@ -577,6 +640,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         inventory,
         gold,
         dungeonRun: result.state ? { dungeonId: dungeon.id, ...result.state } : null,
+        dungeonClearCounts,
         lastDefeatAt: result.defeated ? Date.now() : state.lastDefeatAt,
         lastDungeonClear,
       }
@@ -593,11 +657,13 @@ export const useGameStore = create<GameState>((set, get) => ({
       activeAction: save.activeAction,
       combat: save.combat ?? null,
       dungeonRun: save.dungeonRun ?? null,
+      dungeonClearCounts: save.dungeonClearCounts ?? {},
       selectedFoodItemId: save.selectedFoodItemId ?? null,
       masteryXp: save.masteryXp ?? {},
       masteryPoolXp: save.masteryPoolXp ?? {},
       killCounts: save.killCounts ?? {},
       completedQuestIds: save.completedQuestIds ?? {},
+      completedAchievementIds: save.completedAchievementIds ?? {},
       slayerTask: save.slayerTask ?? null,
     })
 
@@ -645,11 +711,13 @@ export const useGameStore = create<GameState>((set, get) => ({
       activeAction: state.activeAction,
       combat: state.combat,
       dungeonRun: state.dungeonRun,
+      dungeonClearCounts: state.dungeonClearCounts,
       selectedFoodItemId: state.selectedFoodItemId,
       masteryXp: state.masteryXp,
       masteryPoolXp: state.masteryPoolXp,
       killCounts: state.killCounts,
       completedQuestIds: state.completedQuestIds,
+      completedAchievementIds: state.completedAchievementIds,
       slayerTask: state.slayerTask,
     }
   },

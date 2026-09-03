@@ -62,6 +62,11 @@ export interface SaveData {
   slayerTask: SlayerTaskState | null
   /** The player's current Dungeon run, if one is in progress. */
   dungeonRun: DungeonRunSave | null
+  /** Lifetime clears per dungeon, keyed by Dungeon.id — never reset,
+   *  parallel to killCounts. Drives Achievements' `dungeonCleared` kind. */
+  dungeonClearCounts: Record<string, number>
+  /** Claimed achievements, keyed by Achievement.id. */
+  completedAchievementIds: Record<string, boolean>
   /** Timestamp this save was written, used to compute offline progress. */
   savedAt: number
 }

@@ -250,10 +250,33 @@ shows the encounter order as a strip of enemy icons (cleared/current/upcoming), 
 HP bars while a run is active, and the reward preview up front — same "what am I
 doing, what will I gain" answer the design doc's UI section asks for.
 
+### Achievements
+
+Design doc §9: "Achievements create secondary objectives across otherwise normal
+play." Deliberately *not* a new track — every requirement kind is something another
+system already tracks: `skillLevel` and `questComplete` reuse Quest's own kinds,
+`kills` reads the same `killCounts` Quests/Slayer already maintain, and the one new
+kind, `dungeonCleared`, reads a new `dungeonClearCounts` (lifetime clears per
+dungeon, kept exactly parallel to `killCounts` — never reset, bumped in
+`dungeonTick`'s clear branch).
+
+`AchievementRequirement` (`data/types.ts`) is a deliberate subset of
+`QuestRequirement` — everything except `itemCount`. An achievement is meant to be a
+permanent milestone: a level, a lifetime count, or a completed quest can never
+become false again once true, but "currently holding N of an item" can (sell it,
+lose the achievement) — the design doc's model for a *secondary objective*, not a
+turn-in, so that one kind is left out on purpose. `engine/achievementEngine.ts`
+mirrors `questEngine.ts` almost exactly for the same reason: `isAchievementRequirementMet`/
+`canCompleteAchievement`, no state mutation. `gameStore.completeAchievement` is a
+claim step identical in shape to `completeQuest`, just with no `itemCount` to
+consume. `AchievementsPage` mirrors `QuestsPage`'s card-grid-with-checklist layout —
+seven achievements ship spanning skills, combat, the quest chain, and Dungeons, so
+every system already built has at least one milestone attached to it.
+
 ## Extending the game
 
-Everything else in [the design doc](docs/design-document.md) — Pets, Achievements —
-plugs into this same shape:
+Everything else in [the design doc](docs/design-document.md) — Pets — plugs into
+this same shape:
 
 - Any further **gathering/production skill** (Farming, Ranching, ...) is just another
   data file of `Location`/`Action` — no new engine code needed, register it in
@@ -265,8 +288,11 @@ plugs into this same shape:
 - More **quests** are just another entry in `data/quests.ts` — the requirement/reward
   vocabulary already covers gather/train/craft/fight/chain.
 - More **dungeons** are just another entry in `data/combat/dungeons.ts`.
-- **Pets/Achievements** are collection trackers in the same spirit as
-  `completedQuestIds`.
+- More **achievements** are just another entry in `data/achievements.ts`.
+- **Pets** are the one remaining collection tracker in the same spirit as
+  `completedQuestIds` — the interesting part is applying their passive bonus
+  (design doc: "passive bonuses"), which would touch `tick`/`combatTick`'s
+  speed/XP math rather than being purely additive data like everything above.
 
 ## Development
 

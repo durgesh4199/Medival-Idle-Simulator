@@ -1,3 +1,4 @@
+import { achievements, achievementsById } from './achievements'
 import { combatAreas } from './combat/areas'
 import { combatSkillDisplay, combatSkillOrder } from './combat/combatSkills'
 import { dungeons, dungeonsById } from './combat/dungeons'
@@ -70,6 +71,8 @@ export function actionsForLocation(locationId: string): Action[] {
 }
 
 export {
+  achievements,
+  achievementsById,
   combatAreas,
   combatSkillDisplay,
   combatSkillOrder,

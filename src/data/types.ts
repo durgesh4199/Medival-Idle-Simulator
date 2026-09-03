@@ -157,3 +157,34 @@ export interface Quest {
   requirements: QuestRequirement[]
   rewards: QuestReward
 }
+
+/**
+ * Achievements (design doc §9): "secondary objectives across otherwise
+ * normal play." Deliberately a *subset* of Quest's requirement kinds —
+ * skillLevel, kills, questComplete, plus a new dungeonCleared — every one
+ * of which is monotonic (a level, a lifetime kill/clear count, or a
+ * completed quest never becomes false again once true). Quest's
+ * `itemCount` is left out on purpose: an achievement is a permanent
+ * milestone, not a "do you currently hold X" check, so it should never be
+ * able to un-complete itself by the player later selling/using the items.
+ */
+export type AchievementRequirement =
+  | { type: 'skillLevel'; skillId: string; level: number }
+  | { type: 'kills'; enemyId: string; count: number }
+  | { type: 'questComplete'; questId: string }
+  | { type: 'dungeonCleared'; dungeonId: string; count: number }
+
+export interface AchievementReward {
+  gold?: number
+  /** Keyed by SkillId or CombatSkillId — same shape as skillXp. */
+  xp?: Record<string, number>
+}
+
+export interface Achievement {
+  id: string
+  name: string
+  icon: string
+  description: string
+  requirements: AchievementRequirement[]
+  reward?: AchievementReward
+}

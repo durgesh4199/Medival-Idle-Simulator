@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { initGame } from './engine/gameLoop'
 import type { SkillId } from './data/types'
+import { AchievementsPage } from './ui/AchievementsPage'
 import { BankPage } from './ui/BankPage'
 import { CombatPage } from './ui/CombatPage'
 import { DungeonsPage } from './ui/DungeonsPage'
@@ -36,6 +37,7 @@ function App() {
         {view === 'bank' && <BankPage />}
         {view === 'shop' && <ShopPage />}
         {view === 'quests' && <QuestsPage />}
+        {view === 'achievements' && <AchievementsPage />}
       </div>
       <StatusBar />
       <OfflineModal />

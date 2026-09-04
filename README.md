@@ -177,6 +177,29 @@ through the normal save/offline-catchup path, and show up right where the player
 already looking — inside the selected action's detail card in `SkillPanel`, not a
 separate screen.
 
+**Follow-up fix:** Farming and Ranching both shipped with an explicit "no
+Mastery yet, a natural follow-up" note — and since `masteryXp`/`masteryPoolXp`
+are already plain `Record<string, number>`, not typed to `Action.id`/`SkillId`
+specifically, extending them needed no new engine surface, only new call
+sites. `plantCrop`/`placeAnimal` key `masteryXp` by the crop/animal id itself
+(same reasoning as Action.id: rewards replanting the same crop, not just
+training Farming in general) and apply `masterySpeedBonus` via the same
+backdated-timestamp trick already used for the Farming/Ranching pets' bonus,
+additively — matching `pets.ts`'s own comment that pet + Mastery bonuses were
+always meant to combine, everywhere. `harvestCrop`/`collectRanch` roll
+`rollMasteryPoolBonus` against `masteryPoolXp.farming`/`.ranching` to double a
+harvest's yield or a collection's batch count, the same "flat chance once
+full" perk skills get — and while touching this, the two Pet rolls switched
+from using the raw skill level (a stand-in noted at the time as "since Farming
+has no Mastery") to the crop/animal's own freshly-updated mastery level,
+matching the pattern skills use exactly rather than approximating it.
+`FarmingPage`/`RanchingPage` gained a small "🎖️ Mastery Lv N · Pool FULL" line
+on each plot/pen card. Verified live: mastery XP accumulates the right amount
+per harvest/collection, the displayed level matches `masteryLevelForXp`
+exactly, and forcing the pool-bonus roll (via a stubbed `Math.random`) doubles
+the harvested/collected amount, all through the real store, not just the pure
+engine functions in isolation.
+
 ### Quests
 
 Design doc §9: "A quest can require gathering, training, crafting, defeating
@@ -594,12 +617,12 @@ step), a harvest yielding a randomized 2-4 batch rather than a flat 1 (the one
 completion in the game that isn't exactly one item), and a new Cooking recipe
 (`bake_bread`, from Barley) closing the loop back into an existing system, the
 same "a resource feeds multiple systems" principle every other crop chain here
-follows. Farming has no Mastery (Farming level stands in for a per-action mastery
-level when rolling its own pet) and no plot-unlock progression yet — both natural
-follow-ups, not oversights. `pets.ts` gained a third `PetSource` variant,
-`{type: 'farming'}`, alongside the existing `{type: 'combat'}` — the same
-precedent for "a non-skill-panel system gets its own pet source" already set
-before Farming existed.
+follows. `pets.ts` gained a third `PetSource` variant, `{type: 'farming'}`,
+alongside the existing `{type: 'combat'}` — the same precedent for "a non-
+skill-panel system gets its own pet source" already set before Farming existed.
+Farming has no plot-unlock progression yet — a natural follow-up, not an
+oversight — but it does have Mastery now (see "Mastery comes to Farming and
+Ranching" below); that gap closed on its own turn, not this one.
 
 ### Ranching
 
@@ -634,9 +657,8 @@ penalty beyond forfeiting whatever wasn't yet collected).
 raise, 45 seconds to 10 minutes per produce cycle), animals bought at the Shop
 (same reasoning as Farming's seeds), and a new Cooking recipe (`bake_cake`,
 from Egg + Milk) — the second crop/produce loop feeding back into an existing
-system. Ranching shares every other precedent Farming set: no Mastery (level
-stands in for mastery when rolling its pet), `pets.ts`'s fourth `PetSource`
-variant (`{type: 'ranching'}`), 2 achievements, and a slot in `StatusBar`'s
+system. Ranching shares every other precedent Farming set: `pets.ts`'s fourth
+`PetSource` variant (`{type: 'ranching'}`), 2 achievements, and a slot in `StatusBar`'s
 badge group — "🌾 N plots ready" and "🐄 N pens ready" now ride along together,
 since neither is mutually exclusive with anything else running.
 

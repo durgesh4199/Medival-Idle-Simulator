@@ -919,14 +919,21 @@ export const useGameStore = create<GameState>((set, get) => ({
       inventory[crop.seedItemId] = (inventory[crop.seedItemId] ?? 0) - 1
       if (inventory[crop.seedItemId] <= 0) delete inventory[crop.seedItemId]
 
-      // The Farming pet's speed bonus is applied once, here, by backdating
-      // `plantedAt` — isPlotReady/plotProgress stay plain timestamp math
-      // with no bonus parameter of their own, the same trick every other
-      // skill's tick applies its own bonus to a freshly-rolled duration.
+      // Mastery + the Farming pet's speed bonus are both applied once,
+      // here, by backdating `plantedAt` — isPlotReady/plotProgress stay
+      // plain timestamp math with no bonus parameter of their own, the
+      // same trick every other skill's tick applies its own bonus to a
+      // freshly-rolled duration. Keyed by the crop itself (masteryXp is
+      // just Record<string, number>, same as it's keyed by Action.id for
+      // every other skill) so mastery rewards running the same crop
+      // repeatedly, not just training Farming in general — identical
+      // reasoning to why mastery is per-action there.
       // (petSpeedBonus itself only covers `petBySkillId`'s SkillId-keyed
       // pets, so the Farming pet — a `{type:'farming'}` source, like the
       // Combat pet's `{type:'combat'}` — is checked directly here instead.)
-      const speedBonus = state.ownedPetIds[farmingPet.id] ? farmingPet.bonusPercent : 0
+      const masteryLevel = masteryLevelForXp(state.masteryXp[cropId] ?? 0)
+      const speedBonus =
+        masterySpeedBonus(masteryLevel) + (state.ownedPetIds[farmingPet.id] ? farmingPet.bonusPercent : 0)
       const farmingPlots = [...state.farmingPlots]
       farmingPlots[plotIndex] = {
         cropId,
@@ -945,18 +952,31 @@ export const useGameStore = create<GameState>((set, get) => ({
       if (!crop || !isPlotReady(plot, crop, now)) return state
 
       const inventory = { ...state.inventory }
-      inventory[crop.cropItemId] = (inventory[crop.cropItemId] ?? 0) + rollHarvestYield()
+      let yieldQty = rollHarvestYield()
+
+      const masteryXp = { ...state.masteryXp }
+      const masteryPoolXp = { ...state.masteryPoolXp }
+      const poolXpBefore = masteryPoolXp.farming ?? 0
+      if (rollMasteryPoolBonus(poolXpBefore)) {
+        // Pool-full perk: same flat chance to double this completion's
+        // output every other skill's tick already rolls for.
+        yieldQty *= 2
+      }
+      inventory[crop.cropItemId] = (inventory[crop.cropItemId] ?? 0) + yieldQty
+      masteryXp[crop.id] = (masteryXp[crop.id] ?? 0) + crop.xp
+      masteryPoolXp.farming = poolXpBefore + crop.xp
 
       const skillXp = { ...state.skillXp }
       skillXp.farming = (skillXp.farming ?? 0) + crop.xp
 
-      // Pets: same "rare per-completion roll, scaled by level, stops once
-      // owned" pattern tick/combatTick already use — Farming level stands
-      // in for a per-action mastery level, since Farming has no Mastery.
+      // Pets: same "rare per-completion roll, scaled by mastery level,
+      // stops once owned" pattern tick uses for a skill pet — the crop's
+      // own freshly-updated mastery level stands in for the action's.
       let ownedPetIds = state.ownedPetIds
       let lastPetFound = state.lastPetFound
       let eventLog = state.eventLog
-      if (!ownedPetIds[farmingPet.id] && rollPetDrop(state.levelOf('farming'))) {
+      const cropMasteryLevel = masteryLevelForXp(masteryXp[crop.id])
+      if (!ownedPetIds[farmingPet.id] && rollPetDrop(cropMasteryLevel)) {
         ownedPetIds = { ...ownedPetIds, [farmingPet.id]: true }
         lastPetFound = { petId: farmingPet.id, at: now }
         eventLog = pushLogEntry(eventLog, farmingPet.icon, `Found ${farmingPet.name}!`, now)
@@ -966,7 +986,17 @@ export const useGameStore = create<GameState>((set, get) => ({
       const farmingPlots = [...state.farmingPlots]
       farmingPlots[plotIndex] = emptyPlot()
 
-      return { ...state, inventory, skillXp, ownedPetIds, lastPetFound, eventLog, farmingPlots }
+      return {
+        ...state,
+        inventory,
+        skillXp,
+        masteryXp,
+        masteryPoolXp,
+        ownedPetIds,
+        lastPetFound,
+        eventLog,
+        farmingPlots,
+      }
     }),
 
   canPlaceAnimal: (penIndex, animalId) => {
@@ -988,8 +1018,11 @@ export const useGameStore = create<GameState>((set, get) => ({
       inventory[animal.animalItemId] = (inventory[animal.animalItemId] ?? 0) - 1
       if (inventory[animal.animalItemId] <= 0) delete inventory[animal.animalItemId]
 
-      // Same backdating trick plantCrop uses for the Farming pet's bonus.
-      const speedBonus = state.ownedPetIds[ranchingPet.id] ? ranchingPet.bonusPercent : 0
+      // Same backdating trick plantCrop uses for Mastery + the Ranching
+      // pet's bonus, keyed by the animal itself.
+      const masteryLevel = masteryLevelForXp(state.masteryXp[animalId] ?? 0)
+      const speedBonus =
+        masterySpeedBonus(masteryLevel) + (state.ownedPetIds[ranchingPet.id] ? ranchingPet.bonusPercent : 0)
       const ranchPens = [...state.ranchPens]
       ranchPens[penIndex] = {
         animalId,
@@ -1007,23 +1040,36 @@ export const useGameStore = create<GameState>((set, get) => ({
       const animal = ranchAnimalsById[pen.animalId]
       if (!animal) return state
       const now = Date.now()
-      const { batches, nextPen } = collectBatches(pen, animal, now)
-      if (batches <= 0) return state
+      const { batches: rawBatches, nextPen } = collectBatches(pen, animal, now)
+      if (rawBatches <= 0) return state
+
+      const masteryXp = { ...state.masteryXp }
+      const masteryPoolXp = { ...state.masteryPoolXp }
+      const poolXpBefore = masteryPoolXp.ranching ?? 0
+      // Pool-full perk: same flat chance to double this completion's
+      // output every other skill's tick already rolls for.
+      const batches = rollMasteryPoolBonus(poolXpBefore) ? rawBatches * 2 : rawBatches
 
       const inventory = { ...state.inventory }
       inventory[animal.produceItemId] = (inventory[animal.produceItemId] ?? 0) + batches
 
-      const skillXp = { ...state.skillXp }
-      skillXp.ranching = (skillXp.ranching ?? 0) + animal.xpPerCollection * batches
+      const gainedXp = animal.xpPerCollection * rawBatches
+      masteryXp[animal.id] = (masteryXp[animal.id] ?? 0) + gainedXp
+      masteryPoolXp.ranching = poolXpBefore + gainedXp
 
-      // Pets: same "rare roll per collection, scaled by level" pattern
-      // harvestCrop uses — one roll per collection event, not per batch,
-      // since a big stockpile collected at once shouldn't be an implicit
-      // multi-roll advantage over collecting often.
+      const skillXp = { ...state.skillXp }
+      skillXp.ranching = (skillXp.ranching ?? 0) + gainedXp
+
+      // Pets: same "rare roll per collection, scaled by mastery level"
+      // pattern collectRanch's Farming counterpart uses — one roll per
+      // collection event, not per batch, since a big stockpile collected
+      // at once shouldn't be an implicit multi-roll advantage over
+      // collecting often.
       let ownedPetIds = state.ownedPetIds
       let lastPetFound = state.lastPetFound
       let eventLog = state.eventLog
-      if (!ownedPetIds[ranchingPet.id] && rollPetDrop(state.levelOf('ranching'))) {
+      const animalMasteryLevel = masteryLevelForXp(masteryXp[animal.id])
+      if (!ownedPetIds[ranchingPet.id] && rollPetDrop(animalMasteryLevel)) {
         ownedPetIds = { ...ownedPetIds, [ranchingPet.id]: true }
         lastPetFound = { petId: ranchingPet.id, at: now }
         eventLog = pushLogEntry(eventLog, ranchingPet.icon, `Found ${ranchingPet.name}!`, now)
@@ -1033,7 +1079,17 @@ export const useGameStore = create<GameState>((set, get) => ({
       const ranchPens = [...state.ranchPens]
       ranchPens[penIndex] = nextPen
 
-      return { ...state, inventory, skillXp, ownedPetIds, lastPetFound, eventLog, ranchPens }
+      return {
+        ...state,
+        inventory,
+        skillXp,
+        masteryXp,
+        masteryPoolXp,
+        ownedPetIds,
+        lastPetFound,
+        eventLog,
+        ranchPens,
+      }
     }),
 
   releasePen: (penIndex) =>

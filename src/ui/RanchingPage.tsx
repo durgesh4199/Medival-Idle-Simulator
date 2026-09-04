@@ -1,4 +1,5 @@
 import { getItem, ranchAnimals, ranchAnimalsById } from '../data'
+import { isMasteryPoolFull, masteryLevelForXp } from '../engine/masteryEngine'
 import {
   isMature,
   maturityProgress,
@@ -22,6 +23,8 @@ function PenCard({ penIndex }: { penIndex: number }) {
   const ranchPens = useGameStore((s) => s.ranchPens)
   const levelOf = useGameStore((s) => s.levelOf)
   const inventory = useGameStore((s) => s.inventory)
+  const masteryXp = useGameStore((s) => s.masteryXp)
+  const masteryPoolXp = useGameStore((s) => s.masteryPoolXp)
   const canPlaceAnimal = useGameStore((s) => s.canPlaceAnimal)
   const placeAnimal = useGameStore((s) => s.placeAnimal)
   const collectRanch = useGameStore((s) => s.collectRanch)
@@ -36,6 +39,8 @@ function PenCard({ penIndex }: { penIndex: number }) {
     const stockpile = stockpiledBatches(pen, animal, now)
     const full = stockpile >= animal.maxStockpile
     const produceItem = getItem(animal.produceItemId)
+    const animalMasteryLevel = masteryLevelForXp(masteryXp[animal.id] ?? 0)
+    const poolFull = isMasteryPoolFull(masteryPoolXp.ranching ?? 0)
 
     return (
       <div
@@ -56,6 +61,10 @@ function PenCard({ penIndex }: { penIndex: number }) {
         <div className="flex flex-col items-center gap-2 p-4">
           <span className="text-4xl">{animal.icon}</span>
           <span className="text-sm font-medium text-neutral-200">{animal.name}</span>
+          <span className="text-[11px] text-neutral-500">
+            🎖️ Mastery Lv {animalMasteryLevel}
+            {poolFull && <span className="text-amber-400"> · Pool FULL</span>}
+          </span>
 
           {!mature ? (
             <>

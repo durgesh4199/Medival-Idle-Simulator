@@ -1,5 +1,6 @@
 import { farmingCrops, farmingCropsById, getItem } from '../data'
 import { isPlotReady, plotProgress } from '../engine/farmingEngine'
+import { isMasteryPoolFull, masteryLevelForXp } from '../engine/masteryEngine'
 import { useGameStore } from '../state/gameStore'
 import { useNow } from './useNow'
 
@@ -17,6 +18,8 @@ function PlotCard({ plotIndex }: { plotIndex: number }) {
   const farmingPlots = useGameStore((s) => s.farmingPlots)
   const levelOf = useGameStore((s) => s.levelOf)
   const inventory = useGameStore((s) => s.inventory)
+  const masteryXp = useGameStore((s) => s.masteryXp)
+  const masteryPoolXp = useGameStore((s) => s.masteryPoolXp)
   const canPlantCrop = useGameStore((s) => s.canPlantCrop)
   const plantCrop = useGameStore((s) => s.plantCrop)
   const harvestCrop = useGameStore((s) => s.harvestCrop)
@@ -29,6 +32,8 @@ function PlotCard({ plotIndex }: { plotIndex: number }) {
 
   if (crop && plot.plantedAt != null) {
     const remainingMs = plot.plantedAt + crop.growDurationMs - now
+    const cropMasteryLevel = masteryLevelForXp(masteryXp[crop.id] ?? 0)
+    const poolFull = isMasteryPoolFull(masteryPoolXp.farming ?? 0)
     return (
       <div
         className={`overflow-hidden rounded-xl border bg-panel ${
@@ -41,6 +46,10 @@ function PlotCard({ plotIndex }: { plotIndex: number }) {
         <div className="flex flex-col items-center gap-2 p-4">
           <span className={`text-4xl ${ready ? '' : 'opacity-70'}`}>{crop.icon}</span>
           <span className="text-sm font-medium text-neutral-200">{crop.name}</span>
+          <span className="text-[11px] text-neutral-500">
+            🎖️ Mastery Lv {cropMasteryLevel}
+            {poolFull && <span className="text-amber-400"> · Pool FULL</span>}
+          </span>
           {ready ? (
             <span className="text-xs font-semibold text-gold">Ready to harvest!</span>
           ) : (

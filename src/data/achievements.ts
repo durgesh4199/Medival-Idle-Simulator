@@ -41,6 +41,14 @@ export const achievements: Achievement[] = [
     reward: { gold: 300 },
   },
   {
+    id: 'marsh_conqueror',
+    name: 'Marsh Conqueror',
+    icon: '👻',
+    description: 'Complete "Shadow\'s Reckoning" — the second quest chain\'s final trial.',
+    requirements: [{ type: 'questComplete', questId: 'shadows_reckoning' }],
+    reward: { gold: 600 },
+  },
+  {
     id: 'den_cleared',
     name: 'Den Cleared',
     icon: '🗝️',

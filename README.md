@@ -407,6 +407,22 @@ Two new Achievements (`crypt_cleared`/`crypt_master`) mirror the Goblin Den pair
 `dungeonCleared` already generalizes over any `Dungeon.id`, so wiring them up was
 zero engine work.
 
+### The second quest chain
+
+Shadowfen Marsh/Sunken Crypt shipped with no quest presence at all — the same kind
+of gap as `CombatPage`'s hardcoded first area, just on the content side instead of
+the code side. `data/quests.ts` now has a second 4-quest arc picking up right where
+`proven_adventurer` (the first chain's capstone, itself already granting an Iron
+Sword) leaves off: `marsh_rumors` (gated on 5 Iron Bars, so gearing up is part of
+the story) → `bog_cull` → `cultists_end` → `shadows_reckoning`, each requiring the
+previous plus a kill count against one of Shadowfen Marsh's three new enemies. Each
+hands over one more piece of the Iron set as its reward, so finishing the chain
+finishes the armor too — narrative and gear progression landing on the same beat
+rather than running in parallel. Pure data, the same `kills`/`itemCount`/
+`questComplete` requirement vocabulary the first chain already used; no new
+requirement kind was needed. A ninth Achievement, `marsh_conqueror`, mirrors
+`proven_in_battle`'s role for the new capstone.
+
 ## Extending the game
 
 Adding more of anything above stays additive:

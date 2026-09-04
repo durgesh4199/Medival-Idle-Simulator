@@ -3,6 +3,7 @@ import { initGame } from './engine/gameLoop'
 import type { SkillId } from './data/types'
 import { AchievementsPage } from './ui/AchievementsPage'
 import { BankPage } from './ui/BankPage'
+import { CodexPage } from './ui/CodexPage'
 import { CombatPage } from './ui/CombatPage'
 import { DungeonsPage } from './ui/DungeonsPage'
 import { FarmingPage } from './ui/FarmingPage'
@@ -46,6 +47,7 @@ function App() {
         {view === 'quests' && <QuestsPage />}
         {view === 'achievements' && <AchievementsPage />}
         {view === 'pets' && <PetsPage />}
+        {view === 'codex' && <CodexPage />}
         {view === 'settings' && <SettingsPage />}
       </div>
       <StatusBar />

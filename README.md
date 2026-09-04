@@ -572,12 +572,38 @@ variant (`{type: 'ranching'}`), 2 achievements, and a slot in `StatusBar`'s
 badge group — "🌾 N plots ready" and "🐄 N pens ready" now ride along together,
 since neither is mutually exclusive with anything else running.
 
+### Codex
+
+Design doc §16 lists "Codex/event-log features" among what's *confirmed*
+publicly about MI2 (unlike most of this game's exact numbers, which are
+reconstructed) — the one design doc §13 nav entry left with no page after
+Settings. Scoped to the "Codex" half, not the event-log half: a browsable
+reference over `enemies` and `items`, not a discovery/collection mechanic —
+every enemy and every item is listed regardless of whether the player has
+ever encountered it, since the goal here is answering "what does level 40
+unlock" while planning, not gating information behind a separate "have I
+found this yet" tracker `gameStore` would need to grow just to serve this one
+screen. Zero new engine code: `CodexPage` reads directly off `data/`'s
+existing `enemies`/`items` exports, the same "no logic, just data" pattern
+`PetsPage`/`BankPage` already use for what the player currently owns —
+Codex just doesn't filter down to that.
+
+Bestiary cards show full combat stats plus a loot table (reusing the same
+`ItemDrop[]` shape kills already roll from) and cross-reference which
+`CombatArea`(s)/`Dungeon`(s) an enemy actually appears in. Item cards show
+category, value, and — for equipment — the same accuracy/strength/defence/
+attack-speed stat block `BankPage` already renders, so gear can be compared
+before it's ever been crafted or looted. Both tabs share one search box
+(filtered by name) plus, for items, `BankPage`'s existing
+All/Equipment/Food/Resources category filter.
+
 ### Settings
 
 Design doc §13's nav list — Skills / Combat / Bank / Equipment / Quests /
-Mastery / Codex / **Settings/Meta** — had one entry with no page at all until
-now. Everything else in the game is either a timed `Action` or a `gameStore`
-mutation the simulation reads back; Settings is neither, so `SettingsPage`
+Mastery / Codex / Settings/Meta — had two entries with no page at all until
+now (Codex, above, and this one). Everything else in the game is either a
+timed `Action` or a `gameStore` mutation the simulation reads back; Settings
+is neither, so `SettingsPage`
 talks to `engine/saveSystem.ts`/`localStorage` directly instead of through the
 store — Save Now, Export, Import, and Reset are all operations on the save
 file itself, not events inside the simulation.

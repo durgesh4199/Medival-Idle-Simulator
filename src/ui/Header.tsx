@@ -14,6 +14,7 @@ export type View =
   | 'quests'
   | 'achievements'
   | 'pets'
+  | 'codex'
   | 'settings'
 
 interface Props {
@@ -54,6 +55,11 @@ const VIEW_META: Record<Exclude<View, 'skills'>, { icon: string; title: string; 
     icon: '🐾',
     title: 'Pets',
     subtitle: 'Rare collection rewards with a small passive bonus once found',
+  },
+  codex: {
+    icon: '📖',
+    title: 'Codex',
+    subtitle: 'Every enemy and item in the game, browsable whether you’ve found it yet or not',
   },
   settings: {
     icon: '⚙️',

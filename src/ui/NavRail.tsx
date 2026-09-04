@@ -15,6 +15,7 @@ const EXTRA_TABS: { view: Exclude<View, 'skills'>; icon: string; label: string }
   { view: 'combat', icon: '⚔️', label: 'Combat' },
   { view: 'dungeons', icon: '🗝️', label: 'Dungeons' },
   { view: 'farming', icon: '🌾', label: 'Farming' },
+  { view: 'ranching', icon: '🐄', label: 'Ranching' },
   { view: 'bank', icon: '🎒', label: 'Bank' },
   { view: 'shop', icon: '🛒', label: 'Shop' },
   { view: 'quests', icon: '📜', label: 'Quests' },
@@ -112,6 +113,15 @@ export function NavRail({ view, selectedSkill, onSelectSkill, onChangeView }: Pr
     COMBAT_SKILL_IDS.reduce((sum, id) => sum + xpProgress(skillXp[id] ?? 0).percent, 0) /
     COMBAT_SKILL_IDS.length
   const farmingPercent = xpProgress(skillXp.farming ?? 0).percent
+  const ranchingPercent = xpProgress(skillXp.ranching ?? 0).percent
+  // Which EXTRA_TABS entries get a progress ring at all — Bank/Shop/Quests/
+  // etc. have no level of their own, so they're plain icons (percent
+  // undefined), same as RailButton's own doc comment already says.
+  const extraTabPercent: Partial<Record<Exclude<View, 'skills'>, number>> = {
+    combat: combatPercent,
+    farming: farmingPercent,
+    ranching: ranchingPercent,
+  }
 
   return (
     <nav className="flex w-14 shrink-0 flex-col items-center gap-1 overflow-y-auto border-r border-line bg-rail py-2">
@@ -140,9 +150,7 @@ export function NavRail({ view, selectedSkill, onSelectSkill, onChangeView }: Pr
           icon={tab.icon}
           title={tab.label}
           isActive={view === tab.view}
-          percent={
-            tab.view === 'combat' ? combatPercent : tab.view === 'farming' ? farmingPercent : undefined
-          }
+          percent={extraTabPercent[tab.view]}
           onClick={() => onChangeView(tab.view)}
         />
       ))}

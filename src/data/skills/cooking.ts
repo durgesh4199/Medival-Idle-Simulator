@@ -13,7 +13,14 @@ export const cookingLocations: Location[] = [
     skillId: 'cooking',
     name: 'Cooking Fire',
     requiredLevel: 1,
-    actionIds: ['cook_herring', 'cook_trout', 'bake_bread', 'cook_silverfin', 'cook_eel'],
+    actionIds: [
+      'cook_herring',
+      'cook_trout',
+      'bake_bread',
+      'bake_cake',
+      'cook_silverfin',
+      'cook_eel',
+    ],
   },
 ]
 
@@ -63,6 +70,25 @@ export const cookingActions: Action[] = [
     outputs: [
       { itemId: 'bread', chance: 0.8, qty: 1 },
       { itemId: 'burnt_food', chance: 0.2, qty: 1 },
+    ],
+  },
+  // Ranching's first two produce items feeding back into Cooking, the same
+  // shape Farming's Barley -> Bread already established.
+  {
+    id: 'bake_cake',
+    skillId: 'cooking',
+    locationId: 'cooking_fire',
+    name: 'Bake Cake',
+    durationMs: [4000, 5500],
+    xp: 30,
+    requiredLevel: 20,
+    inputs: [
+      { itemId: 'egg', qty: 1 },
+      { itemId: 'milk', qty: 1 },
+    ],
+    outputs: [
+      { itemId: 'cake', chance: 0.75, qty: 1 },
+      { itemId: 'burnt_food', chance: 0.25, qty: 1 },
     ],
   },
   {

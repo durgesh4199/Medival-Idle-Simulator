@@ -1,10 +1,10 @@
 import { create } from 'zustand'
-import { actionsById, dungeonsById, enemiesById, farmingCropsById } from '../data'
+import { actionsById, dungeonsById, enemiesById, farmingCropsById, ranchAnimalsById } from '../data'
 import { achievementsById } from '../data/achievements'
 import { prayersById } from '../data/combat/prayers'
 import { spellsById } from '../data/combat/spells'
 import { items } from '../data/items/items'
-import { combatPet, farmingPet, petBySkillId } from '../data/pets'
+import { combatPet, farmingPet, petBySkillId, ranchingPet } from '../data/pets'
 import { questsById } from '../data/quests'
 import { shopBuyableItemIds } from '../data/shop'
 import { SLAYER_BONUS_GOLD_PER_KILL, SLAYER_XP_PER_KILL } from '../data/slayer'
@@ -26,6 +26,7 @@ import {
 } from '../engine/masteryEngine'
 import { applyCombatPetBonus, petSpeedBonus, rollPetDrop } from '../engine/petEngine'
 import { canCompleteQuest } from '../engine/questEngine'
+import { collectBatches, emptyPen, type RanchPenState } from '../engine/ranchingEngine'
 import type {
   ActiveActionSave,
   CombatSave,
@@ -94,6 +95,10 @@ interface GameState {
    *  `harvestCrop`), never advanced by a tick, so plots keep growing
    *  alongside whatever else the player is doing — including nothing. */
   farmingPlots: FarmingPlotState[]
+  /** Ranching's pens — same independent-of-everything-else shape as
+   *  `farmingPlots`, just with a recurring stockpile instead of a
+   *  one-shot harvest (see engine/ranchingEngine.ts). */
+  ranchPens: RanchPenState[]
   /** Which Pet was most recently found live, and when — same "brief
    *  banner, no dismiss action" idea as `lastDefeatAt`/`lastDungeonClear`.
    *  Not persisted; a pet found while away surfaces via `offlineSummary`
@@ -196,6 +201,21 @@ interface GameState {
    *  the Farming pet, and empties the plot. No-ops if it isn't ready. */
   harvestCrop: (plotIndex: number) => void
 
+  /** Whether `penIndex` is currently empty, `animalId`'s level gate is met,
+   *  and at least one of its animal item is in the Bank. */
+  canPlaceAnimal: (penIndex: number, animalId: string) => boolean
+  /** Places `animalId` in `penIndex`, consuming one animal item. No-ops if
+   *  the pen isn't empty, the level gate isn't met, or none is held. */
+  placeAnimal: (penIndex: number, animalId: string) => void
+  /** Collects whatever's stockpiled in `penIndex` (see `collectBatches`),
+   *  grants XP per batch, rolls the Ranching pet, and advances the pen's
+   *  production clock — the animal stays in the pen and keeps producing,
+   *  unlike a Farming plot emptying on harvest. No-ops if nothing's ready. */
+  collectRanch: (penIndex: number) => void
+  /** Removes whatever animal is in `penIndex`, forfeiting any unclaimed
+   *  stockpile — no other penalty. */
+  releasePen: (penIndex: number) => void
+
   dismissOfflineSummary: () => void
   loadFromSave: (save: SaveData) => void
   toSaveShape: () => Omit<SaveData, 'version' | 'savedAt'>
@@ -208,6 +228,8 @@ const MAX_OFFLINE_MS = 24 * 60 * 60 * 1000
 /** Number of Farming plots available from the start — no plot-unlock
  *  progression yet, a natural follow-up noted in the README. */
 const FARMING_PLOT_COUNT = 4
+/** Number of Ranching pens available from the start — same reasoning. */
+const RANCH_PEN_COUNT = 4
 
 export const useGameStore = create<GameState>((set, get) => ({
   gold: 0,
@@ -228,6 +250,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   completedAchievementIds: {},
   ownedPetIds: {},
   farmingPlots: Array.from({ length: FARMING_PLOT_COUNT }, emptyPlot),
+  ranchPens: Array.from({ length: RANCH_PEN_COUNT }, emptyPen),
   lastPetFound: null,
   slayerTask: null,
   lastDefeatAt: null,
@@ -900,6 +923,78 @@ export const useGameStore = create<GameState>((set, get) => ({
       return { ...state, inventory, skillXp, ownedPetIds, lastPetFound, farmingPlots }
     }),
 
+  canPlaceAnimal: (penIndex, animalId) => {
+    const animal = ranchAnimalsById[animalId]
+    if (!animal) return false
+    const state = get()
+    const pen = state.ranchPens[penIndex]
+    if (!pen || pen.animalId !== null) return false
+    if (state.levelOf('ranching') < animal.requiredLevel) return false
+    return (state.inventory[animal.animalItemId] ?? 0) >= 1
+  },
+
+  placeAnimal: (penIndex, animalId) =>
+    set((state) => {
+      if (!get().canPlaceAnimal(penIndex, animalId)) return state
+      const animal = ranchAnimalsById[animalId]!
+
+      const inventory = { ...state.inventory }
+      inventory[animal.animalItemId] = (inventory[animal.animalItemId] ?? 0) - 1
+      if (inventory[animal.animalItemId] <= 0) delete inventory[animal.animalItemId]
+
+      // Same backdating trick plantCrop uses for the Farming pet's bonus.
+      const speedBonus = state.ownedPetIds[ranchingPet.id] ? ranchingPet.bonusPercent : 0
+      const ranchPens = [...state.ranchPens]
+      ranchPens[penIndex] = {
+        animalId,
+        placedAt: Date.now() - Math.floor(animal.raiseDurationMs * speedBonus),
+        lastCollectedAt: null,
+      }
+
+      return { ...state, inventory, ranchPens }
+    }),
+
+  collectRanch: (penIndex) =>
+    set((state) => {
+      const pen = state.ranchPens[penIndex]
+      if (!pen?.animalId) return state
+      const animal = ranchAnimalsById[pen.animalId]
+      if (!animal) return state
+      const now = Date.now()
+      const { batches, nextPen } = collectBatches(pen, animal, now)
+      if (batches <= 0) return state
+
+      const inventory = { ...state.inventory }
+      inventory[animal.produceItemId] = (inventory[animal.produceItemId] ?? 0) + batches
+
+      const skillXp = { ...state.skillXp }
+      skillXp.ranching = (skillXp.ranching ?? 0) + animal.xpPerCollection * batches
+
+      // Pets: same "rare roll per collection, scaled by level" pattern
+      // harvestCrop uses — one roll per collection event, not per batch,
+      // since a big stockpile collected at once shouldn't be an implicit
+      // multi-roll advantage over collecting often.
+      let ownedPetIds = state.ownedPetIds
+      let lastPetFound = state.lastPetFound
+      if (!ownedPetIds[ranchingPet.id] && rollPetDrop(state.levelOf('ranching'))) {
+        ownedPetIds = { ...ownedPetIds, [ranchingPet.id]: true }
+        lastPetFound = { petId: ranchingPet.id, at: now }
+      }
+
+      const ranchPens = [...state.ranchPens]
+      ranchPens[penIndex] = nextPen
+
+      return { ...state, inventory, skillXp, ownedPetIds, lastPetFound, ranchPens }
+    }),
+
+  releasePen: (penIndex) =>
+    set((state) => {
+      if (!state.ranchPens[penIndex]?.animalId) return state
+      const ranchPens = [...state.ranchPens]
+      ranchPens[penIndex] = emptyPen()
+      return { ...state, ranchPens }
+    }),
+
   dismissOfflineSummary: () => set({ offlineSummary: null }),
 
   loadFromSave: (save) => {
@@ -923,6 +1018,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       ownedPetIds: save.ownedPetIds ?? {},
       farmingPlots:
         save.farmingPlots ?? Array.from({ length: FARMING_PLOT_COUNT }, emptyPlot),
+      ranchPens: save.ranchPens ?? Array.from({ length: RANCH_PEN_COUNT }, emptyPen),
       slayerTask: save.slayerTask ?? null,
     })
 
@@ -990,6 +1086,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       completedAchievementIds: state.completedAchievementIds,
       ownedPetIds: state.ownedPetIds,
       farmingPlots: state.farmingPlots,
+      ranchPens: state.ranchPens,
       slayerTask: state.slayerTask,
     }
   },

@@ -6,6 +6,7 @@
 
 import type { EquipmentSlot } from '../data/types'
 import type { FarmingPlotState } from './farmingEngine'
+import type { RanchPenState } from './ranchingEngine'
 import type { SlayerTaskState } from './slayerEngine'
 
 const SAVE_KEY = 'medieval-idle-save'
@@ -80,6 +81,9 @@ export interface SaveData {
    *  existed, same "optional, defaulted on load" treatment every other
    *  field added after launch gets. */
   farmingPlots?: FarmingPlotState[]
+  /** Ranching's pens — undefined on any save written before Ranching
+   *  existed, same treatment as `farmingPlots`. */
+  ranchPens?: RanchPenState[]
   /** Timestamp this save was written, used to compute offline progress. */
   savedAt: number
 }

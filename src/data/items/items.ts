@@ -350,6 +350,28 @@ export const items: Record<string, Item> = {
     category: 'food',
     healAmount: 35,
   },
+
+  // Ranching: animals (bought from the Shop, same as Farming's seeds) go
+  // into a pen; once mature they keep producing on a recurring cycle
+  // rather than a single harvest — see engine/ranchingEngine.ts.
+  chicken: { id: 'chicken', name: 'Chicken', icon: '🐔', value: 15, category: 'resource' },
+  goat: { id: 'goat', name: 'Goat', icon: '🐐', value: 45, category: 'resource' },
+  sheep: { id: 'sheep', name: 'Sheep', icon: '🐑', value: 90, category: 'resource' },
+  cow: { id: 'cow', name: 'Cow', icon: '🐄', value: 180, category: 'resource' },
+  warhorse: { id: 'warhorse', name: 'Warhorse', icon: '🐎', value: 450, category: 'resource' },
+  egg: { id: 'egg', name: 'Egg', icon: '🥚', value: 3, category: 'resource' },
+  milk: { id: 'milk', name: 'Milk', icon: '🥛', value: 8, category: 'resource' },
+  wool: { id: 'wool', name: 'Wool', icon: '🧶', value: 18, category: 'resource' },
+  cowhide: { id: 'cowhide', name: 'Cowhide', icon: '🟤', value: 35, category: 'resource' },
+  horseshoe: { id: 'horseshoe', name: 'Horseshoe', icon: '🧲', value: 70, category: 'resource' },
+  cake: {
+    id: 'cake',
+    name: 'Cake',
+    icon: '🍰',
+    value: 24,
+    category: 'food',
+    healAmount: 55,
+  },
 }
 
 export function getItem(id: string): Item {

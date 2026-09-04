@@ -517,7 +517,8 @@ other system (skilling/combat/Dungeons) enforces: `farmingPlots` sits outside
 growing no matter what else is running — the whole point of a "plant it and walk
 away" skill. `StatusBar` surfaces a "🌾 N plots ready" badge alongside whatever
 else it's already showing, since that's the one piece of "what am I doing" that
-isn't mutually exclusive with the rest of the bar.
+isn't mutually exclusive with the rest of the bar (Ranching, below, joins it in
+the same badge group once it exists).
 
 4 fixed plots, 5 crops (Barley through the level-55 Golden Wheat, 2 minutes to 90
 minutes to grow), seeds bought at the Shop (there's no separate seed-gathering
@@ -532,12 +533,51 @@ follow-ups, not oversights. `pets.ts` gained a third `PetSource` variant,
 precedent for "a non-skill-panel system gets its own pet source" already set
 before Farming existed.
 
+### Ranching
+
+Design doc §12 names Ranching right alongside Farming: "an additional
+passive-production style skill." Structured the same way — its own
+`RanchAnimal` type, `engine/ranchingEngine.ts` as pure timestamp functions, a
+`RanchingPage` top-level nav tab kept out of `SkillId` — but given a
+deliberately different production shape rather than reskinning Farming's plot,
+so the two don't feel like the same system twice: a Farming plot yields *one*
+harvest and goes empty; a Ranch pen's animal, once mature, keeps producing on a
+recurring `produceIntervalMs` cycle indefinitely — genuinely "passive
+production," not "one-shot" — capped at `maxStockpile` so an animal left
+uncollected for a long absence doesn't accumulate without limit (the pen "fills
+up," the same idea a real coop or barn has).
+
+That recurring shape is where the interesting engine work is:
+`stockpiledBatches` divides elapsed time since the last collection by
+`produceIntervalMs` (still a plain timestamp calculation, no tick loop, no
+offline-catchup cap — same as Farming). `collectBatches` handles the cap
+correctly in both directions: if the pen was genuinely capped (production was
+being wasted while full), `lastCollectedAt` resets to `now`, since there's no
+partial progress worth preserving past a full pen; otherwise it advances by
+exactly the time actually converted into batches, so any leftover
+partial-cycle progress toward the *next* batch carries forward instead of
+being silently discarded. Collecting leaves the animal in the pen — unlike
+`harvestCrop` emptying a plot, `collectRanch` only resets the production
+clock, so the same animal immediately starts stockpiling again. `releasePen`
+is the one new verb Farming didn't need, for removing an animal outright (no
+penalty beyond forfeiting whatever wasn't yet collected).
+
+4 fixed pens, 5 animals (Chicken through the level-58 Warhorse, 1-30 minutes to
+raise, 45 seconds to 10 minutes per produce cycle), animals bought at the Shop
+(same reasoning as Farming's seeds), and a new Cooking recipe (`bake_cake`,
+from Egg + Milk) — the second crop/produce loop feeding back into an existing
+system. Ranching shares every other precedent Farming set: no Mastery (level
+stands in for mastery when rolling its pet), `pets.ts`'s fourth `PetSource`
+variant (`{type: 'ranching'}`), 2 achievements, and a slot in `StatusBar`'s
+badge group — "🌾 N plots ready" and "🐄 N pens ready" now ride along together,
+since neither is mutually exclusive with anything else running.
+
 ## Extending the game
 
 Adding more of anything above stays additive:
 
 - Any further **gathering/production skill** in the "start it, watch a timer,
-  repeat" mold (Ranching, Fletching, ...) is just another data file of
+  repeat" mold (Fletching, ...) is just another data file of
   `Location`/`Action` — no new engine code needed, register it in
   `data/index.ts` the same way the 8 current skills work.
 - More **combat content** (new enemies, a third `CombatArea`) is mostly data — add

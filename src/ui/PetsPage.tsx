@@ -1,5 +1,25 @@
 import { pets, skills } from '../data'
+import type { Pet } from '../data/types'
 import { useGameStore } from '../state/gameStore'
+
+/** Source label + what the bonus actually does, per `PetSource` variant —
+ *  pulled out of the card render now that there are four variants, not
+ *  two, to keep from nesting another ternary per pet added. */
+function describePetSource(pet: Pet): { sourceLabel: string; bonusLabel: string } {
+  const percent = `${(pet.bonusPercent * 100).toFixed(0)}%`
+  switch (pet.source.type) {
+    case 'skill': {
+      const skillName = skills[pet.source.skillId]?.name ?? pet.source.skillId
+      return { sourceLabel: skillName, bonusLabel: `+${percent} ${skillName} speed` }
+    }
+    case 'farming':
+      return { sourceLabel: 'Farming', bonusLabel: `+${percent} crop growth speed` }
+    case 'ranching':
+      return { sourceLabel: 'Ranching', bonusLabel: `+${percent} animal raising speed` }
+    case 'combat':
+      return { sourceLabel: 'Combat', bonusLabel: `+${percent} combat XP` }
+  }
+}
 
 export function PetsPage() {
   const ownedPetIds = useGameStore((s) => s.ownedPetIds)
@@ -18,18 +38,7 @@ export function PetsPage() {
       <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3">
         {pets.map((pet) => {
           const owned = Boolean(ownedPetIds[pet.id])
-          const sourceLabel =
-            pet.source.type === 'skill'
-              ? skills[pet.source.skillId]?.name
-              : pet.source.type === 'farming'
-                ? 'Farming'
-                : 'Combat'
-          const bonusLabel =
-            pet.source.type === 'skill'
-              ? `+${(pet.bonusPercent * 100).toFixed(0)}% ${sourceLabel} speed`
-              : pet.source.type === 'farming'
-                ? `+${(pet.bonusPercent * 100).toFixed(0)}% crop growth speed`
-                : `+${(pet.bonusPercent * 100).toFixed(0)}% combat XP`
+          const { sourceLabel, bonusLabel } = describePetSource(pet)
 
           return (
             <div

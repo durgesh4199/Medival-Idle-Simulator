@@ -87,6 +87,14 @@ export const pets: Pet[] = [
     source: { type: 'farming' },
     bonusPercent: SKILL_PET_SPEED_BONUS,
   },
+  {
+    id: 'pet_ranching',
+    name: 'Barnyard Cat',
+    icon: '🐈',
+    description: 'A rare find on collection. +2% faster animal raising once found.',
+    source: { type: 'ranching' },
+    bonusPercent: SKILL_PET_SPEED_BONUS,
+  },
 ]
 
 export const petsById: Record<string, Pet> = Object.fromEntries(pets.map((p) => [p.id, p]))
@@ -99,3 +107,4 @@ export const petBySkillId: Partial<Record<SkillId, Pet>> = Object.fromEntries(
 
 export const combatPet: Pet = pets.find((p) => p.source.type === 'combat')!
 export const farmingPet: Pet = pets.find((p) => p.source.type === 'farming')!
+export const ranchingPet: Pet = pets.find((p) => p.source.type === 'ranching')!

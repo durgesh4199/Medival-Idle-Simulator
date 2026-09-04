@@ -170,6 +170,22 @@ export const achievements: Achievement[] = [
     reward: { gold: 700 },
   },
   {
+    id: 'ranch_hand',
+    name: 'Ranch Hand',
+    icon: '🐐',
+    description: 'Reach Ranching level 25.',
+    requirements: [{ type: 'skillLevel', skillId: 'ranching', level: 25 }],
+    reward: { gold: 150 },
+  },
+  {
+    id: 'master_rancher',
+    name: 'Master Rancher',
+    icon: '🐎',
+    description: 'Reach Ranching level 58 — the Warhorse, the top of the pen.',
+    requirements: [{ type: 'skillLevel', skillId: 'ranching', level: 58 }],
+    reward: { gold: 700 },
+  },
+  {
     id: 'grandmaster_of_trades',
     name: 'Grandmaster of Trades',
     icon: '🎖️',

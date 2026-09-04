@@ -12,6 +12,7 @@ import { OfflineModal } from './ui/OfflineModal'
 import { PetFoundToast } from './ui/PetFoundToast'
 import { PetsPage } from './ui/PetsPage'
 import { QuestsPage } from './ui/QuestsPage'
+import { RanchingPage } from './ui/RanchingPage'
 import { ShopPage } from './ui/ShopPage'
 import { SkillPanel } from './ui/SkillPanel'
 import { StatusBar } from './ui/StatusBar'
@@ -38,6 +39,7 @@ function App() {
         {view === 'combat' && <CombatPage />}
         {view === 'dungeons' && <DungeonsPage />}
         {view === 'farming' && <FarmingPage />}
+        {view === 'ranching' && <RanchingPage />}
         {view === 'bank' && <BankPage />}
         {view === 'shop' && <ShopPage />}
         {view === 'quests' && <QuestsPage />}

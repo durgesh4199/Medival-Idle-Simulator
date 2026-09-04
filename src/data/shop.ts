@@ -16,4 +16,11 @@ export const shopBuyableItemIds: string[] = [
   'potato_seed',
   'pumpkin_seed',
   'golden_wheat_seed',
+  // Ranching animals — same "no separate gathering step" reasoning as
+  // Farming's seeds above.
+  'chicken',
+  'goat',
+  'sheep',
+  'cow',
+  'warhorse',
 ]

@@ -113,6 +113,33 @@ export interface FarmingCrop {
   requiredLevel: number
 }
 
+/**
+ * Ranching (design doc §12: "an additional passive-production style
+ * skill," named right alongside Farming). Deliberately given a different
+ * production shape rather than reskinning Farming's plot: a Farming plot
+ * yields *one* harvest and goes empty; a Ranch pen's animal, once mature,
+ * keeps producing on a recurring `produceIntervalMs` cycle indefinitely —
+ * "passive production," not "one-shot" — capped at `maxStockpile` so an
+ * animal left uncollected for a very long absence doesn't accumulate
+ * without limit (the pen "fills up," same idea a real coop/pen has).
+ */
+export interface RanchAnimal {
+  id: string
+  name: string
+  icon: string
+  /** Consumed from inventory to place this animal in a pen. */
+  animalItemId: string
+  /** Time from placing until the animal starts producing. */
+  raiseDurationMs: number
+  /** Once mature, one batch of `produceItemId` accumulates every this many
+   *  ms, up to `maxStockpile`. */
+  produceIntervalMs: number
+  produceItemId: string
+  maxStockpile: number
+  xpPerCollection: number
+  requiredLevel: number
+}
+
 export interface Skill {
   id: SkillId
   name: string
@@ -226,7 +253,11 @@ export interface Achievement {
  * stacking buff: finding a pet again (if it were possible) wouldn't do
  * anything further.
  */
-export type PetSource = { type: 'skill'; skillId: SkillId } | { type: 'combat' } | { type: 'farming' }
+export type PetSource =
+  | { type: 'skill'; skillId: SkillId }
+  | { type: 'combat' }
+  | { type: 'farming' }
+  | { type: 'ranching' }
 
 export interface Pet {
   id: string

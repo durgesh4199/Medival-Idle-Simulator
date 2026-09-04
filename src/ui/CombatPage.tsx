@@ -74,7 +74,8 @@ function SlayerTaskCard({ onViewEnemy }: { onViewEnemy: (enemyId: string) => voi
 }
 
 export function CombatPage() {
-  const area = combatAreas[0]
+  const [selectedAreaId, setSelectedAreaId] = useState(combatAreas[0]?.id)
+  const area = combatAreas.find((a) => a.id === selectedAreaId) ?? combatAreas[0]
   const [selectedEnemyId, setSelectedEnemyId] = useState(area?.enemyIds[0])
 
   const combat = useGameStore((s) => s.combat)
@@ -101,6 +102,42 @@ export function CombatPage() {
   return (
     <div className="flex flex-1 overflow-hidden">
       <aside className="w-64 shrink-0 overflow-y-auto border-r border-line bg-rail p-3">
+        <h2 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+          Combat Areas
+        </h2>
+        <div className="mb-4 flex flex-col gap-1">
+          {combatAreas.map((a) => {
+            const locked = levelOf('attack') < a.requiredLevel
+            const isSelected = a.id === area?.id
+            return (
+              <button
+                key={a.id}
+                type="button"
+                disabled={locked}
+                onClick={() => {
+                  setSelectedAreaId(a.id)
+                  setSelectedEnemyId(a.enemyIds[0])
+                }}
+                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
+                  isSelected
+                    ? 'border-gold/50 bg-gold/10 text-gold'
+                    : 'border-transparent text-neutral-300 hover:bg-panel'
+                } ${locked ? 'cursor-not-allowed opacity-40' : ''}`}
+              >
+                <span className="text-lg">{a.icon}</span>
+                <span className="flex-1">
+                  {a.name}
+                  {locked && (
+                    <span className="block text-xs text-neutral-500">
+                      Requires Attack level {a.requiredLevel}
+                    </span>
+                  )}
+                </span>
+              </button>
+            )
+          })}
+        </div>
+
         <h2 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">
           {area?.name ?? 'Combat Area'}
         </h2>

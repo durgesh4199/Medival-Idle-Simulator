@@ -378,16 +378,43 @@ on the melee fallback afterward, with no stall and no exception — confirming t
 degrade-gracefully behavior holds across an arbitrarily long single catch-up call,
 not just live ticking.
 
+### Shadowfen Marsh, Sunken Crypt, and Iron armor
+
+Every system in the design doc existed by this point — this was purely "broaden
+what's there," per README's own note that this is the natural next step once every
+top-level system is built. Three small additions, all data plus one real UI gap
+they exposed:
+
+- **3 new enemies** (`combat/enemies.ts`): Bog Troll, Dark Cultist, Wraith — roughly
+  double the Training Grounds trio's numbers, hand-tuned the same "level-1-20ish"
+  way the original three were, just aimed at level 25-40. Dark Cultist drops Chaos
+  and Death Runes, a second acquisition path for Spells' reagents beyond grinding
+  Runecrafting — "a resource is more valuable when it can become an input to
+  multiple systems," design principle #1, cutting both ways here.
+- **A second `CombatArea`**, Shadowfen Marsh, and **a second `Dungeon`**, Sunken
+  Crypt, both gated on Attack level and built from those three. `CombatArea` gained
+  a `requiredLevel`/`icon` it never needed with only one area to show.
+- **The rest of the Iron armor set** (`iron_helmet`/`iron_shield`/`iron_boots`) —
+  Iron had only ever shipped a sword; Bronze's full 4-piece set existed since
+  Bank/Equipment, so this was a real gap in the gear progression, not new scope.
+
+The one actual code gap this surfaced: `CombatPage` had `combatAreas[0]` hardcoded
+— fine with exactly one area, silently wrong with two. It now has an area-selector
+list above the enemy list, the same pattern `DungeonsPage`'s dungeon list and
+`SkillPanel`'s location list already use, gated the same way Dungeons are.
+
+Two new Achievements (`crypt_cleared`/`crypt_master`) mirror the Goblin Den pair —
+`dungeonCleared` already generalizes over any `Dungeon.id`, so wiring them up was
+zero engine work.
+
 ## Extending the game
 
-Every system in [the design doc](docs/design-document.md) is now built, plus
-Prayers and Spells as the first two combat modifiers. Adding more of any of them
-stays additive:
+Adding more of anything above stays additive:
 
 - Any further **gathering/production skill** (Farming, Ranching, ...) is just another
   data file of `Location`/`Action` — no new engine code needed, register it in
   `data/index.ts` the same way the 8 current skills work.
-- More **combat content** (new enemies, a second `CombatArea`) is mostly data — add
+- More **combat content** (new enemies, a third `CombatArea`) is mostly data — add
   enemies to `data/combat/enemies.ts`, areas to `data/combat/areas.ts`.
 - More **quests** are just another entry in `data/quests.ts` — the requirement/reward
   vocabulary already covers gather/train/craft/fight/chain.
@@ -401,6 +428,8 @@ stays additive:
 - More **spells** are just another entry in `data/combat/spells.ts` — one more
   `{requiredLevel, cost, power}` triple; the casting/fallback logic already
   generalizes over the whole list.
+- **Steel** (or any further Smithing tier) is a new ore/bar plus 4 more equipment
+  items following the Bronze/Iron pattern exactly.
 
 ## Development
 

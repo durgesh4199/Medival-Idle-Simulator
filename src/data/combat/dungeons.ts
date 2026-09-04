@@ -5,10 +5,10 @@
  * one-time completion reward — and real risk: dying partway through ends
  * the run with nothing, same as any other combat defeat.
  *
- * Only 3 enemies exist yet (see combat/enemies.ts), so this first dungeon
- * remixes them into an escalating run rather than needing new bestiary
- * data — more dungeons, or a bigger bestiary to draw from, are both just
- * more data, per README's "Extending the game".
+ * Goblin Den remixes the Training Grounds' 3 enemies into an escalating
+ * run; Sunken Crypt does the same with Shadowfen Marsh's tougher trio —
+ * more dungeons, or a bigger bestiary to draw from, are both just more
+ * data, per README's "Extending the game".
  */
 
 export interface Dungeon {
@@ -44,6 +44,24 @@ export const dungeons: Dungeon[] = [
       items: [
         { itemId: 'iron_bar', qty: 3 },
         { itemId: 'bronze_shield', qty: 1 },
+      ],
+    },
+  },
+  {
+    id: 'sunken_crypt',
+    name: 'Sunken Crypt',
+    icon: '⚰️',
+    description:
+      'A flooded tomb where Shadowfen Marsh buries what it drags under. Deeper, ' +
+      'darker, and considerably less forgiving than the Goblin Den.',
+    enemyIds: ['dark_cultist', 'dark_cultist', 'bog_troll', 'wraith', 'wraith'],
+    requiredLevel: 30,
+    completionReward: {
+      gold: 400,
+      xp: { attack: 250, strength: 250, defence: 250, hitpoints: 250 },
+      items: [
+        { itemId: 'iron_bar', qty: 5 },
+        { itemId: 'wraith_essence', qty: 1 },
       ],
     },
   },

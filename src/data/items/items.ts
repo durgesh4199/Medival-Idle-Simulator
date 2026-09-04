@@ -72,6 +72,30 @@ export const items: Record<string, Item> = {
     category: 'equipment',
     equipment: { slot: 'weapon', stats: { accuracy: 10, strength: 9, attackSpeedMs: 2400 } },
   },
+  iron_helmet: {
+    id: 'iron_helmet',
+    name: 'Iron Helmet',
+    icon: '⛑️',
+    value: 95,
+    category: 'equipment',
+    equipment: { slot: 'helmet', stats: { defence: 6 } },
+  },
+  iron_shield: {
+    id: 'iron_shield',
+    name: 'Iron Shield',
+    icon: '🛡️',
+    value: 105,
+    category: 'equipment',
+    equipment: { slot: 'shield', stats: { defence: 10 } },
+  },
+  iron_boots: {
+    id: 'iron_boots',
+    name: 'Iron Boots',
+    icon: '👢',
+    value: 65,
+    category: 'equipment',
+    equipment: { slot: 'boots', stats: { defence: 4 } },
+  },
 
   // Cooking output. Burning is a shared failure item, same as Melvor.
   // healAmount closes the doc's "Fishing -> Fish -> Cooking -> Food ->
@@ -117,12 +141,24 @@ export const items: Record<string, Item> = {
   chaos_rune: { id: 'chaos_rune', name: 'Chaos Rune', icon: '🌪️', value: 25, category: 'resource' },
   death_rune: { id: 'death_rune', name: 'Death Rune', icon: '💀', value: 60, category: 'resource' },
 
-  // Combat loot. Bones are a near-universal drop (future Prayer training
-  // material, per the design doc — not built yet, but the item exists).
+  // Combat loot. Bones are a near-universal drop, currently just a sellable
+  // — Prayer shipped as a flat Defence-gated modifier rather than something
+  // trained with a resource, so this stayed flavor/gold rather than a
+  // Prayer-training input.
   bones: { id: 'bones', name: 'Bones', icon: '🦴', value: 2, category: 'resource' },
   rat_tail: { id: 'rat_tail', name: 'Rat Tail', icon: '🐁', value: 3, category: 'resource' },
   goblin_ear: { id: 'goblin_ear', name: 'Goblin Ear', icon: '👂', value: 8, category: 'resource' },
   ancient_coin: { id: 'ancient_coin', name: 'Ancient Coin', icon: '🪙', value: 250, category: 'resource' },
+
+  // Shadowfen Marsh loot.
+  troll_hide: { id: 'troll_hide', name: 'Troll Hide', icon: '🟢', value: 30, category: 'resource' },
+  wraith_essence: {
+    id: 'wraith_essence',
+    name: 'Wraith Essence',
+    icon: '✨',
+    value: 400,
+    category: 'resource',
+  },
 }
 
 export function getItem(id: string): Item {

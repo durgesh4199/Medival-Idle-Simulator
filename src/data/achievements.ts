@@ -57,6 +57,22 @@ export const achievements: Achievement[] = [
     reward: { gold: 500 },
   },
   {
+    id: 'crypt_cleared',
+    name: 'Crypt Cleared',
+    icon: '⚰️',
+    description: 'Clear the Sunken Crypt once.',
+    requirements: [{ type: 'dungeonCleared', dungeonId: 'sunken_crypt', count: 1 }],
+    reward: { gold: 250, xp: { smithing: 100 } },
+  },
+  {
+    id: 'crypt_master',
+    name: 'Crypt Master',
+    icon: '👑',
+    description: 'Clear the Sunken Crypt 5 times.',
+    requirements: [{ type: 'dungeonCleared', dungeonId: 'sunken_crypt', count: 5 }],
+    reward: { gold: 1200 },
+  },
+  {
     id: 'jack_of_all_trades',
     name: 'Jack of All Trades',
     icon: '🧭',

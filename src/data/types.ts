@@ -127,6 +127,11 @@ export interface Enemy {
 export interface CombatArea {
   id: string
   name: string
+  icon: string
+  /** Gated on Attack level, same as Dungeon.requiredLevel — a soft
+   *  deterrent alongside the enemies' own difficulty, not a hard wall on
+   *  any individual fight within an unlocked area. */
+  requiredLevel: number
   enemyIds: string[]
 }
 

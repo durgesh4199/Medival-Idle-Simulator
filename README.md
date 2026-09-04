@@ -491,6 +491,33 @@ cross-reference pass (every new id resolves) plus a live Playwright pass
 confirming Smelt Rune Bar and a real fight against a Molten Golem both
 resolve correctly through the existing engine.
 
+### A second Prayer tier, and Blood Bolt
+
+Two follow-up fixes surfaced by Emberfall's higher level range, rather than
+another tier of content in their own right:
+
+- **Blood Rune had no use anywhere.** Every other rune Runecrafting produces
+  feeds a matching Spell — Air through Death Bolt — except Blood Rune, its
+  own newest and highest tier, which was sellable and nothing else.
+  `blood_bolt` (Attack level 80, 1 Blood Rune + 1 Death Rune per cast, 52
+  power — the new top of the spell list) closes that gap the same way every
+  earlier rune tier already closes into Spells.
+- **Prayer had nowhere left to go.** All four original Prayers unlock by
+  Defence level 15, from when Defence 15 meant something; Frostfang/
+  Emberfall's 45-80 range and `grand_warlord`'s Defence-70 milestone left
+  Prayer completely outpaced — nothing to reach for in that system past the
+  very early game. A second tier, one stronger Prayer per stat spread across
+  levels 35-50 (`zeal`/`fury`/`aegis`/`sanctity`), gives Prayer a reason to
+  keep training Defence instead of maxing it out in the first few hours.
+
+Verified live: selecting Prayer of Sanctity and Blood Bolt both persist
+correctly, and fighting with Blood Bolt active spends exactly 1 Blood Rune +
+1 Death Rune per successful cast, same as every other Spell's cost
+accounting — confirming the new entries aren't just visible in the selector
+lists but actually wired through `computePlayerCombatStats`/`simulateCombat`
+the same as the originals. No engine or UI changes — `PrayerSelector`/
+`SpellSelector` already render whatever's in `prayers`/`spells` generically.
+
 ### Pacing: how long is "the full game"?
 
 `engine/xp.ts`'s level curve is already steep by design (RuneScape/Melvor-style,

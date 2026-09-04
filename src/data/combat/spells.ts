@@ -91,6 +91,22 @@ export const spells: Spell[] = [
     ],
     power: 38,
   },
+  // Blood Rune (Runecrafting's own top tier, level 80) had no use anywhere
+  // in Combat until now — closes that gap the same way every other rune
+  // tier already closes into its matching Spell, and gives the top of the
+  // spell list somewhere to go past Death Bolt.
+  {
+    id: 'blood_bolt',
+    name: 'Blood Bolt',
+    icon: '🩸',
+    description: 'A lance that feeds on the caster. Costs 1 Blood Rune + 1 Death Rune per cast.',
+    requiredLevel: 80,
+    cost: [
+      { itemId: 'blood_rune', qty: 1 },
+      { itemId: 'death_rune', qty: 1 },
+    ],
+    power: 52,
+  },
 ]
 
 export const spellsById: Record<string, Spell> = Object.fromEntries(

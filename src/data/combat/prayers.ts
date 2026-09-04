@@ -70,6 +70,44 @@ export const prayers: Prayer[] = [
     requiredLevel: 15,
     modifiers: { maxHpPercent: 0.15 },
   },
+
+  // A second tier — the original four all unlock by level 15, which the
+  // game's own combat-level progression (Frostfang/Emberfall's 45-70+
+  // range, Grand Warlord's 70) had long since outpaced, leaving nothing
+  // left to reach for in Prayer specifically. Same four stats, stronger,
+  // spread across the level range those tiers actually cover.
+  {
+    id: 'zeal',
+    name: 'Prayer of Zeal',
+    icon: '🎯',
+    description: '+20% Accuracy.',
+    requiredLevel: 35,
+    modifiers: { accuracyPercent: 0.2 },
+  },
+  {
+    id: 'fury',
+    name: 'Prayer of Fury',
+    icon: '💪',
+    description: '+20% Max Hit.',
+    requiredLevel: 40,
+    modifiers: { maxHitPercent: 0.2 },
+  },
+  {
+    id: 'aegis',
+    name: 'Prayer of the Aegis',
+    icon: '🛡️',
+    description: '+24% Evasion.',
+    requiredLevel: 45,
+    modifiers: { evasionPercent: 0.24 },
+  },
+  {
+    id: 'sanctity',
+    name: 'Prayer of Sanctity',
+    icon: '❤️',
+    description: '+28% Max HP.',
+    requiredLevel: 50,
+    modifiers: { maxHpPercent: 0.28 },
+  },
 ]
 
 export const prayersById: Record<string, Prayer> = Object.fromEntries(

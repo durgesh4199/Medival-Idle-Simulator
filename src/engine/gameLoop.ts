@@ -22,6 +22,12 @@ function persist() {
   saveGame(useGameStore.getState().toSaveShape())
 }
 
+/** Forces an immediate save outside the normal 10s autosave interval —
+ *  `SettingsPage`'s "Save Now" button and the basis for its Export. */
+export function saveNow(): void {
+  persist()
+}
+
 export function initGame(): void {
   const save = loadGame()
   if (save) {

@@ -13,6 +13,7 @@ import { PetFoundToast } from './ui/PetFoundToast'
 import { PetsPage } from './ui/PetsPage'
 import { QuestsPage } from './ui/QuestsPage'
 import { RanchingPage } from './ui/RanchingPage'
+import { SettingsPage } from './ui/SettingsPage'
 import { ShopPage } from './ui/ShopPage'
 import { SkillPanel } from './ui/SkillPanel'
 import { StatusBar } from './ui/StatusBar'
@@ -45,6 +46,7 @@ function App() {
         {view === 'quests' && <QuestsPage />}
         {view === 'achievements' && <AchievementsPage />}
         {view === 'pets' && <PetsPage />}
+        {view === 'settings' && <SettingsPage />}
       </div>
       <StatusBar />
       <PetFoundToast />

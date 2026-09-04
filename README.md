@@ -572,6 +572,42 @@ variant (`{type: 'ranching'}`), 2 achievements, and a slot in `StatusBar`'s
 badge group — "🌾 N plots ready" and "🐄 N pens ready" now ride along together,
 since neither is mutually exclusive with anything else running.
 
+### Settings
+
+Design doc §13's nav list — Skills / Combat / Bank / Equipment / Quests /
+Mastery / Codex / **Settings/Meta** — had one entry with no page at all until
+now. Everything else in the game is either a timed `Action` or a `gameStore`
+mutation the simulation reads back; Settings is neither, so `SettingsPage`
+talks to `engine/saveSystem.ts`/`localStorage` directly instead of through the
+store — Save Now, Export, Import, and Reset are all operations on the save
+file itself, not events inside the simulation.
+
+Export builds the exact `SaveData` the normal autosave would write (via
+`toSaveShape()` + a fresh `savedAt`), shown in a copyable textarea and offered
+as a `.json` download. Import parses pasted or uploaded JSON, checks it loosely
+resembles a save (`isValidSaveData` — enough to reject garbage, not full schema
+validation) and, if it does, calls `gameStore.loadFromSave()` directly on the
+live store — the same function `gameLoop.initGame()` calls on a normal boot,
+so restoring an old backup correctly replays offline progress from *that
+save's own* `savedAt`, not from the moment of import, exactly like loading any
+other save does. No page reload needed for Import, which sidesteps a real bug
+the first version of this had: reloading the page fires `beforeunload`, which
+`gameLoop`'s own autosave listener uses to persist the *current* live state —
+so a reload-based Import or Reset would otherwise race that autosave and get
+silently overwritten by the very state it was replacing. Reset (behind a
+"click again to confirm" two-step, no native `confirm()` dialog) sidesteps the
+same race the other way: it calls `stopGameLoop()` — unregistering that
+`beforeunload` listener — before `clearSave()` and only then reloads, so
+there's nothing left to write the pre-reset state back.
+
+Verified by round-tripping: export the current save, edit a field in the
+exported JSON, paste the edited version back into Import, and confirm the
+edit actually took effect with no reload race — plus confirming Reset
+actually empties `localStorage` (not just visually resets) using a save
+seeded via `page.evaluate` rather than `addInitScript`, since `addInitScript`
+re-seeds on every navigation including the reload Reset triggers, which
+would have hidden the same race bug during testing.
+
 ## Extending the game
 
 Adding more of anything above stays additive:

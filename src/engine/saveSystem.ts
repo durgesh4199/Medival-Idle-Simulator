@@ -10,7 +10,9 @@ import type { RanchPenState } from './ranchingEngine'
 import type { SlayerTaskState } from './slayerEngine'
 
 const SAVE_KEY = 'medieval-idle-save'
-const SAVE_VERSION = 1
+/** Exported so `SettingsPage` can stamp an export with the same version an
+ *  import will be checked against, without reaching into localStorage. */
+export const SAVE_VERSION = 1
 
 export interface ActiveActionSave {
   actionId: string
@@ -111,6 +113,23 @@ export function loadGame(): SaveData | null {
     console.warn('[saveSystem] failed to load save', err)
     return null
   }
+}
+
+/** Loose shape check for a save imported from outside the game (pasted or
+ *  uploaded on `SettingsPage`) — just enough to reject obvious garbage
+ *  before it's written to `localStorage` and reloaded, not a full schema
+ *  validation. `loadGame` already tolerates a version mismatch, so this
+ *  doesn't check `version` either. */
+export function isValidSaveData(data: unknown): data is SaveData {
+  if (typeof data !== 'object' || data === null) return false
+  const save = data as Partial<SaveData>
+  return (
+    typeof save.gold === 'number' &&
+    typeof save.skillXp === 'object' &&
+    save.skillXp !== null &&
+    typeof save.inventory === 'object' &&
+    save.inventory !== null
+  )
 }
 
 export function clearSave(): void {

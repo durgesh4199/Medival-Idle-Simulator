@@ -577,25 +577,49 @@ since neither is mutually exclusive with anything else running.
 Design doc §16 lists "Codex/event-log features" among what's *confirmed*
 publicly about MI2 (unlike most of this game's exact numbers, which are
 reconstructed) — the one design doc §13 nav entry left with no page after
-Settings. Scoped to the "Codex" half, not the event-log half: a browsable
-reference over `enemies` and `items`, not a discovery/collection mechanic —
-every enemy and every item is listed regardless of whether the player has
-ever encountered it, since the goal here is answering "what does level 40
-unlock" while planning, not gating information behind a separate "have I
-found this yet" tracker `gameStore` would need to grow just to serve this one
-screen. Zero new engine code: `CodexPage` reads directly off `data/`'s
-existing `enemies`/`items` exports, the same "no logic, just data" pattern
-`PetsPage`/`BankPage` already use for what the player currently owns —
-Codex just doesn't filter down to that.
+Settings. Both halves live here as `CodexPage`'s three tabs: Bestiary and
+Items are the Codex half, Activity is the event-log half.
 
-Bestiary cards show full combat stats plus a loot table (reusing the same
-`ItemDrop[]` shape kills already roll from) and cross-reference which
-`CombatArea`(s)/`Dungeon`(s) an enemy actually appears in. Item cards show
-category, value, and — for equipment — the same accuracy/strength/defence/
-attack-speed stat block `BankPage` already renders, so gear can be compared
-before it's ever been crafted or looted. Both tabs share one search box
-(filtered by name) plus, for items, `BankPage`'s existing
-All/Equipment/Food/Resources category filter.
+Bestiary/Items are a browsable *reference*, not a discovery/collection
+mechanic — every enemy and every item is listed regardless of whether the
+player has ever encountered it, since the goal is answering "what does level
+40 unlock" while planning, not gating information behind a separate "have I
+found this yet" tracker `gameStore` would need to grow just to serve this one
+screen. Zero new engine code for these two: `CodexPage` reads directly off
+`data/`'s existing `enemies`/`items` exports, the same "no logic, just data"
+pattern `PetsPage`/`BankPage` already use for what the player currently
+owns — Codex just doesn't filter down to that. Bestiary cards show full
+combat stats plus a loot table (reusing the same `ItemDrop[]` shape kills
+already roll from) and cross-reference which `CombatArea`(s)/`Dungeon`(s) an
+enemy actually appears in. Item cards show category, value, and — for
+equipment — the same accuracy/strength/defence/attack-speed stat block
+`BankPage` already renders. Both tabs share one search box (filtered by
+name) plus, for items, `BankPage`'s existing All/Equipment/Food/Resources
+category filter.
+
+Activity, unlike its two siblings, *does* need new engine surface:
+`engine/eventLogEngine.ts` is pure functions (`pushLogEntry`, a ring buffer
+capped at 50 — newest first, `OfflineSummary`'s own convention — and
+`levelUpMessages`/`pushLevelUps`, which diff a `skillXp` snapshot from
+before/after a mutation and return an entry for every skill or combat stat
+that crossed a level boundary in between) that `gameStore` folds into a new
+`eventLog` field at every XP-granting mutation site —
+`tick`/`combatTick`/`dungeonTick`/`completeQuest`/`completeAchievement`/
+`harvestCrop`/`collectRanch` — the same "call a pure engine function, fold
+the result into state" shape every other tracker here already uses, just
+touching more call sites than usual since XP is granted in more places than
+any other single kind of event. Pet finds, quest/achievement completions,
+dungeon clears, and defeats are logged the same way, right alongside the
+existing `lastPetFound`/`lastDungeonClear`/`lastDefeatAt` "brief banner"
+trackers those events already set — Activity is a durable, scrollable history
+of exactly the same moments those already surface as transient banners.
+
+Verified with a seeded save close to a level boundary, live: training
+Fishing across a level-up produces the right "Reached Fishing level N"
+entry, turning in a quest produces "Completed \"...\"", and fighting across a
+Hitpoints level-up produces "Reached Hitpoints level N" — confirming the
+diff-based level-up detection actually fires correctly from three unrelated
+mutation sites, not just that the helper function works in isolation.
 
 ### Settings
 

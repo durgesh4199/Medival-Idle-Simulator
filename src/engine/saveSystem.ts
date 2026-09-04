@@ -5,6 +5,7 @@
  */
 
 import type { EquipmentSlot } from '../data/types'
+import type { LogEntry } from './eventLogEngine'
 import type { FarmingPlotState } from './farmingEngine'
 import type { RanchPenState } from './ranchingEngine'
 import type { SlayerTaskState } from './slayerEngine'
@@ -86,6 +87,9 @@ export interface SaveData {
   /** Ranching's pens — undefined on any save written before Ranching
    *  existed, same treatment as `farmingPlots`. */
   ranchPens?: RanchPenState[]
+  /** Recent activity-feed entries — undefined on any save written before
+   *  the event log existed, same treatment as `farmingPlots`. */
+  eventLog?: LogEntry[]
   /** Timestamp this save was written, used to compute offline progress. */
   savedAt: number
 }

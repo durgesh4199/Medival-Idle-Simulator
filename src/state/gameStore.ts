@@ -18,6 +18,7 @@ import {
 import { advanceDungeonRun } from '../engine/dungeonEngine'
 import { getBuyPrice, getSellPrice, isSellable } from '../engine/economyEngine'
 import { aggregateEquipmentStats, getWeaponAttackSpeedMs } from '../engine/equipmentEngine'
+import { pushLevelUps, pushLogEntry, type LogEntry } from '../engine/eventLogEngine'
 import { emptyPlot, isPlotReady, rollHarvestYield, type FarmingPlotState } from '../engine/farmingEngine'
 import {
   masteryLevelForXp,
@@ -99,6 +100,12 @@ interface GameState {
    *  `farmingPlots`, just with a recurring stockpile instead of a
    *  one-shot harvest (see engine/ranchingEngine.ts). */
   ranchPens: RanchPenState[]
+  /** Recent "what just happened" entries — level-ups, pets found, quests/
+   *  achievements completed, dungeons cleared, defeats — newest first,
+   *  capped at 50 (see engine/eventLogEngine.ts). `CodexPage`'s Activity
+   *  tab reads this; it's the other half of design doc §16's "Codex/
+   *  event-log features" alongside Codex's Bestiary/Items reference. */
+  eventLog: LogEntry[]
   /** Which Pet was most recently found live, and when — same "brief
    *  banner, no dismiss action" idea as `lastDefeatAt`/`lastDungeonClear`.
    *  Not persisted; a pet found while away surfaces via `offlineSummary`
@@ -251,6 +258,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   ownedPetIds: {},
   farmingPlots: Array.from({ length: FARMING_PLOT_COUNT }, emptyPlot),
   ranchPens: Array.from({ length: RANCH_PEN_COUNT }, emptyPen),
+  eventLog: [],
   lastPetFound: null,
   slayerTask: null,
   lastDefeatAt: null,
@@ -305,6 +313,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       const masteryPoolXp = { ...state.masteryPoolXp }
       let ownedPetIds = state.ownedPetIds
       let lastPetFound = state.lastPetFound
+      let eventLog = state.eventLog
       const skillPet = petBySkillId[action.skillId]
       let completions = 0
 
@@ -320,6 +329,7 @@ export const useGameStore = create<GameState>((set, get) => ({
             masteryPoolXp,
             ownedPetIds,
             lastPetFound,
+            eventLog: pushLevelUps(eventLog, state.skillXp, skillXp, now),
           }
         }
         for (const input of action.inputs ?? []) {
@@ -347,6 +357,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         if (skillPet && !ownedPetIds[skillPet.id] && rollPetDrop(masteryLevel)) {
           ownedPetIds = { ...ownedPetIds, [skillPet.id]: true }
           lastPetFound = { petId: skillPet.id, at: Date.now() }
+          eventLog = pushLogEntry(eventLog, skillPet.icon, `Found ${skillPet.name}!`, Date.now())
         }
 
         cursor += durationMs
@@ -364,6 +375,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         masteryPoolXp,
         ownedPetIds,
         lastPetFound,
+        eventLog: pushLevelUps(eventLog, state.skillXp, skillXp, now),
       }
     }),
 
@@ -468,12 +480,17 @@ export const useGameStore = create<GameState>((set, get) => ({
         inventory[item.itemId] = (inventory[item.itemId] ?? 0) + item.qty
       }
 
+      const now = Date.now()
+      let eventLog = pushLogEntry(state.eventLog, quest.icon, `Completed "${quest.name}"`, now)
+      eventLog = pushLevelUps(eventLog, state.skillXp, skillXp, now)
+
       return {
         ...state,
         inventory,
         skillXp,
         gold: state.gold + (quest.rewards.gold ?? 0),
         completedQuestIds: { ...state.completedQuestIds, [questId]: true },
+        eventLog,
       }
     }),
 
@@ -508,11 +525,16 @@ export const useGameStore = create<GameState>((set, get) => ({
         skillXp[skillId] = (skillXp[skillId] ?? 0) + xp
       }
 
+      const now = Date.now()
+      let eventLog = pushLogEntry(state.eventLog, achievement.icon, `Unlocked "${achievement.name}"`, now)
+      eventLog = pushLevelUps(eventLog, state.skillXp, skillXp, now)
+
       return {
         ...state,
         skillXp,
         gold: state.gold + (achievement.reward?.gold ?? 0),
         completedAchievementIds: { ...state.completedAchievementIds, [achievementId]: true },
+        eventLog,
       }
     }),
 
@@ -659,6 +681,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       // tasks stop needing a specific enemy once a task is done.
       let ownedPetIds = state.ownedPetIds
       let lastPetFound = state.lastPetFound
+      let eventLog = state.eventLog
       if (!ownedPetIds[combatPet.id] && killsThisTick > 0) {
         const avgCombatLevel =
           (state.levelOf('attack') +
@@ -670,6 +693,7 @@ export const useGameStore = create<GameState>((set, get) => ({
           if (rollPetDrop(avgCombatLevel)) {
             ownedPetIds = { ...ownedPetIds, [combatPet.id]: true }
             lastPetFound = { petId: combatPet.id, at: Date.now() }
+            eventLog = pushLogEntry(eventLog, combatPet.icon, `Found ${combatPet.name}!`, Date.now())
             break
           }
         }
@@ -697,6 +721,11 @@ export const useGameStore = create<GameState>((set, get) => ({
         }
       }
 
+      if (result.defeated) {
+        eventLog = pushLogEntry(eventLog, '💀', `Defeated by ${enemy.name}`, Date.now())
+      }
+      eventLog = pushLevelUps(eventLog, state.skillXp, skillXp, now)
+
       return {
         ...state,
         skillXp,
@@ -705,6 +734,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         slayerTask,
         ownedPetIds,
         lastPetFound,
+        eventLog,
         gold: state.gold + result.goldGained + slayerGold,
         combat: result.defeated ? null : { enemyId: state.combat.enemyId, ...result.state },
         lastDefeatAt: result.defeated ? Date.now() : state.lastDefeatAt,
@@ -802,6 +832,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       // dungeon's own kill count for this call.
       let ownedPetIds = state.ownedPetIds
       let lastPetFound = state.lastPetFound
+      let eventLog = state.eventLog
       if (!ownedPetIds[combatPet.id] && result.kills > 0) {
         const avgCombatLevel =
           (state.levelOf('attack') +
@@ -813,6 +844,7 @@ export const useGameStore = create<GameState>((set, get) => ({
           if (rollPetDrop(avgCombatLevel)) {
             ownedPetIds = { ...ownedPetIds, [combatPet.id]: true }
             lastPetFound = { petId: combatPet.id, at: Date.now() }
+            eventLog = pushLogEntry(eventLog, combatPet.icon, `Found ${combatPet.name}!`, Date.now())
             break
           }
         }
@@ -841,7 +873,13 @@ export const useGameStore = create<GameState>((set, get) => ({
           ...dungeonClearCounts,
           [dungeon.id]: (dungeonClearCounts[dungeon.id] ?? 0) + 1,
         }
+        eventLog = pushLogEntry(eventLog, dungeon.icon, `Cleared ${dungeon.name}`, Date.now())
       }
+
+      if (result.defeated) {
+        eventLog = pushLogEntry(eventLog, '💀', `Defeated in ${dungeon.name}`, Date.now())
+      }
+      eventLog = pushLevelUps(eventLog, state.skillXp, skillXp, now)
 
       return {
         ...state,
@@ -852,6 +890,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         dungeonClearCounts,
         ownedPetIds,
         lastPetFound,
+        eventLog,
         lastDefeatAt: result.defeated ? Date.now() : state.lastDefeatAt,
         lastDungeonClear,
       }
@@ -912,15 +951,18 @@ export const useGameStore = create<GameState>((set, get) => ({
       // in for a per-action mastery level, since Farming has no Mastery.
       let ownedPetIds = state.ownedPetIds
       let lastPetFound = state.lastPetFound
+      let eventLog = state.eventLog
       if (!ownedPetIds[farmingPet.id] && rollPetDrop(state.levelOf('farming'))) {
         ownedPetIds = { ...ownedPetIds, [farmingPet.id]: true }
         lastPetFound = { petId: farmingPet.id, at: now }
+        eventLog = pushLogEntry(eventLog, farmingPet.icon, `Found ${farmingPet.name}!`, now)
       }
+      eventLog = pushLevelUps(eventLog, state.skillXp, skillXp, now)
 
       const farmingPlots = [...state.farmingPlots]
       farmingPlots[plotIndex] = emptyPlot()
 
-      return { ...state, inventory, skillXp, ownedPetIds, lastPetFound, farmingPlots }
+      return { ...state, inventory, skillXp, ownedPetIds, lastPetFound, eventLog, farmingPlots }
     }),
 
   canPlaceAnimal: (penIndex, animalId) => {
@@ -976,15 +1018,18 @@ export const useGameStore = create<GameState>((set, get) => ({
       // multi-roll advantage over collecting often.
       let ownedPetIds = state.ownedPetIds
       let lastPetFound = state.lastPetFound
+      let eventLog = state.eventLog
       if (!ownedPetIds[ranchingPet.id] && rollPetDrop(state.levelOf('ranching'))) {
         ownedPetIds = { ...ownedPetIds, [ranchingPet.id]: true }
         lastPetFound = { petId: ranchingPet.id, at: now }
+        eventLog = pushLogEntry(eventLog, ranchingPet.icon, `Found ${ranchingPet.name}!`, now)
       }
+      eventLog = pushLevelUps(eventLog, state.skillXp, skillXp, now)
 
       const ranchPens = [...state.ranchPens]
       ranchPens[penIndex] = nextPen
 
-      return { ...state, inventory, skillXp, ownedPetIds, lastPetFound, ranchPens }
+      return { ...state, inventory, skillXp, ownedPetIds, lastPetFound, eventLog, ranchPens }
     }),
 
   releasePen: (penIndex) =>
@@ -1019,6 +1064,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       farmingPlots:
         save.farmingPlots ?? Array.from({ length: FARMING_PLOT_COUNT }, emptyPlot),
       ranchPens: save.ranchPens ?? Array.from({ length: RANCH_PEN_COUNT }, emptyPen),
+      eventLog: save.eventLog ?? [],
       slayerTask: save.slayerTask ?? null,
     })
 
@@ -1087,6 +1133,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       ownedPetIds: state.ownedPetIds,
       farmingPlots: state.farmingPlots,
       ranchPens: state.ranchPens,
+      eventLog: state.eventLog,
       slayerTask: state.slayerTask,
     }
   },

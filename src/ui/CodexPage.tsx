@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react'
 import { combatAreas, dungeons, enemies, getItem, items } from '../data'
 import type { Enemy, Item, ItemCategory } from '../data/types'
+import { useGameStore } from '../state/gameStore'
+import { useNow } from './useNow'
 
-type Tab = 'bestiary' | 'items'
+type Tab = 'bestiary' | 'items' | 'activity'
 
 const ITEM_FILTERS: { value: ItemCategory | 'all'; label: string }[] = [
   { value: 'all', label: 'All' },
@@ -10,6 +12,17 @@ const ITEM_FILTERS: { value: ItemCategory | 'all'; label: string }[] = [
   { value: 'food', label: 'Food' },
   { value: 'resource', label: 'Resources' },
 ]
+
+function formatTimeAgo(at: number, now: number): string {
+  const seconds = Math.max(0, Math.round((now - at) / 1000))
+  if (seconds < 5) return 'just now'
+  if (seconds < 60) return `${seconds}s ago`
+  const minutes = Math.round(seconds / 60)
+  if (minutes < 60) return `${minutes}m ago`
+  const hours = Math.round(minutes / 60)
+  if (hours < 24) return `${hours}h ago`
+  return `${Math.round(hours / 24)}d ago`
+}
 
 function EnemyCard({ enemy }: { enemy: Enemy }) {
   const foundIn = [
@@ -117,6 +130,8 @@ export function CodexPage() {
   const [tab, setTab] = useState<Tab>('bestiary')
   const [search, setSearch] = useState('')
   const [itemFilter, setItemFilter] = useState<ItemCategory | 'all'>('all')
+  const eventLog = useGameStore((s) => s.eventLog)
+  const now = useNow(15_000)
 
   const filteredEnemies = useMemo(
     () =>
@@ -139,7 +154,7 @@ export function CodexPage() {
     <div className="flex-1 overflow-y-auto p-4">
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <div className="flex gap-1 rounded-lg bg-rail p-1">
-          {(['bestiary', 'items'] as Tab[]).map((t) => (
+          {(['bestiary', 'items', 'activity'] as Tab[]).map((t) => (
             <button
               key={t}
               type="button"
@@ -148,17 +163,23 @@ export function CodexPage() {
                 tab === t ? 'bg-gold/15 text-gold' : 'text-neutral-400 hover:text-neutral-200'
               }`}
             >
-              {t === 'bestiary' ? `Bestiary (${enemies.length})` : `Items (${Object.keys(items).length})`}
+              {t === 'bestiary'
+                ? `Bestiary (${enemies.length})`
+                : t === 'items'
+                  ? `Items (${Object.keys(items).length})`
+                  : `Activity (${eventLog.length})`}
             </button>
           ))}
         </div>
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder={tab === 'bestiary' ? 'Search enemies…' : 'Search items…'}
-          className="rounded-lg border border-line bg-panel px-3 py-1.5 text-sm text-neutral-200 placeholder:text-neutral-600 focus:border-gold focus:outline-none"
-        />
+        {tab !== 'activity' && (
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={tab === 'bestiary' ? 'Search enemies…' : 'Search items…'}
+            className="rounded-lg border border-line bg-panel px-3 py-1.5 text-sm text-neutral-200 placeholder:text-neutral-600 focus:border-gold focus:outline-none"
+          />
+        )}
         {tab === 'items' && (
           <div className="flex gap-1">
             {ITEM_FILTERS.map((f) => (
@@ -179,8 +200,8 @@ export function CodexPage() {
         )}
       </div>
 
-      {tab === 'bestiary' ? (
-        filteredEnemies.length === 0 ? (
+      {tab === 'bestiary' &&
+        (filteredEnemies.length === 0 ? (
           <p className="text-sm text-neutral-500">No enemies match "{search}".</p>
         ) : (
           <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-3">
@@ -188,16 +209,41 @@ export function CodexPage() {
               <EnemyCard key={enemy.id} enemy={enemy} />
             ))}
           </div>
-        )
-      ) : filteredItems.length === 0 ? (
-        <p className="text-sm text-neutral-500">No items match "{search}".</p>
-      ) : (
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-2">
-          {filteredItems.map((item) => (
-            <ItemCard key={item.id} item={item} />
-          ))}
-        </div>
-      )}
+        ))}
+
+      {tab === 'items' &&
+        (filteredItems.length === 0 ? (
+          <p className="text-sm text-neutral-500">No items match "{search}".</p>
+        ) : (
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-2">
+            {filteredItems.map((item) => (
+              <ItemCard key={item.id} item={item} />
+            ))}
+          </div>
+        ))}
+
+      {tab === 'activity' &&
+        (eventLog.length === 0 ? (
+          <p className="text-sm text-neutral-500">
+            Nothing yet — level-ups, pet finds, quest/achievement completions, and dungeon
+            clears will show up here as they happen.
+          </p>
+        ) : (
+          <div className="max-w-lg space-y-1.5">
+            {eventLog.map((entry) => (
+              <div
+                key={entry.id}
+                className="flex items-center gap-2 rounded-lg border border-line bg-panel px-3 py-2 text-sm"
+              >
+                <span className="text-lg">{entry.icon}</span>
+                <span className="flex-1 text-neutral-200">{entry.message}</span>
+                <span className="shrink-0 text-[11px] text-neutral-500">
+                  {formatTimeAgo(entry.at, now)}
+                </span>
+              </div>
+            ))}
+          </div>
+        ))}
     </div>
   )
 }

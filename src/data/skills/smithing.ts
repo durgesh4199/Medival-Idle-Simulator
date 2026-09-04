@@ -13,7 +13,14 @@ export const smithingLocations: Location[] = [
     skillId: 'smithing',
     name: 'Furnace',
     requiredLevel: 1,
-    actionIds: ['smelt_bronze_bar', 'smelt_iron_bar', 'smelt_steel_bar', 'smelt_mithril_bar', 'smelt_adamant_bar'],
+    actionIds: [
+      'smelt_bronze_bar',
+      'smelt_iron_bar',
+      'smelt_steel_bar',
+      'smelt_mithril_bar',
+      'smelt_adamant_bar',
+      'smelt_rune_bar',
+    ],
   },
   {
     id: 'anvil',
@@ -41,6 +48,10 @@ export const smithingLocations: Location[] = [
       'smith_adamant_helmet',
       'smith_adamant_shield',
       'smith_adamant_boots',
+      'smith_rune_sword',
+      'smith_rune_helmet',
+      'smith_rune_shield',
+      'smith_rune_boots',
     ],
   },
 ]
@@ -117,6 +128,20 @@ export const smithingActions: Action[] = [
       { itemId: 'coal', qty: 3 },
     ],
     outputs: [{ itemId: 'adamant_bar', chance: 1, qty: 1 }],
+  },
+  {
+    id: 'smelt_rune_bar',
+    skillId: 'smithing',
+    locationId: 'furnace',
+    name: 'Smelt Rune Bar',
+    durationMs: [7000, 9000],
+    xp: 130,
+    requiredLevel: 70,
+    inputs: [
+      { itemId: 'rune_ore', qty: 1 },
+      { itemId: 'coal', qty: 4 },
+    ],
+    outputs: [{ itemId: 'rune_bar', chance: 1, qty: 1 }],
   },
 
   // Anvil — bars in, equipment out. Combat stats land with the Equipment
@@ -302,8 +327,8 @@ export const smithingActions: Action[] = [
     outputs: [{ itemId: 'mithril_boots', chance: 1, qty: 1 }],
   },
 
-  // Adamant set — top of the ladder, capping out around Runecrafting's own
-  // level-65 ceiling.
+  // Adamant set — matches Runecrafting's original level-65 ceiling; Rune,
+  // below, now goes one tier past both.
   {
     id: 'smith_adamant_sword',
     skillId: 'smithing',
@@ -347,5 +372,51 @@ export const smithingActions: Action[] = [
     requiredLevel: 61,
     inputs: [{ itemId: 'adamant_bar', qty: 1 }],
     outputs: [{ itemId: 'adamant_boots', chance: 1, qty: 1 }],
+  },
+
+  // Rune set — top of the ladder now, one tier past Adamant.
+  {
+    id: 'smith_rune_sword',
+    skillId: 'smithing',
+    locationId: 'anvil',
+    name: 'Rune Sword',
+    durationMs: [10000, 12500],
+    xp: 260,
+    requiredLevel: 72,
+    inputs: [{ itemId: 'rune_bar', qty: 2 }],
+    outputs: [{ itemId: 'rune_sword', chance: 1, qty: 1 }],
+  },
+  {
+    id: 'smith_rune_helmet',
+    skillId: 'smithing',
+    locationId: 'anvil',
+    name: 'Rune Helmet',
+    durationMs: [11000, 13500],
+    xp: 300,
+    requiredLevel: 75,
+    inputs: [{ itemId: 'rune_bar', qty: 3 }],
+    outputs: [{ itemId: 'rune_helmet', chance: 1, qty: 1 }],
+  },
+  {
+    id: 'smith_rune_shield',
+    skillId: 'smithing',
+    locationId: 'anvil',
+    name: 'Rune Shield',
+    durationMs: [11000, 13500],
+    xp: 300,
+    requiredLevel: 75,
+    inputs: [{ itemId: 'rune_bar', qty: 2 }],
+    outputs: [{ itemId: 'rune_shield', chance: 1, qty: 1 }],
+  },
+  {
+    id: 'smith_rune_boots',
+    skillId: 'smithing',
+    locationId: 'anvil',
+    name: 'Rune Boots',
+    durationMs: [9500, 12000],
+    xp: 220,
+    requiredLevel: 71,
+    inputs: [{ itemId: 'rune_bar', qty: 1 }],
+    outputs: [{ itemId: 'rune_boots', chance: 1, qty: 1 }],
   },
 ]

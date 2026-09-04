@@ -1,7 +1,7 @@
 import type { Quest } from './types'
 
 /**
- * Three chains. The first 5 are a short starter arc that deliberately walks
+ * Four chains. The first 5 are a short starter arc that deliberately walks
  * through every requirement kind and touches most of the systems already
  * built — gather (Fishing), craft (Cooking, then Smithing), fight
  * (Combat), and a level gate — exactly the "Gather -> Process ->
@@ -12,10 +12,13 @@ import type { Quest } from './types'
  * over the rest of the Iron set one piece per quest — narrative follow-
  * through for content that otherwise had no quest presence.
  *
- * The final 5 push into Frostfang Highlands/Frozen Bastion, the level-35+
+ * The next 5 push into Frostfang Highlands/Frozen Bastion, the level-35+
  * tier built alongside Steel/Mithril/Adamant Smithing — same shape again,
  * gating on itemCount/kills/skillLevel and handing over Steel pieces along
  * the way.
+ *
+ * The final 5 push into Emberfall Wastes/Emberfall Crucible, alongside Rune
+ * Smithing — same shape a third time, handing over Rune pieces this time.
  */
 export const quests: Quest[] = [
   {
@@ -217,6 +220,80 @@ export const quests: Quest[] = [
       gold: 600,
       xp: { attack: 200, strength: 200, defence: 200, hitpoints: 200 },
       items: [{ itemId: 'frozen_crown', qty: 1 }],
+    },
+  },
+
+  // A fourth chain, picking up where the third leaves off, into Emberfall
+  // Wastes/Emberfall Crucible — the level-68+ tier built alongside Rune
+  // Smithing. Same shape a third time: hand over a piece of the next armor
+  // tier per quest, end on a dungeon-tier boss kill and a unique trophy.
+  {
+    id: 'rune_reckoning',
+    name: 'Rune Reckoning',
+    icon: '🔮',
+    description:
+      "The Bastion is cleared, but the volcano beyond it glows wrong at night. Bring " +
+      'five Rune Bars and the forge master will finally take you seriously.',
+    requirements: [
+      { type: 'questComplete', questId: 'frozen_bastion_reckoning' },
+      { type: 'itemCount', itemId: 'rune_bar', qty: 5 },
+    ],
+    rewards: { gold: 150, xp: { smithing: 120 }, items: [{ itemId: 'rune_boots', qty: 1 }] },
+  },
+  {
+    id: 'hounds_of_ember',
+    name: 'Hounds of Ember',
+    icon: '🐕‍🦺',
+    description: 'Infernal hounds have been hunting the ridge trails. Put them down.',
+    requirements: [
+      { type: 'questComplete', questId: 'rune_reckoning' },
+      { type: 'kills', enemyId: 'infernal_hound', count: 8 },
+    ],
+    rewards: {
+      xp: { attack: 100, strength: 100, defence: 100, hitpoints: 100 },
+      items: [{ itemId: 'rune_shield', qty: 1 }],
+    },
+  },
+  {
+    id: 'wraiths_of_ash',
+    name: 'Wraiths of Ash',
+    icon: '👺',
+    description: 'The ash wraiths guarding the crater rim scatter anyone who gets close. Not you.',
+    requirements: [
+      { type: 'questComplete', questId: 'hounds_of_ember' },
+      { type: 'kills', enemyId: 'ash_wraith', count: 6 },
+    ],
+    rewards: { gold: 300, xp: { smithing: 100 }, items: [{ itemId: 'rune_helmet', qty: 1 }] },
+  },
+  {
+    id: 'the_molten_trial',
+    name: 'The Molten Trial',
+    icon: '🌋',
+    description: 'Molten golems guard the Crucible itself. You need to be ready for them.',
+    requirements: [
+      { type: 'questComplete', questId: 'wraiths_of_ash' },
+      { type: 'skillLevel', skillId: 'attack', level: 65 },
+    ],
+    rewards: {
+      xp: { attack: 200, strength: 200, defence: 200, hitpoints: 200 },
+      items: [{ itemId: 'rune_sword', qty: 1 }],
+    },
+  },
+  {
+    id: 'emberfall_reckoning',
+    name: "Emberfall's Reckoning",
+    icon: '👑',
+    description:
+      "Whatever the volcano is feeding sits behind three molten golems. Take the crown " +
+      'for yourself, and the Wastes are done testing you.',
+    requirements: [
+      { type: 'questComplete', questId: 'the_molten_trial' },
+      { type: 'kills', enemyId: 'molten_golem', count: 3 },
+    ],
+    rewards: {
+      gold: 800,
+      xp: { attack: 300, strength: 300, defence: 300, hitpoints: 300 },
+      items: [{ itemId: 'emberfall_crown', qty: 1 }],
     },
   },
 ]

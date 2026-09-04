@@ -22,4 +22,11 @@ export const combatAreas: CombatArea[] = [
     requiredLevel: 45,
     enemyIds: ['frost_wolf', 'highland_raider', 'stone_giant'],
   },
+  {
+    id: 'emberfall_wastes',
+    name: 'Emberfall Wastes',
+    icon: '🌋',
+    requiredLevel: 68,
+    enemyIds: ['infernal_hound', 'ash_wraith', 'molten_golem'],
+  },
 ]

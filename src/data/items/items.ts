@@ -32,6 +32,9 @@ export const items: Record<string, Item> = {
   // 40-65 level range instead of stopping dead at level 20.
   mithril_ore: { id: 'mithril_ore', name: 'Mithril Ore', icon: '🔵', value: 18, category: 'resource' },
   adamant_ore: { id: 'adamant_ore', name: 'Adamant Ore', icon: '🟢', value: 32, category: 'resource' },
+  // Rune pushes one tier past Adamant, into Emberfall Wastes' level-70ish
+  // range — the same shape one tier further.
+  rune_ore: { id: 'rune_ore', name: 'Rune Ore', icon: '🟣', value: 55, category: 'resource' },
 
   // Smithing: furnace output (bars) feeds the anvil.
   bronze_bar: { id: 'bronze_bar', name: 'Bronze Bar', icon: '🟫', value: 12, category: 'resource' },
@@ -39,6 +42,7 @@ export const items: Record<string, Item> = {
   steel_bar: { id: 'steel_bar', name: 'Steel Bar', icon: '⬛', value: 45, category: 'resource' },
   mithril_bar: { id: 'mithril_bar', name: 'Mithril Bar', icon: '🟦', value: 80, category: 'resource' },
   adamant_bar: { id: 'adamant_bar', name: 'Adamant Bar', icon: '🟩', value: 140, category: 'resource' },
+  rune_bar: { id: 'rune_bar', name: 'Rune Bar', icon: '🟪', value: 220, category: 'resource' },
 
   // Smithing: anvil output. Stats are placeholders — real combat balance
   // arrives with the Combat system; these exist now so Equipment has real
@@ -212,6 +216,41 @@ export const items: Record<string, Item> = {
     equipment: { slot: 'boots', stats: { defence: 16 } },
   },
 
+  // Rune set — the top of the smithed-gear ladder now, one tier past
+  // Adamant, sized for Emberfall Wastes.
+  rune_sword: {
+    id: 'rune_sword',
+    name: 'Rune Sword',
+    icon: '⚔️',
+    value: 1100,
+    category: 'equipment',
+    equipment: { slot: 'weapon', stats: { accuracy: 62, strength: 56, attackSpeedMs: 1700 } },
+  },
+  rune_helmet: {
+    id: 'rune_helmet',
+    name: 'Rune Helmet',
+    icon: '⛑️',
+    value: 1150,
+    category: 'equipment',
+    equipment: { slot: 'helmet', stats: { defence: 37 } },
+  },
+  rune_shield: {
+    id: 'rune_shield',
+    name: 'Rune Shield',
+    icon: '🛡️',
+    value: 1300,
+    category: 'equipment',
+    equipment: { slot: 'shield', stats: { defence: 58 } },
+  },
+  rune_boots: {
+    id: 'rune_boots',
+    name: 'Rune Boots',
+    icon: '👢',
+    value: 800,
+    category: 'equipment',
+    equipment: { slot: 'boots', stats: { defence: 24 } },
+  },
+
   // Cooking output. Burning is a shared failure item, same as Melvor.
   // healAmount closes the doc's "Fishing -> Fish -> Cooking -> Food ->
   // Combat" chain — these are what Combat's food slot eats.
@@ -319,6 +358,26 @@ export const items: Record<string, Item> = {
     name: 'Frozen Crown',
     icon: '👑',
     value: 1500,
+    category: 'resource',
+  },
+
+  // Emberfall Wastes / Emberfall Crucible loot — the fourth CombatArea/
+  // Dungeon tier, sized for a level-68+ player the way Frostfang's loot
+  // targets 45+.
+  infernal_fang: { id: 'infernal_fang', name: 'Infernal Fang', icon: '🦷', value: 65, category: 'resource' },
+  ash_wraith_essence: {
+    id: 'ash_wraith_essence',
+    name: 'Ash Wraith Essence',
+    icon: '💨',
+    value: 90,
+    category: 'resource',
+  },
+  molten_core: { id: 'molten_core', name: 'Molten Core', icon: '🔥', value: 900, category: 'resource' },
+  emberfall_crown: {
+    id: 'emberfall_crown',
+    name: 'Emberfall Crown',
+    icon: '👑',
+    value: 3000,
     category: 'resource',
   },
 

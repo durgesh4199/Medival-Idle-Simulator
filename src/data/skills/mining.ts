@@ -21,6 +21,7 @@ export const miningLocations: Location[] = [
       'mine_rune_essence',
       'mine_mithril',
       'mine_adamant',
+      'mine_rune',
     ],
   },
 ]
@@ -100,5 +101,15 @@ export const miningActions: Action[] = [
     xp: 65,
     requiredLevel: 55,
     outputs: [{ itemId: 'adamant_ore', chance: 1, qty: 1 }],
+  },
+  {
+    id: 'mine_rune',
+    skillId: 'mining',
+    locationId: 'quarry',
+    name: 'Rune Rock',
+    durationMs: [9000, 12000],
+    xp: 100,
+    requiredLevel: 68,
+    outputs: [{ itemId: 'rune_ore', chance: 1, qty: 1 }],
   },
 ]

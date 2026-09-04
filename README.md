@@ -467,6 +467,30 @@ No engine or UI changes were needed for any of this — same as every extension
 before it, right down to the third `CombatArea`/`Dungeon` slotting into the
 existing selector lists `CombatPage`/`DungeonsPage` already render generically.
 
+### Emberfall Wastes, Emberfall Crucible, and Rune Smithing
+
+The same pass again, one tier further: Rune joins Bronze/Iron/Steel/Mithril/
+Adamant as Smithing's new top tier (ore at Mining level 68, bar at Smithing
+level 70, a full anvil set at 71-75) — one step past Adamant, which used to
+match Runecrafting's old level-65 ceiling and now sits a rung below both Rune
+Smithing and Runecrafting's own Blood Rune (80). A fourth `CombatArea`,
+Emberfall Wastes (level 68: Infernal Hound, Ash Wraith, Molten Golem — again
+roughly doubling the previous tier's numbers), and a fourth `Dungeon`,
+Emberfall Crucible (level 80), remix the same three enemies the way every
+prior dungeon remixes its own area. A fourth quest chain (`rune_reckoning` →
+`hounds_of_ember` → `wraiths_of_ash` → `the_molten_trial` →
+`emberfall_reckoning`) hands over the Rune set piece by piece, capping with a
+unique `emberfall_crown` trophy — same shape as the third chain, one tier up.
+Six more achievements: a Smithing pair (`rune_forged`/`grandmaster_smith`),
+the chain's capstone (`emberfall_conqueror`), an Emberfall Crucible pair
+(`crucible_cleared`/`crucible_master`), and a second, higher combat-level
+milestone (`grand_warlord` — 70 in all four combat stats, one tier past
+`seasoned_warrior`'s 50). Same "purely additive data, zero engine/UI changes"
+shape as every tier before it — verified the same way too: a data
+cross-reference pass (every new id resolves) plus a live Playwright pass
+confirming Smelt Rune Bar and a real fight against a Molten Golem both
+resolve correctly through the existing engine.
+
 ### Pacing: how long is "the full game"?
 
 `engine/xp.ts`'s level curve is already steep by design (RuneScape/Melvor-style,
@@ -477,14 +501,15 @@ top *action*, there was nothing left to do but repeat it toward a level nobody
 had built a reason to reach. That's a short game with an infinite, purposeless
 tail bolted onto it, not a long one.
 
-Treating "complete" as finishing everything that now exists — all 14 quests, all
-17 achievements, all 3 dungeons cleared at their "master" tier, every skill and
-combat stat trained up through its new top-tier content (mid-40s to mid-60s for
-most skills and combat, 80 for Runecrafting's Blood Rune) — lands in the
-neighborhood of 100 hours of played time at the game's own XP rates: nine
-XP-earning tracks (8 skills + combat, whose 4 stats level together off the same
-kills) each realistically taking on the order of 8-12 hours to reach their new
-ceiling once you factor in using progressively better actions as you level rather
+Treating "complete" as finishing everything that now exists — every quest and
+achievement, every dungeon cleared at its "master" tier, every skill and
+combat stat trained up through its new top-tier content (mid-40s to mid-70s
+for most skills and combat, 80 for Runecrafting's Blood Rune) — lands in the
+neighborhood of 100+ hours of played time at the game's own XP rates: eleven
+XP-earning tracks (8 skills + Farming + Ranching + combat, whose 4 stats level
+together off the same kills) each realistically taking on the order of 8-12+
+hours to reach their new ceiling once you factor in using progressively
+better actions as you level rather
 than only the final tier, plus the quests/dungeon-clear/gold-for-recipes time
 layered on top that isn't pure XP grinding. `MAX_LEVEL` 120 stays untouched and
 still sits well above every new content ceiling — full mastery of everything the

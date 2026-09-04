@@ -163,4 +163,57 @@ export const enemies: Enemy[] = [
       { itemId: 'mithril_ore', chance: 0.08, qty: 1 },
     ],
   },
+
+  // Emberfall Wastes — the fourth CombatArea, hand-tuned for a level-68+
+  // player roughly the way Frostfang doubled Shadowfen again.
+  {
+    id: 'infernal_hound',
+    name: 'Infernal Hound',
+    icon: '🐕‍🦺',
+    hp: 580,
+    accuracy: 190,
+    maxHit: 26,
+    attackSpeedMs: 2400,
+    evasion: 140,
+    xpReward: 520,
+    goldDrop: [55, 110],
+    loot: [
+      { itemId: 'bones', chance: 1, qty: 1 },
+      { itemId: 'infernal_fang', chance: 0.4, qty: 1 },
+    ],
+  },
+  {
+    id: 'ash_wraith',
+    name: 'Ash Wraith',
+    icon: '👺',
+    hp: 650,
+    accuracy: 170,
+    maxHit: 28,
+    attackSpeedMs: 2800,
+    evasion: 150,
+    xpReward: 550,
+    goldDrop: [60, 120],
+    loot: [
+      { itemId: 'bones', chance: 1, qty: 1 },
+      { itemId: 'ash_wraith_essence', chance: 0.3, qty: 1 },
+      { itemId: 'rune_ore', chance: 0.1, qty: 1 },
+    ],
+  },
+  {
+    id: 'molten_golem',
+    name: 'Molten Golem',
+    icon: '🌋',
+    hp: 850,
+    accuracy: 160,
+    maxHit: 36,
+    attackSpeedMs: 4200,
+    evasion: 110,
+    xpReward: 650,
+    goldDrop: [70, 140],
+    loot: [
+      { itemId: 'bones', chance: 1, qty: 1 },
+      { itemId: 'molten_core', chance: 0.12, qty: 1 },
+      { itemId: 'rune_ore', chance: 0.1, qty: 1 },
+    ],
+  },
 ]

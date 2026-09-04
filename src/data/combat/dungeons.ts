@@ -6,10 +6,10 @@
  * the run with nothing, same as any other combat defeat.
  *
  * Goblin Den remixes the Training Grounds' 3 enemies into an escalating
- * run; Sunken Crypt does the same with Shadowfen Marsh's tougher trio, and
- * Frozen Bastion with Frostfang Highlands' — more dungeons, or a bigger
- * bestiary to draw from, are both just more data, per README's "Extending
- * the game".
+ * run; Sunken Crypt does the same with Shadowfen Marsh's tougher trio,
+ * Frozen Bastion with Frostfang Highlands', and Emberfall Crucible with
+ * Emberfall Wastes' — more dungeons, or a bigger bestiary to draw from,
+ * are both just more data, per README's "Extending the game".
  */
 
 export interface Dungeon {
@@ -81,6 +81,24 @@ export const dungeons: Dungeon[] = [
       items: [
         { itemId: 'mithril_bar', qty: 5 },
         { itemId: 'giant_core', qty: 1 },
+      ],
+    },
+  },
+  {
+    id: 'emberfall_crucible',
+    name: 'Emberfall Crucible',
+    icon: '🌋',
+    description:
+      'A forge built into the volcano itself, where the Wastes send whatever the ' +
+      'surface can no longer hold. The deepest run yet.',
+    enemyIds: ['infernal_hound', 'infernal_hound', 'ash_wraith', 'ash_wraith', 'molten_golem'],
+    requiredLevel: 80,
+    completionReward: {
+      gold: 1500,
+      xp: { attack: 600, strength: 600, defence: 600, hitpoints: 600 },
+      items: [
+        { itemId: 'rune_bar', qty: 5 },
+        { itemId: 'molten_core', qty: 1 },
       ],
     },
   },

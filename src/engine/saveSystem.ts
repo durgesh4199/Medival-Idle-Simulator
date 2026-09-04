@@ -52,6 +52,8 @@ export interface SaveData {
   /** The active Prayer, if any — persists the same way, independent of an
    *  active fight. */
   selectedPrayerId: string | null
+  /** The active Spell, if any — persists the same way. */
+  selectedSpellId: string | null
   /** Per-action mastery XP, keyed by Action.id. */
   masteryXp: Record<string, number>
   /** Per-skill mastery pool XP, keyed by SkillId. */

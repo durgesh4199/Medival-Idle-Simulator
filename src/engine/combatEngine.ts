@@ -15,6 +15,7 @@
 
 import type { AggregatedEquipmentStats } from './equipmentEngine'
 import type { PrayerModifiers } from '../data/combat/prayers'
+import type { SpellCost } from '../data/combat/spells'
 import type { CombatSkillId, Enemy } from '../data/types'
 
 export interface CombatantLevels {
@@ -113,6 +114,9 @@ export interface CombatSimResult {
   lootGained: Record<string, number>
   goldGained: number
   foodEaten: number
+  /** Runes spent casting the active Spell, if any — keyed by item id, same
+   *  shape `lootGained` uses. Empty if no spell was active or affordable. */
+  runesConsumed: Record<string, number>
 }
 
 export function simulateCombat(params: {
@@ -127,11 +131,22 @@ export function simulateCombat(params: {
    *  their sequence exactly once, unlike open-world combat's endless
    *  respawn-on-kill grind. Omit for the normal unlimited behavior. */
   maxKills?: number
+  /** The active Spell's damage ceiling and rune cost, if any — replaces
+   *  `player.maxHit` on every swing the runes can afford. */
+  spellPower?: number
+  spellCost?: SpellCost[]
+  /** Starting rune stock the spell can draw from, keyed by item id —
+   *  decremented locally as casts happen, same role `foodAvailableQty`
+   *  plays for eating. Casting silently falls back to a normal physical
+   *  swing once a required rune runs out. */
+  spellRunesAvailable?: Record<string, number>
 }): CombatSimResult {
   const { now, enemy, player } = params
   let { enemyHp, playerHp, nextPlayerAttackAt, nextEnemyAttackAt, kills } = params.state
   let foodAvailableQty = params.foodAvailableQty
   let foodEaten = 0
+  const runesAvailable = { ...params.spellRunesAvailable }
+  const runesConsumed: Record<string, number> = {}
   let defeated = false
   let stoppedAtMaxKills = false
   let events = 0
@@ -145,9 +160,23 @@ export function simulateCombat(params: {
     events++
 
     if (nextPlayerAttackAt <= nextEnemyAttackAt) {
-      // Player's swing.
+      // Player's swing. A Spell replaces the physical max-hit roll if its
+      // runes are affordable — consumed on the attempt, hit or miss, same
+      // as any other reagent cost.
+      let hitPower = player.maxHit
+      if (
+        params.spellPower !== undefined &&
+        params.spellCost?.every((cost) => (runesAvailable[cost.itemId] ?? 0) >= cost.qty)
+      ) {
+        hitPower = params.spellPower
+        for (const cost of params.spellCost) {
+          runesAvailable[cost.itemId] = (runesAvailable[cost.itemId] ?? 0) - cost.qty
+          runesConsumed[cost.itemId] = (runesConsumed[cost.itemId] ?? 0) + cost.qty
+        }
+      }
+
       if (Math.random() < hitChance(player.accuracy, enemy.evasion)) {
-        const damage = rollDamage(player.maxHit)
+        const damage = rollDamage(hitPower)
         enemyHp -= damage
         xpGained.attack += HIT_XP
         xpGained.strength += HIT_XP
@@ -207,5 +236,6 @@ export function simulateCombat(params: {
     lootGained,
     goldGained,
     foodEaten,
+    runesConsumed,
   }
 }

@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { actionsById, dungeonsById, enemiesById } from '../data'
 import { achievementsById } from '../data/achievements'
 import { prayersById } from '../data/combat/prayers'
+import { spellsById } from '../data/combat/spells'
 import { items } from '../data/items/items'
 import { combatPet, petBySkillId } from '../data/pets'
 import { questsById } from '../data/quests'
@@ -68,6 +69,9 @@ interface GameState {
   /** The active Prayer, if any — persists independent of an active fight,
    *  same as `selectedFoodItemId`. */
   selectedPrayerId: string | null
+  /** The active Spell, if any — persists the same way. Replaces the
+   *  player's physical max hit while its runes hold out. */
+  selectedSpellId: string | null
   /** Per-action mastery XP, keyed by Action.id. */
   masteryXp: Record<string, number>
   /** Per-skill mastery pool XP, keyed by SkillId. */
@@ -131,6 +135,12 @@ interface GameState {
    *  to open-world combat and Dungeons alike, since both read
    *  `playerCombatStats()`. */
   selectPrayer: (prayerId: string | null) => void
+  /** Whether `spellId`'s Attack-level gate is currently met — not whether
+   *  its runes are currently affordable, which is checked live per swing. */
+  canSelectSpell: (spellId: string) => boolean
+  /** Sets the active Spell — no-ops if the level gate isn't met. Applies
+   *  to open-world combat and Dungeons alike, same as Prayer. */
+  selectSpell: (spellId: string | null) => void
   /** Advances combat to `now`, resolving every attack event in between —
    *  same shape as `tick`, so offline catch-up covers combat too. */
   combatTick: (now: number) => void
@@ -190,6 +200,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   dungeonClearCounts: {},
   selectedFoodItemId: null,
   selectedPrayerId: null,
+  selectedSpellId: null,
   masteryXp: {},
   masteryPoolXp: {},
   killCounts: {},
@@ -519,6 +530,21 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({ selectedPrayerId: prayerId })
   },
 
+  canSelectSpell: (spellId) => {
+    const spell = spellsById[spellId]
+    if (!spell) return false
+    return get().levelOf('attack') >= spell.requiredLevel
+  },
+
+  selectSpell: (spellId) => {
+    if (spellId === null) {
+      set({ selectedSpellId: null })
+      return
+    }
+    if (!get().canSelectSpell(spellId)) return
+    set({ selectedSpellId: spellId })
+  },
+
   combatTick: (now) =>
     set((state) => {
       if (!state.combat) return state
@@ -530,6 +556,10 @@ export const useGameStore = create<GameState>((set, get) => ({
       const foodAvailableQty = state.selectedFoodItemId
         ? (state.inventory[state.selectedFoodItemId] ?? 0)
         : 0
+      const spell = state.selectedSpellId ? spellsById[state.selectedSpellId] : undefined
+      const spellRunesAvailable = Object.fromEntries(
+        (spell?.cost ?? []).map((cost) => [cost.itemId, state.inventory[cost.itemId] ?? 0]),
+      )
 
       const result = simulateCombat({
         now,
@@ -544,6 +574,9 @@ export const useGameStore = create<GameState>((set, get) => ({
         },
         foodHealAmount: foodItem?.healAmount ?? 0,
         foodAvailableQty,
+        spellPower: spell?.power,
+        spellCost: spell?.cost,
+        spellRunesAvailable,
       })
 
       const boostedXp = applyCombatPetBonus(result.xpGained, state.ownedPetIds)
@@ -560,6 +593,11 @@ export const useGameStore = create<GameState>((set, get) => ({
         const remaining = (inventory[state.selectedFoodItemId] ?? 0) - result.foodEaten
         if (remaining > 0) inventory[state.selectedFoodItemId] = remaining
         else delete inventory[state.selectedFoodItemId]
+      }
+      for (const [itemId, qty] of Object.entries(result.runesConsumed)) {
+        const remaining = (inventory[itemId] ?? 0) - qty
+        if (remaining > 0) inventory[itemId] = remaining
+        else delete inventory[itemId]
       }
 
       // killCounts is lifetime, for Quest "kills" requirements — unlike
@@ -671,6 +709,10 @@ export const useGameStore = create<GameState>((set, get) => ({
       const foodAvailableQty = state.selectedFoodItemId
         ? (state.inventory[state.selectedFoodItemId] ?? 0)
         : 0
+      const spell = state.selectedSpellId ? spellsById[state.selectedSpellId] : undefined
+      const spellRunesAvailable = Object.fromEntries(
+        (spell?.cost ?? []).map((cost) => [cost.itemId, state.inventory[cost.itemId] ?? 0]),
+      )
 
       const result = advanceDungeonRun({
         now,
@@ -686,6 +728,9 @@ export const useGameStore = create<GameState>((set, get) => ({
         },
         foodHealAmount: foodItem?.healAmount ?? 0,
         foodAvailableQty,
+        spellPower: spell?.power,
+        spellCost: spell?.cost,
+        spellRunesAvailable,
       })
 
       const boostedXp = applyCombatPetBonus(result.xpGained, state.ownedPetIds)
@@ -702,6 +747,11 @@ export const useGameStore = create<GameState>((set, get) => ({
         const remaining = (inventory[state.selectedFoodItemId] ?? 0) - result.foodEaten
         if (remaining > 0) inventory[state.selectedFoodItemId] = remaining
         else delete inventory[state.selectedFoodItemId]
+      }
+      for (const [itemId, qty] of Object.entries(result.runesConsumed)) {
+        const remaining = (inventory[itemId] ?? 0) - qty
+        if (remaining > 0) inventory[itemId] = remaining
+        else delete inventory[itemId]
       }
 
       // Pets: same per-kill Combat pet roll as combatTick, using the
@@ -777,6 +827,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       dungeonClearCounts: save.dungeonClearCounts ?? {},
       selectedFoodItemId: save.selectedFoodItemId ?? null,
       selectedPrayerId: save.selectedPrayerId ?? null,
+      selectedSpellId: save.selectedSpellId ?? null,
       masteryXp: save.masteryXp ?? {},
       masteryPoolXp: save.masteryPoolXp ?? {},
       killCounts: save.killCounts ?? {},
@@ -842,6 +893,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       dungeonClearCounts: state.dungeonClearCounts,
       selectedFoodItemId: state.selectedFoodItemId,
       selectedPrayerId: state.selectedPrayerId,
+      selectedSpellId: state.selectedSpellId,
       masteryXp: state.masteryXp,
       masteryPoolXp: state.masteryPoolXp,
       killCounts: state.killCounts,

@@ -4,6 +4,7 @@ import { combatSkillDisplay, combatSkillOrder } from './combat/combatSkills'
 import { dungeons, dungeonsById } from './combat/dungeons'
 import { enemies } from './combat/enemies'
 import { prayers, prayersById } from './combat/prayers'
+import { spells, spellsById } from './combat/spells'
 import { combatPet, petBySkillId, pets, petsById } from './pets'
 import { cookingActions, cookingLocations, cookingSkill } from './skills/cooking'
 import { fishingActions, fishingLocations, fishingSkill } from './skills/fishing'
@@ -90,6 +91,8 @@ export {
   questsById,
   quests,
   shopBuyableItemIds,
+  spells,
+  spellsById,
 }
 export const enemiesById: Record<string, (typeof enemies)[number]> = Object.fromEntries(
   enemies.map((e) => [e.id, e]),

@@ -340,18 +340,55 @@ shared component mounted in both `CombatPage` and `DungeonsPage`, rather than th
 food-selector's duplicated-per-page pattern, since there's only one Prayer state to
 read regardless of where it's set from.
 
+### Spells
+
+Design doc §5's resource chain — `Runecrafting -> Runes -> Magic -> Combat` — named
+a link nothing had closed yet: Runecrafting produced runes, but nothing in Combat
+consumed them. A Spell is the second combat modifier (alongside Prayer), but where
+Prayer scales an existing stat, a Spell *replaces* the physical damage roll outright
+and costs a per-swing resource — the first thing in Combat that draws down
+inventory the way a gathering skill's inputs do.
+
+`data/combat/spells.ts` ships 5 bolts scaled to the 5 runes Runecrafting already
+produces (Air/Water/Fire/Chaos/Death), each a flat `power` (rolled the same way
+`rollDamage` handles physical hits) at an escalating rune cost, gated on Attack
+level the same way Prayer is gated on Defence. One active at a time, same
+`selectedFoodItemId`-style persistence.
+
+The interesting engine work is in `simulateCombat` itself: it takes an optional
+`spellPower`/`spellCost`/`spellRunesAvailable`, and on every player swing, casts the
+spell if its runes are still affordable (consumed on the attempt, hit or miss) —
+otherwise silently falls back to the normal Strength-derived `maxHit`, so running
+out mid-fight degrades gracefully instead of stalling combat or wasting the
+attack. This mirrors the `foodAvailableQty`/`foodEaten` pattern already used for
+combat food exactly, just for runes instead of healing. `engine/dungeonEngine.ts`'s
+`advanceDungeonRun` threads the same rune stock *across* its chained per-enemy
+`simulateCombat` calls (one stock for the whole run, not reset per enemy), the same
+way it already threads player HP and attack timers forward. `gameStore` snapshots
+the relevant rune counts from `inventory` into each `combatTick`/`dungeonTick` call
+and applies whatever `runesConsumed` comes back afterward — the same
+read-inventory-in, apply-result-out shape every other resource-consuming system
+here uses. `SpellSelector` (shared between `CombatPage`/`DungeonsPage`, like
+`PrayerSelector`) shows each spell's cost against current rune stock live, so it's
+visible before a fight whether a spell can actually sustain itself.
+
+Verified with a seeded 2-hour offline fight carrying only 5 Air Runes: the runes
+were consumed down to nothing and combat kept resolving another ~225 kills purely
+on the melee fallback afterward, with no stall and no exception — confirming the
+degrade-gracefully behavior holds across an arbitrarily long single catch-up call,
+not just live ticking.
+
 ## Extending the game
 
-Every system in [the design doc](docs/design-document.md) is now built. Adding more
-of any of them stays additive:
+Every system in [the design doc](docs/design-document.md) is now built, plus
+Prayers and Spells as the first two combat modifiers. Adding more of any of them
+stays additive:
 
 - Any further **gathering/production skill** (Farming, Ranching, ...) is just another
   data file of `Location`/`Action` — no new engine code needed, register it in
   `data/index.ts` the same way the 8 current skills work.
 - More **combat content** (new enemies, a second `CombatArea`) is mostly data — add
-  enemies to `data/combat/enemies.ts`, areas to `data/combat/areas.ts`. Spells (an
-  alternate attack style with a rune cost, per the design doc) would be the next
-  engine-level combat change, alongside Prayers.
+  enemies to `data/combat/enemies.ts`, areas to `data/combat/areas.ts`.
 - More **quests** are just another entry in `data/quests.ts` — the requirement/reward
   vocabulary already covers gather/train/craft/fight/chain.
 - More **dungeons** are just another entry in `data/combat/dungeons.ts`.
@@ -361,6 +398,9 @@ of any of them stays additive:
   `dungeonTick` already generalize over the whole list.
 - More **prayers** are just another entry in `data/combat/prayers.ts` — one more
   `{requiredLevel, modifiers}` pair; nothing else needs to change.
+- More **spells** are just another entry in `data/combat/spells.ts` — one more
+  `{requiredLevel, cost, power}` triple; the casting/fallback logic already
+  generalizes over the whole list.
 
 ## Development
 

@@ -8,6 +8,7 @@
  */
 
 import type { Dungeon } from '../data/combat/dungeons'
+import type { SpellCost } from '../data/combat/spells'
 import type { CombatSkillId, Enemy } from '../data/types'
 import { simulateCombat, type PlayerCombatStats } from './combatEngine'
 
@@ -33,6 +34,9 @@ export interface DungeonRunResult {
   /** Enemies defeated this call — for Pets' per-kill Combat pet roll, the
    *  same role `killsThisTick` plays in `combatTick`. */
   kills: number
+  /** Total runes spent across every enemy this call — same shape
+   *  `simulateCombat`'s own `runesConsumed` uses. */
+  runesConsumed: Record<string, number>
 }
 
 export function advanceDungeonRun(params: {
@@ -43,11 +47,19 @@ export function advanceDungeonRun(params: {
   state: DungeonRunState
   foodHealAmount: number
   foodAvailableQty: number
+  spellPower?: number
+  spellCost?: SpellCost[]
+  /** Carries forward across enemies within this same call, same as it does
+   *  across kills within a single `simulateCombat` call — one rune stock
+   *  for the whole run, not reset per enemy. */
+  spellRunesAvailable?: Record<string, number>
 }): DungeonRunResult {
   const { now, dungeon, enemiesById, player } = params
   let run = params.state
   let foodAvailableQty = params.foodAvailableQty
   let foodEaten = 0
+  const runesAvailable = { ...params.spellRunesAvailable }
+  const runesConsumed: Record<string, number> = {}
   let defeated = false
   let cleared = false
   const xpGained: Record<CombatSkillId, number> = { attack: 0, strength: 0, defence: 0, hitpoints: 0 }
@@ -78,6 +90,9 @@ export function advanceDungeonRun(params: {
       foodHealAmount: params.foodHealAmount,
       foodAvailableQty,
       maxKills: 1,
+      spellPower: params.spellPower,
+      spellCost: params.spellCost,
+      spellRunesAvailable: runesAvailable,
     })
 
     for (const [skillId, xp] of Object.entries(result.xpGained)) {
@@ -89,6 +104,10 @@ export function advanceDungeonRun(params: {
     goldGained += result.goldGained
     foodAvailableQty -= result.foodEaten
     foodEaten += result.foodEaten
+    for (const [itemId, qty] of Object.entries(result.runesConsumed)) {
+      runesAvailable[itemId] = (runesAvailable[itemId] ?? 0) - qty
+      runesConsumed[itemId] = (runesConsumed[itemId] ?? 0) + qty
+    }
 
     if (result.defeated) {
       defeated = true
@@ -124,5 +143,6 @@ export function advanceDungeonRun(params: {
     goldGained,
     foodEaten,
     kills,
+    runesConsumed,
   }
 }

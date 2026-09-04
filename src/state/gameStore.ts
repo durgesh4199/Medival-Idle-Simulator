@@ -539,7 +539,11 @@ export const useGameStore = create<GameState>((set, get) => ({
     }),
 
   ensureSlayerTask: () =>
-    set((state) => (state.slayerTask ? state : { ...state, slayerTask: rollSlayerTask(state.killCounts) })),
+    set((state) =>
+      state.slayerTask
+        ? state
+        : { ...state, slayerTask: rollSlayerTask(state.killCounts, state.levelOf('attack')) },
+    ),
 
   playerCombatStats: () => {
     const state = get()
@@ -717,7 +721,7 @@ export const useGameStore = create<GameState>((set, get) => ({
           slayerGold = creditedKills * SLAYER_BONUS_GOLD_PER_KILL
         }
         if (isSlayerTaskComplete(slayerTask, killCounts)) {
-          slayerTask = rollSlayerTask(killCounts)
+          slayerTask = rollSlayerTask(killCounts, state.levelOf('attack'))
         }
       }
 

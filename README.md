@@ -224,6 +224,22 @@ brand-new save and an old save saved before Slayer existed. `CombatPage` shows t
 current task — enemy, progress, Slayer level — as a card that also jumps the enemy
 list straight to it.
 
+**Follow-up fix:** `slayerTaskPool`'s own comment claimed "every current enemy
+is assignable," but it went stale across three whole content tiers — Shadowfen
+Marsh, Frostfang Highlands, and Emberfall Wastes all shipped without anyone
+adding their enemies to it, so a level-70+ player was still only ever handed
+Training Grounds tasks. Worse, naively adding them would have let a level-1
+player get assigned "kill 3 Molten Golems" — unfightable and unswappable, a
+soft-lock. `rollSlayerTask` now takes the player's Attack level and filters to
+whichever pool entries' own `CombatArea` is actually unlocked at that level
+(the same gate `CombatPage` already enforces before letting you select an
+enemy normally), falling back to the whole pool only if somehow nothing
+qualifies. Verified with 3,500 rolls across three Attack levels (1/50/80): a
+level-1 roll never produces anything but the original three enemies, level 50
+adds exactly Shadowfen/Frostfang's six without any Emberfall enemy, and level
+80 includes the full roster — plus a live check that a fresh level-1 save's
+very first assigned task is genuinely low-tier.
+
 ### Dungeons
 
 Design doc §9: "package multiple automated encounters into a larger risk/reward

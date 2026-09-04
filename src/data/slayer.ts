@@ -14,11 +14,30 @@ export interface SlayerTaskDef {
 
 /** Every enemy currently in the game is slayer-assignable. Ranges are
  *  loosely scaled to how dangerous each enemy already is (a Skeleton
- *  Warrior task asks for fewer kills than a Giant Rat one). */
+ *  Warrior task asks for fewer kills than a Giant Rat one) — this pool went
+ *  stale for three whole content tiers (Shadowfen Marsh, Frostfang
+ *  Highlands, Emberfall Wastes all shipped without touching it), so a
+ *  level-70+ player was still only ever assigned Training Grounds tasks;
+ *  every enemy since is added here to actually make that comment true. */
 export const slayerTaskPool: SlayerTaskDef[] = [
   { enemyId: 'giant_rat', minKills: 6, maxKills: 15 },
   { enemyId: 'goblin', minKills: 5, maxKills: 12 },
   { enemyId: 'skeleton_warrior', minKills: 3, maxKills: 8 },
+
+  // Shadowfen Marsh.
+  { enemyId: 'bog_troll', minKills: 3, maxKills: 7 },
+  { enemyId: 'dark_cultist', minKills: 3, maxKills: 8 },
+  { enemyId: 'wraith', minKills: 3, maxKills: 6 },
+
+  // Frostfang Highlands.
+  { enemyId: 'frost_wolf', minKills: 3, maxKills: 6 },
+  { enemyId: 'highland_raider', minKills: 2, maxKills: 5 },
+  { enemyId: 'stone_giant', minKills: 2, maxKills: 4 },
+
+  // Emberfall Wastes.
+  { enemyId: 'infernal_hound', minKills: 2, maxKills: 4 },
+  { enemyId: 'ash_wraith', minKills: 2, maxKills: 4 },
+  { enemyId: 'molten_golem', minKills: 2, maxKills: 3 },
 ]
 
 /** Slayer XP granted per kill still owed toward the current task — this is

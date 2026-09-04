@@ -5,6 +5,7 @@
  */
 
 import type { EquipmentSlot } from '../data/types'
+import type { FarmingPlotState } from './farmingEngine'
 import type { SlayerTaskState } from './slayerEngine'
 
 const SAVE_KEY = 'medieval-idle-save'
@@ -75,6 +76,10 @@ export interface SaveData {
   /** Pets found, keyed by Pet.id — permanent once true, same shape as
    *  completedQuestIds. */
   ownedPetIds: Record<string, boolean>
+  /** Farming's plots — undefined on any save written before Farming
+   *  existed, same "optional, defaulted on load" treatment every other
+   *  field added after launch gets. */
+  farmingPlots?: FarmingPlotState[]
   /** Timestamp this save was written, used to compute offline progress. */
   savedAt: number
 }

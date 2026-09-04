@@ -154,6 +154,22 @@ export const achievements: Achievement[] = [
     reward: { gold: 1000 },
   },
   {
+    id: 'green_thumb',
+    name: 'Green Thumb',
+    icon: '🌱',
+    description: 'Reach Farming level 25.',
+    requirements: [{ type: 'skillLevel', skillId: 'farming', level: 25 }],
+    reward: { gold: 150 },
+  },
+  {
+    id: 'master_farmer',
+    name: 'Master Farmer',
+    icon: '🌟',
+    description: 'Reach Farming level 55 — Golden Wheat, the top of the plot.',
+    requirements: [{ type: 'skillLevel', skillId: 'farming', level: 55 }],
+    reward: { gold: 700 },
+  },
+  {
     id: 'grandmaster_of_trades',
     name: 'Grandmaster of Trades',
     icon: '🎖️',

@@ -5,8 +5,9 @@ import { dungeons, dungeonsById } from './combat/dungeons'
 import { enemies } from './combat/enemies'
 import { prayers, prayersById } from './combat/prayers'
 import { spells, spellsById } from './combat/spells'
-import { combatPet, petBySkillId, pets, petsById } from './pets'
+import { combatPet, farmingPet, petBySkillId, pets, petsById } from './pets'
 import { cookingActions, cookingLocations, cookingSkill } from './skills/cooking'
+import { farmingCrops, farmingCropsById } from './skills/farming'
 import { fishingActions, fishingLocations, fishingSkill } from './skills/fishing'
 import { firemakingActions, firemakingLocations, firemakingSkill } from './skills/firemaking'
 import { huntingActions, huntingLocations, huntingSkill } from './skills/hunting'
@@ -83,6 +84,9 @@ export {
   dungeons,
   dungeonsById,
   enemies,
+  farmingCrops,
+  farmingCropsById,
+  farmingPet,
   petBySkillId,
   pets,
   petsById,

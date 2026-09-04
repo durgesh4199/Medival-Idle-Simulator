@@ -19,11 +19,17 @@ export function PetsPage() {
         {pets.map((pet) => {
           const owned = Boolean(ownedPetIds[pet.id])
           const sourceLabel =
-            pet.source.type === 'skill' ? skills[pet.source.skillId]?.name : 'Combat'
+            pet.source.type === 'skill'
+              ? skills[pet.source.skillId]?.name
+              : pet.source.type === 'farming'
+                ? 'Farming'
+                : 'Combat'
           const bonusLabel =
             pet.source.type === 'skill'
               ? `+${(pet.bonusPercent * 100).toFixed(0)}% ${sourceLabel} speed`
-              : `+${(pet.bonusPercent * 100).toFixed(0)}% combat XP`
+              : pet.source.type === 'farming'
+                ? `+${(pet.bonusPercent * 100).toFixed(0)}% crop growth speed`
+                : `+${(pet.bonusPercent * 100).toFixed(0)}% combat XP`
 
           return (
             <div

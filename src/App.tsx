@@ -5,6 +5,7 @@ import { AchievementsPage } from './ui/AchievementsPage'
 import { BankPage } from './ui/BankPage'
 import { CombatPage } from './ui/CombatPage'
 import { DungeonsPage } from './ui/DungeonsPage'
+import { FarmingPage } from './ui/FarmingPage'
 import { Header, type View } from './ui/Header'
 import { NavRail } from './ui/NavRail'
 import { OfflineModal } from './ui/OfflineModal'
@@ -36,6 +37,7 @@ function App() {
         {view === 'skills' && <SkillPanel key={selectedSkill} skillId={selectedSkill} />}
         {view === 'combat' && <CombatPage />}
         {view === 'dungeons' && <DungeonsPage />}
+        {view === 'farming' && <FarmingPage />}
         {view === 'bank' && <BankPage />}
         {view === 'shop' && <ShopPage />}
         {view === 'quests' && <QuestsPage />}

@@ -1,10 +1,10 @@
 import { create } from 'zustand'
-import { actionsById, dungeonsById, enemiesById } from '../data'
+import { actionsById, dungeonsById, enemiesById, farmingCropsById } from '../data'
 import { achievementsById } from '../data/achievements'
 import { prayersById } from '../data/combat/prayers'
 import { spellsById } from '../data/combat/spells'
 import { items } from '../data/items/items'
-import { combatPet, petBySkillId } from '../data/pets'
+import { combatPet, farmingPet, petBySkillId } from '../data/pets'
 import { questsById } from '../data/quests'
 import { shopBuyableItemIds } from '../data/shop'
 import { SLAYER_BONUS_GOLD_PER_KILL, SLAYER_XP_PER_KILL } from '../data/slayer'
@@ -18,6 +18,7 @@ import {
 import { advanceDungeonRun } from '../engine/dungeonEngine'
 import { getBuyPrice, getSellPrice, isSellable } from '../engine/economyEngine'
 import { aggregateEquipmentStats, getWeaponAttackSpeedMs } from '../engine/equipmentEngine'
+import { emptyPlot, isPlotReady, rollHarvestYield, type FarmingPlotState } from '../engine/farmingEngine'
 import {
   masteryLevelForXp,
   masterySpeedBonus,
@@ -87,6 +88,12 @@ interface GameState {
    *  Pets collection page and the passive speed/XP bonuses in tick/
    *  combatTick/dungeonTick. */
   ownedPetIds: Record<string, boolean>
+  /** Farming's plots — a fixed-size array, independent of `activeAction`/
+   *  `combat`/`dungeonRun`'s "one activity" slot. Growth is read lazily off
+   *  `plantedAt` wherever it's needed (`FarmingPage`, `plantCrop`,
+   *  `harvestCrop`), never advanced by a tick, so plots keep growing
+   *  alongside whatever else the player is doing — including nothing. */
+  farmingPlots: FarmingPlotState[]
   /** Which Pet was most recently found live, and when — same "brief
    *  banner, no dismiss action" idea as `lastDefeatAt`/`lastDungeonClear`.
    *  Not persisted; a pet found while away surfaces via `offlineSummary`
@@ -179,6 +186,16 @@ interface GameState {
    *  call unconditionally on load/init. */
   ensureSlayerTask: () => void
 
+  /** Whether `plotIndex` is currently empty, `cropId`'s level gate is met,
+   *  and at least one of its seed is in the Bank. */
+  canPlantCrop: (plotIndex: number, cropId: string) => boolean
+  /** Plants `cropId` in `plotIndex`, consuming one seed. No-ops if the plot
+   *  isn't empty, the level gate isn't met, or no seed is held. */
+  plantCrop: (plotIndex: number, cropId: string) => void
+  /** Collects `plotIndex`'s crop (a randomized 2-4 batch), grants XP, rolls
+   *  the Farming pet, and empties the plot. No-ops if it isn't ready. */
+  harvestCrop: (plotIndex: number) => void
+
   dismissOfflineSummary: () => void
   loadFromSave: (save: SaveData) => void
   toSaveShape: () => Omit<SaveData, 'version' | 'savedAt'>
@@ -188,6 +205,9 @@ interface GameState {
 const MAX_COMPLETIONS_PER_TICK = 200_000
 /** Cap on how much real-world absence is simulated at once. */
 const MAX_OFFLINE_MS = 24 * 60 * 60 * 1000
+/** Number of Farming plots available from the start — no plot-unlock
+ *  progression yet, a natural follow-up noted in the README. */
+const FARMING_PLOT_COUNT = 4
 
 export const useGameStore = create<GameState>((set, get) => ({
   gold: 0,
@@ -207,6 +227,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   completedQuestIds: {},
   completedAchievementIds: {},
   ownedPetIds: {},
+  farmingPlots: Array.from({ length: FARMING_PLOT_COUNT }, emptyPlot),
   lastPetFound: null,
   slayerTask: null,
   lastDefeatAt: null,
@@ -813,6 +834,72 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
     }),
 
+  canPlantCrop: (plotIndex, cropId) => {
+    const crop = farmingCropsById[cropId]
+    if (!crop) return false
+    const state = get()
+    const plot = state.farmingPlots[plotIndex]
+    if (!plot || plot.cropId !== null) return false
+    if (state.levelOf('farming') < crop.requiredLevel) return false
+    return (state.inventory[crop.seedItemId] ?? 0) >= 1
+  },
+
+  plantCrop: (plotIndex, cropId) =>
+    set((state) => {
+      if (!get().canPlantCrop(plotIndex, cropId)) return state
+      const crop = farmingCropsById[cropId]!
+
+      const inventory = { ...state.inventory }
+      inventory[crop.seedItemId] = (inventory[crop.seedItemId] ?? 0) - 1
+      if (inventory[crop.seedItemId] <= 0) delete inventory[crop.seedItemId]
+
+      // The Farming pet's speed bonus is applied once, here, by backdating
+      // `plantedAt` — isPlotReady/plotProgress stay plain timestamp math
+      // with no bonus parameter of their own, the same trick every other
+      // skill's tick applies its own bonus to a freshly-rolled duration.
+      // (petSpeedBonus itself only covers `petBySkillId`'s SkillId-keyed
+      // pets, so the Farming pet — a `{type:'farming'}` source, like the
+      // Combat pet's `{type:'combat'}` — is checked directly here instead.)
+      const speedBonus = state.ownedPetIds[farmingPet.id] ? farmingPet.bonusPercent : 0
+      const farmingPlots = [...state.farmingPlots]
+      farmingPlots[plotIndex] = {
+        cropId,
+        plantedAt: Date.now() - Math.floor(crop.growDurationMs * speedBonus),
+      }
+
+      return { ...state, inventory, farmingPlots }
+    }),
+
+  harvestCrop: (plotIndex) =>
+    set((state) => {
+      const plot = state.farmingPlots[plotIndex]
+      if (!plot?.cropId) return state
+      const crop = farmingCropsById[plot.cropId]
+      const now = Date.now()
+      if (!crop || !isPlotReady(plot, crop, now)) return state
+
+      const inventory = { ...state.inventory }
+      inventory[crop.cropItemId] = (inventory[crop.cropItemId] ?? 0) + rollHarvestYield()
+
+      const skillXp = { ...state.skillXp }
+      skillXp.farming = (skillXp.farming ?? 0) + crop.xp
+
+      // Pets: same "rare per-completion roll, scaled by level, stops once
+      // owned" pattern tick/combatTick already use — Farming level stands
+      // in for a per-action mastery level, since Farming has no Mastery.
+      let ownedPetIds = state.ownedPetIds
+      let lastPetFound = state.lastPetFound
+      if (!ownedPetIds[farmingPet.id] && rollPetDrop(state.levelOf('farming'))) {
+        ownedPetIds = { ...ownedPetIds, [farmingPet.id]: true }
+        lastPetFound = { petId: farmingPet.id, at: now }
+      }
+
+      const farmingPlots = [...state.farmingPlots]
+      farmingPlots[plotIndex] = emptyPlot()
+
+      return { ...state, inventory, skillXp, ownedPetIds, lastPetFound, farmingPlots }
+    }),
+
   dismissOfflineSummary: () => set({ offlineSummary: null }),
 
   loadFromSave: (save) => {
@@ -834,6 +921,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       completedQuestIds: save.completedQuestIds ?? {},
       completedAchievementIds: save.completedAchievementIds ?? {},
       ownedPetIds: save.ownedPetIds ?? {},
+      farmingPlots:
+        save.farmingPlots ?? Array.from({ length: FARMING_PLOT_COUNT }, emptyPlot),
       slayerTask: save.slayerTask ?? null,
     })
 
@@ -900,6 +989,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       completedQuestIds: state.completedQuestIds,
       completedAchievementIds: state.completedAchievementIds,
       ownedPetIds: state.ownedPetIds,
+      farmingPlots: state.farmingPlots,
       slayerTask: state.slayerTask,
     }
   },

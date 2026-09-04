@@ -90,6 +90,29 @@ export interface Location {
   actionIds: string[]
 }
 
+/**
+ * Farming (design doc §12: "automated planting/harvesting/composting").
+ * Deliberately not an `Action` — every other skill is "start it, it repeats
+ * on a rolled duration while you watch or leave the tab open"; Farming is
+ * "plant it, then genuinely don't come back for real minutes/hours,
+ * whether the tab is open or not." `growDurationMs` is minutes, not the
+ * few-second `durationMs` every other skill uses, and readiness is a plain
+ * timestamp comparison rather than something a tick loop resolves — which
+ * is what lets a crop planted right before closing the tab still be ready
+ * exactly on schedule with zero offline-catchup code of its own, even past
+ * the 24h cap every other system's offline progress is clamped to.
+ */
+export interface FarmingCrop {
+  id: string
+  name: string
+  icon: string
+  seedItemId: string
+  cropItemId: string
+  growDurationMs: number
+  xp: number
+  requiredLevel: number
+}
+
 export interface Skill {
   id: SkillId
   name: string
@@ -203,7 +226,7 @@ export interface Achievement {
  * stacking buff: finding a pet again (if it were possible) wouldn't do
  * anything further.
  */
-export type PetSource = { type: 'skill'; skillId: SkillId } | { type: 'combat' }
+export type PetSource = { type: 'skill'; skillId: SkillId } | { type: 'combat' } | { type: 'farming' }
 
 export interface Pet {
   id: string

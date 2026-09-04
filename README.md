@@ -491,12 +491,54 @@ still sits well above every new content ceiling — full mastery of everything t
 level curve technically allows remains its own, much longer-tail goal, the same
 relationship Melvor's own 99 vs. "true" completion has.
 
+### Farming
+
+Design doc §12: Farming is called out by name as "automated planting/harvesting/
+composting" — mechanically distinct from every other skill's "start it, it repeats
+on a rolled duration" shape, so unlike Frostfang Highlands' skills-widening pass
+above, this one **is** new engine surface, not just data. It's structured the same
+way Combat/Dungeons already sit outside `SkillPanel`'s generic Location/Action
+model: `FarmingCrop` is its own type (`growDurationMs` measured in real minutes,
+not the few-second `durationMs` every other skill uses), `engine/farmingEngine.ts`
+is three pure timestamp functions (`isPlotReady`, `plotProgress`,
+`rollHarvestYield`), and `FarmingPage` is its own top-level nav tab, not a skill
+entry — Farming was deliberately kept out of `SkillId` entirely, the same way the
+four combat stats already share the `skillXp` map without being one.
+
+The mechanically interesting part: readiness is a *plain timestamp comparison*
+(`now >= plantedAt + growDurationMs`), not something a tick loop resolves. Every
+other system here earns its offline-friendliness by replaying a bounded loop
+forward to `now` (capped at `MAX_OFFLINE_MS`, 24h); Farming needs no loop and no
+cap at all — a plot planted right before closing the tab is correctly ready (or
+not) on return, whether that's 5 minutes or 5 days later. That also makes Farming
+the one system that deliberately breaks the "one activity at a time" rule every
+other system (skilling/combat/Dungeons) enforces: `farmingPlots` sits outside
+`activeAction`/`combat`/`dungeonRun`'s mutual exclusion entirely, so plots keep
+growing no matter what else is running — the whole point of a "plant it and walk
+away" skill. `StatusBar` surfaces a "🌾 N plots ready" badge alongside whatever
+else it's already showing, since that's the one piece of "what am I doing" that
+isn't mutually exclusive with the rest of the bar.
+
+4 fixed plots, 5 crops (Barley through the level-55 Golden Wheat, 2 minutes to 90
+minutes to grow), seeds bought at the Shop (there's no separate seed-gathering
+step), a harvest yielding a randomized 2-4 batch rather than a flat 1 (the one
+completion in the game that isn't exactly one item), and a new Cooking recipe
+(`bake_bread`, from Barley) closing the loop back into an existing system, the
+same "a resource feeds multiple systems" principle every other crop chain here
+follows. Farming has no Mastery (Farming level stands in for a per-action mastery
+level when rolling its own pet) and no plot-unlock progression yet — both natural
+follow-ups, not oversights. `pets.ts` gained a third `PetSource` variant,
+`{type: 'farming'}`, alongside the existing `{type: 'combat'}` — the same
+precedent for "a non-skill-panel system gets its own pet source" already set
+before Farming existed.
+
 ## Extending the game
 
 Adding more of anything above stays additive:
 
-- Any further **gathering/production skill** (Farming, Ranching, ...) is just another
-  data file of `Location`/`Action` — no new engine code needed, register it in
+- Any further **gathering/production skill** in the "start it, watch a timer,
+  repeat" mold (Ranching, Fletching, ...) is just another data file of
+  `Location`/`Action` — no new engine code needed, register it in
   `data/index.ts` the same way the 8 current skills work.
 - More **combat content** (new enemies, a third `CombatArea`) is mostly data — add
   enemies to `data/combat/enemies.ts`, areas to `data/combat/areas.ts`.

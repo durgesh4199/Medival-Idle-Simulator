@@ -14,6 +14,7 @@ interface Props {
 const EXTRA_TABS: { view: Exclude<View, 'skills'>; icon: string; label: string }[] = [
   { view: 'combat', icon: '⚔️', label: 'Combat' },
   { view: 'dungeons', icon: '🗝️', label: 'Dungeons' },
+  { view: 'farming', icon: '🌾', label: 'Farming' },
   { view: 'bank', icon: '🎒', label: 'Bank' },
   { view: 'shop', icon: '🛒', label: 'Shop' },
   { view: 'quests', icon: '📜', label: 'Quests' },
@@ -110,6 +111,7 @@ export function NavRail({ view, selectedSkill, onSelectSkill, onChangeView }: Pr
   const combatPercent =
     COMBAT_SKILL_IDS.reduce((sum, id) => sum + xpProgress(skillXp[id] ?? 0).percent, 0) /
     COMBAT_SKILL_IDS.length
+  const farmingPercent = xpProgress(skillXp.farming ?? 0).percent
 
   return (
     <nav className="flex w-14 shrink-0 flex-col items-center gap-1 overflow-y-auto border-r border-line bg-rail py-2">
@@ -138,7 +140,9 @@ export function NavRail({ view, selectedSkill, onSelectSkill, onChangeView }: Pr
           icon={tab.icon}
           title={tab.label}
           isActive={view === tab.view}
-          percent={tab.view === 'combat' ? combatPercent : undefined}
+          percent={
+            tab.view === 'combat' ? combatPercent : tab.view === 'farming' ? farmingPercent : undefined
+          }
           onClick={() => onChangeView(tab.view)}
         />
       ))}

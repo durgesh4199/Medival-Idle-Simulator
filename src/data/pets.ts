@@ -79,6 +79,14 @@ export const pets: Pet[] = [
     source: { type: 'combat' },
     bonusPercent: COMBAT_PET_XP_BONUS,
   },
+  {
+    id: 'pet_farming',
+    name: 'Garden Sprite',
+    icon: '🧚',
+    description: 'A rare find on harvest. +2% faster crop growth once found.',
+    source: { type: 'farming' },
+    bonusPercent: SKILL_PET_SPEED_BONUS,
+  },
 ]
 
 export const petsById: Record<string, Pet> = Object.fromEntries(pets.map((p) => [p.id, p]))
@@ -90,3 +98,4 @@ export const petBySkillId: Partial<Record<SkillId, Pet>> = Object.fromEntries(
 )
 
 export const combatPet: Pet = pets.find((p) => p.source.type === 'combat')!
+export const farmingPet: Pet = pets.find((p) => p.source.type === 'farming')!

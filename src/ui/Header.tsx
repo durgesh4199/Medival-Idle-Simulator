@@ -7,6 +7,7 @@ export type View =
   | 'skills'
   | 'combat'
   | 'dungeons'
+  | 'farming'
   | 'bank'
   | 'shop'
   | 'quests'
@@ -28,6 +29,11 @@ const VIEW_META: Record<Exclude<View, 'skills'>, { icon: string; title: string; 
     icon: '🗝️',
     title: 'Dungeons',
     subtitle: 'A fixed encounter sequence and a one-time reward — real risk, real reward',
+  },
+  farming: {
+    icon: '🌾',
+    title: 'Farming',
+    subtitle: 'Plant a seed, then come back once it’s grown — keeps going while you’re away',
   },
   bank: { icon: '🎒', title: 'Bank', subtitle: 'Equipment & Inventory' },
   shop: { icon: '🛒', title: 'Shop', subtitle: 'Buy staples, sell what you don’t need' },

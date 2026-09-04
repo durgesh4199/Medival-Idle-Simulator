@@ -1,18 +1,32 @@
-import { actionsById, dungeonsById, enemiesById, locationsById, skills } from '../data'
+import { actionsById, dungeonsById, enemiesById, farmingCropsById, locationsById, skills } from '../data'
+import { isPlotReady } from '../engine/farmingEngine'
 import { xpProgress } from '../engine/xp'
 import { useGameStore } from '../state/gameStore'
 import { useNow } from './useNow'
 
 /** Global bottom status bar — mirrors the reference UI's footer strip that
  *  always shows what's currently running, regardless of which page you're
- *  looking at. */
+ *  looking at. Farming's ready-plot count rides along in every branch below
+ *  (`ml-auto` on the right) since plots grow independent of whatever else
+ *  is running — it's the one piece of "what am I doing" that isn't
+ *  mutually exclusive with the rest of this bar. */
 export function StatusBar() {
   const activeAction = useGameStore((s) => s.activeAction)
   const combat = useGameStore((s) => s.combat)
   const dungeonRun = useGameStore((s) => s.dungeonRun)
+  const farmingPlots = useGameStore((s) => s.farmingPlots)
   const skillXp = useGameStore((s) => s.skillXp)
   const playerCombatStats = useGameStore((s) => s.playerCombatStats)
   const now = useNow(200)
+
+  const readyPlots = farmingPlots.filter((plot) =>
+    isPlotReady(plot, plot.cropId ? farmingCropsById[plot.cropId] : undefined, now),
+  ).length
+  const farmingBadge = readyPlots > 0 && (
+    <span className="ml-auto shrink-0 tabular-nums text-gold">
+      🌾 {readyPlots} plot{readyPlots === 1 ? '' : 's'} ready
+    </span>
+  )
 
   if (activeAction) {
     const action = actionsById[activeAction.actionId]
@@ -45,6 +59,7 @@ export function StatusBar() {
             {Math.floor(progress.xpForNextLevel).toLocaleString()} XP
           </span>
         )}
+        {farmingBadge}
       </footer>
     )
   }
@@ -74,6 +89,7 @@ export function StatusBar() {
           </div>
         </div>
         <span className="shrink-0 tabular-nums text-neutral-500">Kills: {combat.kills}</span>
+        {farmingBadge}
       </footer>
     )
   }
@@ -108,6 +124,7 @@ export function StatusBar() {
         <span className="shrink-0 tabular-nums text-neutral-500">
           Enemy {dungeonRun.enemyIndex + 1}/{dungeon?.enemyIds.length ?? '?'}
         </span>
+        {farmingBadge}
       </footer>
     )
   }
@@ -115,6 +132,7 @@ export function StatusBar() {
   return (
     <footer className="flex h-9 shrink-0 items-center border-t border-line bg-rail px-4 text-xs text-neutral-600">
       Idle — select something to start training.
+      {farmingBadge}
     </footer>
   )
 }

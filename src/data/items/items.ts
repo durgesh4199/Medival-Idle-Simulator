@@ -321,6 +321,35 @@ export const items: Record<string, Item> = {
     value: 1500,
     category: 'resource',
   },
+
+  // Farming: seeds (buyable from the Shop, since there's no separate
+  // seed-gathering step) go into a plot, crops come out. barley additionally
+  // feeds a Cooking recipe below, the same "a resource is more valuable when
+  // it feeds multiple systems" principle every other crop chain here uses.
+  barley_seed: { id: 'barley_seed', name: 'Barley Seed', icon: '🌱', value: 2, category: 'resource' },
+  carrot_seed: { id: 'carrot_seed', name: 'Carrot Seed', icon: '🌱', value: 4, category: 'resource' },
+  potato_seed: { id: 'potato_seed', name: 'Potato Seed', icon: '🌱', value: 8, category: 'resource' },
+  pumpkin_seed: { id: 'pumpkin_seed', name: 'Pumpkin Seed', icon: '🌱', value: 15, category: 'resource' },
+  golden_wheat_seed: {
+    id: 'golden_wheat_seed',
+    name: 'Golden Wheat Seed',
+    icon: '🌱',
+    value: 40,
+    category: 'resource',
+  },
+  barley: { id: 'barley', name: 'Barley', icon: '🌾', value: 6, category: 'resource' },
+  carrot: { id: 'carrot', name: 'Carrot', icon: '🥕', value: 10, category: 'resource' },
+  potato: { id: 'potato', name: 'Potato', icon: '🥔', value: 16, category: 'resource' },
+  pumpkin: { id: 'pumpkin', name: 'Pumpkin', icon: '🎃', value: 30, category: 'resource' },
+  golden_wheat: { id: 'golden_wheat', name: 'Golden Wheat', icon: '🌟', value: 90, category: 'resource' },
+  bread: {
+    id: 'bread',
+    name: 'Bread',
+    icon: '🍞',
+    value: 14,
+    category: 'food',
+    healAmount: 35,
+  },
 }
 
 export function getItem(id: string): Item {

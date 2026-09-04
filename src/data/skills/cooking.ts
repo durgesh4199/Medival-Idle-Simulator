@@ -13,7 +13,7 @@ export const cookingLocations: Location[] = [
     skillId: 'cooking',
     name: 'Cooking Fire',
     requiredLevel: 1,
-    actionIds: ['cook_herring', 'cook_trout'],
+    actionIds: ['cook_herring', 'cook_trout', 'cook_silverfin', 'cook_eel'],
   },
 ]
 
@@ -47,6 +47,34 @@ export const cookingActions: Action[] = [
     outputs: [
       { itemId: 'cooked_trout', chance: 0.75, qty: 1 },
       { itemId: 'burnt_food', chance: 0.25, qty: 1 },
+    ],
+  },
+  {
+    id: 'cook_silverfin',
+    skillId: 'cooking',
+    locationId: 'cooking_fire',
+    name: 'Cook Silverfin',
+    durationMs: [3500, 5000],
+    xp: 45,
+    requiredLevel: 40,
+    inputs: [{ itemId: 'raw_silverfin', qty: 1 }],
+    outputs: [
+      { itemId: 'cooked_silverfin', chance: 0.72, qty: 1 },
+      { itemId: 'burnt_food', chance: 0.28, qty: 1 },
+    ],
+  },
+  {
+    id: 'cook_eel',
+    skillId: 'cooking',
+    locationId: 'cooking_fire',
+    name: 'Cook Eel',
+    durationMs: [4000, 5500],
+    xp: 60,
+    requiredLevel: 55,
+    inputs: [{ itemId: 'raw_eel', qty: 1 }],
+    outputs: [
+      { itemId: 'cooked_eel', chance: 0.7, qty: 1 },
+      { itemId: 'burnt_food', chance: 0.3, qty: 1 },
     ],
   },
 ]

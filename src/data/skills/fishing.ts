@@ -26,6 +26,16 @@ export const fishingLocations: Location[] = [
       'shrapnel_river_rapid_runs',
     ],
   },
+  // A third spot past Shrapnel River — same "new location once the old one
+  // is thoroughly outlevelled" shape Shrapnel River itself used over
+  // Shallow Shores, pushing Fishing's ceiling from 25 to 55.
+  {
+    id: 'deepwater_trench',
+    skillId: 'fishing',
+    name: 'Deepwater Trench',
+    requiredLevel: 40,
+    actionIds: ['deepwater_trench_silverfin', 'deepwater_trench_leviathan_eel'],
+  },
 ]
 
 export const fishingActions: Action[] = [
@@ -84,6 +94,32 @@ export const fishingActions: Action[] = [
     outputs: [
       { itemId: 'raw_trout', chance: 0.65, qty: 1 },
       { itemId: 'junk', chance: 0.35, qty: 1 },
+    ],
+  },
+  {
+    id: 'deepwater_trench_silverfin',
+    skillId: 'fishing',
+    locationId: 'deepwater_trench',
+    name: 'Silverfin Shoal',
+    durationMs: [10000, 15000],
+    xp: 60,
+    requiredLevel: 40,
+    outputs: [
+      { itemId: 'raw_silverfin', chance: 0.7, qty: 1 },
+      { itemId: 'junk', chance: 0.3, qty: 1 },
+    ],
+  },
+  {
+    id: 'deepwater_trench_leviathan_eel',
+    skillId: 'fishing',
+    locationId: 'deepwater_trench',
+    name: 'Leviathan Depths',
+    durationMs: [12000, 18000],
+    xp: 80,
+    requiredLevel: 55,
+    outputs: [
+      { itemId: 'raw_eel', chance: 0.75, qty: 1 },
+      { itemId: 'junk', chance: 0.25, qty: 1 },
     ],
   },
 ]

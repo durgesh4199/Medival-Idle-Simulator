@@ -13,7 +13,7 @@ export const huntingLocations: Location[] = [
     skillId: 'hunting',
     name: 'Woodland Trail',
     requiredLevel: 1,
-    actionIds: ['trap_rabbit', 'trap_pheasant', 'trap_fox'],
+    actionIds: ['trap_rabbit', 'trap_pheasant', 'trap_fox', 'trap_boar', 'trap_stag'],
   },
 ]
 
@@ -57,5 +57,32 @@ export const huntingActions: Action[] = [
       { itemId: 'raw_meat', chance: 0.3, qty: 1 },
     ],
     specialOutputs: [{ itemId: 'silver_fox_pelt', chance: 0.01, qty: 1 }],
+  },
+  {
+    id: 'trap_boar',
+    skillId: 'hunting',
+    locationId: 'woodland_trail',
+    name: 'Trap Boar',
+    durationMs: [7000, 10000],
+    xp: 45,
+    requiredLevel: 35,
+    outputs: [
+      { itemId: 'boar_tusk', chance: 0.5, qty: 1 },
+      { itemId: 'raw_meat', chance: 0.5, qty: 1 },
+    ],
+  },
+  {
+    id: 'trap_stag',
+    skillId: 'hunting',
+    locationId: 'woodland_trail',
+    name: 'Trap Stag',
+    durationMs: [8500, 12000],
+    xp: 65,
+    requiredLevel: 55,
+    outputs: [
+      { itemId: 'stag_antler', chance: 0.6, qty: 1 },
+      { itemId: 'raw_meat', chance: 0.4, qty: 1 },
+    ],
+    specialOutputs: [{ itemId: 'golden_stag_hide', chance: 0.008, qty: 1 }],
   },
 ]

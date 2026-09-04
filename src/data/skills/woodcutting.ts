@@ -13,7 +13,7 @@ export const woodcuttingLocations: Location[] = [
     skillId: 'woodcutting',
     name: 'Forest Edge',
     requiredLevel: 1,
-    actionIds: ['chop_normal_tree', 'chop_oak_tree'],
+    actionIds: ['chop_normal_tree', 'chop_oak_tree', 'chop_willow_tree', 'chop_yew_tree'],
   },
 ]
 
@@ -37,5 +37,25 @@ export const woodcuttingActions: Action[] = [
     xp: 18,
     requiredLevel: 10,
     outputs: [{ itemId: 'oak_logs', chance: 1, qty: 1 }],
+  },
+  {
+    id: 'chop_willow_tree',
+    skillId: 'woodcutting',
+    locationId: 'forest_edge',
+    name: 'Willow Tree',
+    durationMs: [5000, 7500],
+    xp: 30,
+    requiredLevel: 30,
+    outputs: [{ itemId: 'willow_logs', chance: 1, qty: 1 }],
+  },
+  {
+    id: 'chop_yew_tree',
+    skillId: 'woodcutting',
+    locationId: 'forest_edge',
+    name: 'Yew Tree',
+    durationMs: [6500, 9500],
+    xp: 50,
+    requiredLevel: 50,
+    outputs: [{ itemId: 'yew_logs', chance: 1, qty: 1 }],
   },
 ]

@@ -19,6 +19,7 @@ export const runecraftingLocations: Location[] = [
       'craft_fire_rune',
       'craft_chaos_rune',
       'craft_death_rune',
+      'craft_blood_rune',
     ],
   },
 ]
@@ -78,5 +79,19 @@ export const runecraftingActions: Action[] = [
     requiredLevel: 65,
     inputs: [{ itemId: 'rune_essence', qty: 3 }],
     outputs: [{ itemId: 'death_rune', chance: 1, qty: 1 }],
+  },
+  // The one skill pushed past the others' ~55-65 ceiling, matching how the
+  // original Death Rune tier already outran everything but Smithing's new
+  // Adamant tier — Runecrafting stays the "deepest" grind in the game.
+  {
+    id: 'craft_blood_rune',
+    skillId: 'runecrafting',
+    locationId: 'runecrafting_altar',
+    name: 'Blood Rune',
+    durationMs: [5000, 7000],
+    xp: 110,
+    requiredLevel: 80,
+    inputs: [{ itemId: 'rune_essence', qty: 4 }],
+    outputs: [{ itemId: 'blood_rune', chance: 1, qty: 1 }],
   },
 ]

@@ -270,7 +270,7 @@ mirrors `questEngine.ts` almost exactly for the same reason: `isAchievementRequi
 `canCompleteAchievement`, no state mutation. `gameStore.completeAchievement` is a
 claim step identical in shape to `completeQuest`, just with no `itemCount` to
 consume. `AchievementsPage` mirrors `QuestsPage`'s card-grid-with-checklist layout —
-seven achievements ship spanning skills, combat, the quest chain, and Dungeons, so
+achievements ship spanning skills, combat, the quest chains, and Dungeons, so
 every system already built has at least one milestone attached to it.
 
 ### Pets
@@ -423,6 +423,74 @@ rather than running in parallel. Pure data, the same `kills`/`itemCount`/
 requirement kind was needed. A ninth Achievement, `marsh_conqueror`, mirrors
 `proven_in_battle`'s role for the new capstone.
 
+### Frostfang Highlands, Frozen Bastion, and Steel/Mithril/Adamant
+
+Every skill and combat area capped out far too early: Mining/Smithing stopped at
+level ~20-24, Fishing/Firemaking/Cooking/Hunting/Woodcutting around 10-25,
+Runecrafting alone reached 65. Past that ceiling there was nothing left to unlock —
+just the same top action grinding toward `MAX_LEVEL` 120 forever with no new
+content to reach for, which is a very different thing from "100 hours of content."
+This pass exists to close that gap (see "Pacing" below for the reasoning): every
+skill now has a tier that reaches into the 40s-50s (Runecrafting's new Blood Rune
+tier reaches 80, deliberately the deepest grind in the game), all pure data
+following the exact same shape as everything that came before it.
+
+- **Mining → Smithing** gained two more full tiers past Iron: Steel
+  (`smelt_steel_bar`, lvl 35) and Mithril (lvl 45) and Adamant (lvl 58) at the
+  furnace, each smelting from a new ore (`mine_mithril`/`mine_adamant` join the
+  quarry, Steel reuses Iron Ore + more Coal), then a full 4-piece anvil set per
+  tier (sword/helmet/shield/boots), topping out at Adamant around Smithing level
+  60-65 — deliberate parity with Runecrafting's old level-65 ceiling.
+- **Every other skill** gained one or two higher-level actions at a new or
+  existing location: Fishing's `deepwater_trench` (Silverfin lvl 40, Leviathan Eel
+  lvl 55) feeding two new Cooking recipes; Woodcutting's Willow (30)/Yew (50) trees
+  feeding matching Firemaking burns; Hunting's Boar (35)/Stag (55) traps, the
+  latter with its own rare `golden_stag_hide` special drop mirroring Silver Fox
+  Pelt; Runecrafting's Blood Rune (80).
+- **A third `CombatArea`**, Frostfang Highlands (lvl 45: Frost Wolf, Highland
+  Raider, Stone Giant — roughly Shadowfen's numbers doubled again), and **a third
+  `Dungeon`**, Frozen Bastion (lvl 55), remixing the same three enemies the way
+  Sunken Crypt remixed Shadowfen's.
+- **A third quest chain**, five quests (`steel_resolve` → `wolves_at_the_door` →
+  `raiders_bane` → `the_giants_gauntlet` → `frozen_bastion_reckoning`), picking up
+  from `shadows_reckoning` exactly the way the second chain picked up from
+  `proven_adventurer` — hands over the Steel set piece by piece, ends on a Stone
+  Giant kill count and a unique `frozen_crown` trophy.
+- **Seven new achievements**: Smithing-level milestones (`steel_forged`,
+  `master_smith`), the new chain's capstone (`highland_conqueror`), a Frozen
+  Bastion pair (`bastion_cleared`/`bastion_master`, mirroring the Goblin Den/Sunken
+  Crypt pairs exactly), a combat-level milestone (`seasoned_warrior` — 50 in all
+  four combat stats), and a second, higher `jack_of_all_trades` tier
+  (`grandmaster_of_trades` — level 40 across all 8 skills).
+
+No engine or UI changes were needed for any of this — same as every extension
+before it, right down to the third `CombatArea`/`Dungeon` slotting into the
+existing selector lists `CombatPage`/`DungeonsPage` already render generically.
+
+### Pacing: how long is "the full game"?
+
+`engine/xp.ts`'s level curve is already steep by design (RuneScape/Melvor-style,
+`MAX_LEVEL` 120) — level 50 costs about 112k XP, level 65 about 496k, level 80
+about 2.19M. The problem this pass fixes wasn't the curve, it was that content
+stopped unlocking around level 20-25 in most skills: once a player reached the
+top *action*, there was nothing left to do but repeat it toward a level nobody
+had built a reason to reach. That's a short game with an infinite, purposeless
+tail bolted onto it, not a long one.
+
+Treating "complete" as finishing everything that now exists — all 14 quests, all
+17 achievements, all 3 dungeons cleared at their "master" tier, every skill and
+combat stat trained up through its new top-tier content (mid-40s to mid-60s for
+most skills and combat, 80 for Runecrafting's Blood Rune) — lands in the
+neighborhood of 100 hours of played time at the game's own XP rates: nine
+XP-earning tracks (8 skills + combat, whose 4 stats level together off the same
+kills) each realistically taking on the order of 8-12 hours to reach their new
+ceiling once you factor in using progressively better actions as you level rather
+than only the final tier, plus the quests/dungeon-clear/gold-for-recipes time
+layered on top that isn't pure XP grinding. `MAX_LEVEL` 120 stays untouched and
+still sits well above every new content ceiling — full mastery of everything the
+level curve technically allows remains its own, much longer-tail goal, the same
+relationship Melvor's own 99 vs. "true" completion has.
+
 ## Extending the game
 
 Adding more of anything above stays additive:
@@ -444,8 +512,10 @@ Adding more of anything above stays additive:
 - More **spells** are just another entry in `data/combat/spells.ts` — one more
   `{requiredLevel, cost, power}` triple; the casting/fallback logic already
   generalizes over the whole list.
-- **Steel** (or any further Smithing tier) is a new ore/bar plus 4 more equipment
-  items following the Bronze/Iron pattern exactly.
+- A further Smithing tier past Adamant (or any further per-skill tier) is a new
+  ore/bar plus 4 more equipment items following the Bronze/Iron/Steel pattern
+  exactly — see "Frostfang Highlands, Frozen Bastion, and Steel/Mithril/Adamant"
+  above for the shape three more tiers actually took.
 
 ## Development
 

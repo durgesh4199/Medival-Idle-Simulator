@@ -14,7 +14,7 @@ export const firemakingLocations: Location[] = [
     skillId: 'firemaking',
     name: 'Campfire',
     requiredLevel: 1,
-    actionIds: ['burn_logs', 'burn_oak_logs'],
+    actionIds: ['burn_logs', 'burn_oak_logs', 'burn_willow_logs', 'burn_yew_logs'],
   },
 ]
 
@@ -45,6 +45,34 @@ export const firemakingActions: Action[] = [
     outputs: [
       { itemId: 'ash', chance: 0.6, qty: 1 },
       { itemId: 'charcoal', chance: 0.4, qty: 1 },
+    ],
+  },
+  {
+    id: 'burn_willow_logs',
+    skillId: 'firemaking',
+    locationId: 'campfire',
+    name: 'Burn Willow Logs',
+    durationMs: [4500, 6500],
+    xp: 45,
+    requiredLevel: 30,
+    inputs: [{ itemId: 'willow_logs', qty: 1 }],
+    outputs: [
+      { itemId: 'ash', chance: 0.5, qty: 1 },
+      { itemId: 'charcoal', chance: 0.5, qty: 1 },
+    ],
+  },
+  {
+    id: 'burn_yew_logs',
+    skillId: 'firemaking',
+    locationId: 'campfire',
+    name: 'Burn Yew Logs',
+    durationMs: [5500, 7500],
+    xp: 70,
+    requiredLevel: 50,
+    inputs: [{ itemId: 'yew_logs', qty: 1 }],
+    outputs: [
+      { itemId: 'ash', chance: 0.4, qty: 1 },
+      { itemId: 'charcoal', chance: 0.6, qty: 1 },
     ],
   },
 ]

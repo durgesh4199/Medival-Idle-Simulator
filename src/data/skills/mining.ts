@@ -13,7 +13,15 @@ export const miningLocations: Location[] = [
     skillId: 'mining',
     name: 'Quarry',
     requiredLevel: 1,
-    actionIds: ['mine_copper', 'mine_tin', 'mine_iron', 'mine_coal', 'mine_rune_essence'],
+    actionIds: [
+      'mine_copper',
+      'mine_tin',
+      'mine_iron',
+      'mine_coal',
+      'mine_rune_essence',
+      'mine_mithril',
+      'mine_adamant',
+    ],
   },
 ]
 
@@ -69,5 +77,28 @@ export const miningActions: Action[] = [
     xp: 8,
     requiredLevel: 1,
     outputs: [{ itemId: 'rune_essence', chance: 1, qty: 1 }],
+  },
+
+  // Push past Coal the same way Iron already tiers above Copper/Tin — feeds
+  // Smithing's Steel-and-up bars.
+  {
+    id: 'mine_mithril',
+    skillId: 'mining',
+    locationId: 'quarry',
+    name: 'Mithril Rock',
+    durationMs: [6000, 9000],
+    xp: 45,
+    requiredLevel: 40,
+    outputs: [{ itemId: 'mithril_ore', chance: 1, qty: 1 }],
+  },
+  {
+    id: 'mine_adamant',
+    skillId: 'mining',
+    locationId: 'quarry',
+    name: 'Adamant Rock',
+    durationMs: [7000, 10000],
+    xp: 65,
+    requiredLevel: 55,
+    outputs: [{ itemId: 'adamant_ore', chance: 1, qty: 1 }],
   },
 ]

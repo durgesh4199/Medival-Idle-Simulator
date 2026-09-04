@@ -6,9 +6,10 @@
  * the run with nothing, same as any other combat defeat.
  *
  * Goblin Den remixes the Training Grounds' 3 enemies into an escalating
- * run; Sunken Crypt does the same with Shadowfen Marsh's tougher trio —
- * more dungeons, or a bigger bestiary to draw from, are both just more
- * data, per README's "Extending the game".
+ * run; Sunken Crypt does the same with Shadowfen Marsh's tougher trio, and
+ * Frozen Bastion with Frostfang Highlands' — more dungeons, or a bigger
+ * bestiary to draw from, are both just more data, per README's "Extending
+ * the game".
  */
 
 export interface Dungeon {
@@ -62,6 +63,24 @@ export const dungeons: Dungeon[] = [
       items: [
         { itemId: 'iron_bar', qty: 5 },
         { itemId: 'wraith_essence', qty: 1 },
+      ],
+    },
+  },
+  {
+    id: 'frozen_bastion',
+    name: 'Frozen Bastion',
+    icon: '🏔️',
+    description:
+      'A fortress carved into the Frostfang ice, held by raiders and worse. The ' +
+      "toughest run yet — bring everything the Sunken Crypt taught you.",
+    enemyIds: ['frost_wolf', 'frost_wolf', 'highland_raider', 'highland_raider', 'stone_giant'],
+    requiredLevel: 55,
+    completionReward: {
+      gold: 800,
+      xp: { attack: 400, strength: 400, defence: 400, hitpoints: 400 },
+      items: [
+        { itemId: 'mithril_bar', qty: 5 },
+        { itemId: 'giant_core', qty: 1 },
       ],
     },
   },

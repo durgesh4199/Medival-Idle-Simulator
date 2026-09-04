@@ -97,6 +97,79 @@ export const achievements: Achievement[] = [
     ],
     reward: { gold: 1000 },
   },
+
+  // Frostfang Highlands/Frozen Bastion tier, alongside the third quest
+  // chain and Steel/Mithril/Adamant Smithing.
+  {
+    id: 'steel_forged',
+    name: 'Steel Forged',
+    icon: '🔩',
+    description: 'Reach Smithing level 40.',
+    requirements: [{ type: 'skillLevel', skillId: 'smithing', level: 40 }],
+    reward: { gold: 150 },
+  },
+  {
+    id: 'master_smith',
+    name: 'Master Smith',
+    icon: '⚒️',
+    description: 'Reach Smithing level 65 — Adamant, the top of the forge.',
+    requirements: [{ type: 'skillLevel', skillId: 'smithing', level: 65 }],
+    reward: { gold: 800 },
+  },
+  {
+    id: 'highland_conqueror',
+    name: 'Highland Conqueror',
+    icon: '👑',
+    description: "Complete \"Frozen Bastion's Reckoning\" — the third quest chain's final trial.",
+    requirements: [{ type: 'questComplete', questId: 'frozen_bastion_reckoning' }],
+    reward: { gold: 1000 },
+  },
+  {
+    id: 'bastion_cleared',
+    name: 'Bastion Cleared',
+    icon: '🏔️',
+    description: 'Clear the Frozen Bastion once.',
+    requirements: [{ type: 'dungeonCleared', dungeonId: 'frozen_bastion', count: 1 }],
+    reward: { gold: 400, xp: { smithing: 100 } },
+  },
+  {
+    id: 'bastion_master',
+    name: 'Bastion Master',
+    icon: '❄️',
+    description: 'Clear the Frozen Bastion 5 times.',
+    requirements: [{ type: 'dungeonCleared', dungeonId: 'frozen_bastion', count: 5 }],
+    reward: { gold: 2000 },
+  },
+  {
+    id: 'seasoned_warrior',
+    name: 'Seasoned Warrior',
+    icon: '🛡️',
+    description: 'Reach level 50 in Attack, Strength, Defence, and Hitpoints.',
+    requirements: [
+      { type: 'skillLevel', skillId: 'attack', level: 50 },
+      { type: 'skillLevel', skillId: 'strength', level: 50 },
+      { type: 'skillLevel', skillId: 'defence', level: 50 },
+      { type: 'skillLevel', skillId: 'hitpoints', level: 50 },
+    ],
+    reward: { gold: 1000 },
+  },
+  {
+    id: 'grandmaster_of_trades',
+    name: 'Grandmaster of Trades',
+    icon: '🎖️',
+    description: 'Reach level 40 in every gathering/production skill.',
+    requirements: [
+      { type: 'skillLevel', skillId: 'fishing', level: 40 },
+      { type: 'skillLevel', skillId: 'firemaking', level: 40 },
+      { type: 'skillLevel', skillId: 'woodcutting', level: 40 },
+      { type: 'skillLevel', skillId: 'mining', level: 40 },
+      { type: 'skillLevel', skillId: 'smithing', level: 40 },
+      { type: 'skillLevel', skillId: 'cooking', level: 40 },
+      { type: 'skillLevel', skillId: 'hunting', level: 40 },
+      { type: 'skillLevel', skillId: 'runecrafting', level: 40 },
+    ],
+    reward: { gold: 2500 },
+  },
 ]
 
 export const achievementsById: Record<string, Achievement> = Object.fromEntries(

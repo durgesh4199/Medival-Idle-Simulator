@@ -15,4 +15,11 @@ export const combatAreas: CombatArea[] = [
     requiredLevel: 25,
     enemyIds: ['bog_troll', 'dark_cultist', 'wraith'],
   },
+  {
+    id: 'frostfang_highlands',
+    name: 'Frostfang Highlands',
+    icon: '🐺',
+    requiredLevel: 45,
+    enemyIds: ['frost_wolf', 'highland_raider', 'stone_giant'],
+  },
 ]

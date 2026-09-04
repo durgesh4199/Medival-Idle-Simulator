@@ -1,7 +1,7 @@
 import type { Quest } from './types'
 
 /**
- * Two chains. The first 5 are a short starter arc that deliberately walks
+ * Three chains. The first 5 are a short starter arc that deliberately walks
  * through every requirement kind and touches most of the systems already
  * built — gather (Fishing), craft (Cooking, then Smithing), fight
  * (Combat), and a level gate — exactly the "Gather -> Process ->
@@ -11,6 +11,11 @@ import type { Quest } from './types'
  * The next 4 continue past it into Shadowfen Marsh/Sunken Crypt, handing
  * over the rest of the Iron set one piece per quest — narrative follow-
  * through for content that otherwise had no quest presence.
+ *
+ * The final 5 push into Frostfang Highlands/Frozen Bastion, the level-35+
+ * tier built alongside Steel/Mithril/Adamant Smithing — same shape again,
+ * gating on itemCount/kills/skillLevel and handing over Steel pieces along
+ * the way.
  */
 export const quests: Quest[] = [
   {
@@ -137,6 +142,81 @@ export const quests: Quest[] = [
       gold: 400,
       xp: { attack: 150, strength: 150, defence: 150, hitpoints: 150 },
       items: [{ itemId: 'wraith_essence', qty: 1 }],
+    },
+  },
+
+  // A third chain, picking up where the second leaves off, into Frostfang
+  // Highlands/Frozen Bastion — the level-35+ tier built alongside
+  // Steel/Mithril/Adamant Smithing. Same shape as the second chain: hand
+  // over a piece of the next armor tier per quest, end on a dungeon-tier
+  // boss kill and a unique trophy.
+  {
+    id: 'steel_resolve',
+    name: 'Steel Resolve',
+    icon: '🔩',
+    description:
+      "The marsh is behind you. The road north runs cold, and cold roads want steel, " +
+      'not iron. Prove the forge master you can supply it.',
+    requirements: [
+      { type: 'questComplete', questId: 'shadows_reckoning' },
+      { type: 'itemCount', itemId: 'steel_bar', qty: 5 },
+    ],
+    rewards: { gold: 100, xp: { smithing: 80 }, items: [{ itemId: 'steel_boots', qty: 1 }] },
+  },
+  {
+    id: 'wolves_at_the_door',
+    name: 'Wolves at the Door',
+    icon: '🐺',
+    description: 'Frost wolves have been raiding the northern camps. Drive them back.',
+    requirements: [
+      { type: 'questComplete', questId: 'steel_resolve' },
+      { type: 'kills', enemyId: 'frost_wolf', count: 8 },
+    ],
+    rewards: {
+      xp: { attack: 80, strength: 80, defence: 80, hitpoints: 80 },
+      items: [{ itemId: 'steel_shield', qty: 1 }],
+    },
+  },
+  {
+    id: 'raiders_bane',
+    name: "Raider's Bane",
+    icon: '🏵️',
+    description: 'Highland raiders have been picking off scouting parties. End it.',
+    requirements: [
+      { type: 'questComplete', questId: 'wolves_at_the_door' },
+      { type: 'kills', enemyId: 'highland_raider', count: 6 },
+    ],
+    rewards: { gold: 250, xp: { smithing: 60 }, items: [{ itemId: 'steel_helmet', qty: 1 }] },
+  },
+  {
+    id: 'the_giants_gauntlet',
+    name: "The Giant's Gauntlet",
+    icon: '🗿',
+    description: 'Stone giants guard the pass into the Bastion. You need to be ready for them.',
+    requirements: [
+      { type: 'questComplete', questId: 'raiders_bane' },
+      { type: 'skillLevel', skillId: 'attack', level: 45 },
+    ],
+    rewards: {
+      xp: { attack: 150, strength: 150, defence: 150, hitpoints: 150 },
+      items: [{ itemId: 'steel_sword', qty: 1 }],
+    },
+  },
+  {
+    id: 'frozen_bastion_reckoning',
+    name: "Frozen Bastion's Reckoning",
+    icon: '👑',
+    description:
+      'Whatever crowned itself lord of the Bastion sits behind three stone giants. Take ' +
+      'the crown for yourself.',
+    requirements: [
+      { type: 'questComplete', questId: 'the_giants_gauntlet' },
+      { type: 'kills', enemyId: 'stone_giant', count: 3 },
+    ],
+    rewards: {
+      gold: 600,
+      xp: { attack: 200, strength: 200, defence: 200, hitpoints: 200 },
+      items: [{ itemId: 'frozen_crown', qty: 1 }],
     },
   },
 ]

@@ -110,4 +110,57 @@ export const enemies: Enemy[] = [
       { itemId: 'ancient_coin', chance: 0.05, qty: 1 },
     ],
   },
+
+  // Frostfang Highlands — the third CombatArea, hand-tuned for a
+  // level-45+ player roughly the way Shadowfen doubled Training Grounds.
+  {
+    id: 'frost_wolf',
+    name: 'Frost Wolf',
+    icon: '🐺',
+    hp: 320,
+    accuracy: 130,
+    maxHit: 16,
+    attackSpeedMs: 2800,
+    evasion: 110,
+    xpReward: 320,
+    goldDrop: [35, 70],
+    loot: [
+      { itemId: 'bones', chance: 1, qty: 1 },
+      { itemId: 'frost_wolf_pelt', chance: 0.4, qty: 1 },
+    ],
+  },
+  {
+    id: 'highland_raider',
+    name: 'Highland Raider',
+    icon: '🪓',
+    hp: 380,
+    accuracy: 150,
+    maxHit: 18,
+    attackSpeedMs: 3000,
+    evasion: 130,
+    xpReward: 360,
+    goldDrop: [40, 85],
+    loot: [
+      { itemId: 'bones', chance: 1, qty: 1 },
+      { itemId: 'raider_emblem', chance: 0.3, qty: 1 },
+      { itemId: 'steel_bar', chance: 0.1, qty: 1 },
+    ],
+  },
+  {
+    id: 'stone_giant',
+    name: 'Stone Giant',
+    icon: '🗿',
+    hp: 520,
+    accuracy: 140,
+    maxHit: 24,
+    attackSpeedMs: 3800,
+    evasion: 100,
+    xpReward: 450,
+    goldDrop: [50, 110],
+    loot: [
+      { itemId: 'bones', chance: 1, qty: 1 },
+      { itemId: 'giant_core', chance: 0.15, qty: 1 },
+      { itemId: 'mithril_ore', chance: 0.08, qty: 1 },
+    ],
+  },
 ]

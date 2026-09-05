@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local ComfyUI art-generation output — see tools/comfyui/README.md.
+# Generated images, large and per-machine; not build artifacts to commit.
+tools/comfyui/output/
+__pycache__/

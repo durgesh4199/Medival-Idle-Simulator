@@ -1,0 +1,1409 @@
+[
+  {
+    "id": "bastion_cleared",
+    "name": "Bastion Cleared",
+    "icon": "🏔️",
+    "kind": "achievement"
+  },
+  {
+    "id": "bastion_master",
+    "name": "Bastion Master",
+    "icon": "❄️",
+    "kind": "achievement"
+  },
+  {
+    "id": "crucible_cleared",
+    "name": "Crucible Cleared",
+    "icon": "🌋",
+    "kind": "achievement"
+  },
+  {
+    "id": "crucible_master",
+    "name": "Crucible Master",
+    "icon": "🔥",
+    "kind": "achievement"
+  },
+  {
+    "id": "crypt_cleared",
+    "name": "Crypt Cleared",
+    "icon": "⚰️",
+    "kind": "achievement"
+  },
+  {
+    "id": "crypt_master",
+    "name": "Crypt Master",
+    "icon": "👑",
+    "kind": "achievement"
+  },
+  {
+    "id": "den_cleared",
+    "name": "Den Cleared",
+    "icon": "🗝️",
+    "kind": "achievement"
+  },
+  {
+    "id": "den_master",
+    "name": "Den Master",
+    "icon": "👑",
+    "kind": "achievement"
+  },
+  {
+    "id": "emberfall_conqueror",
+    "name": "Emberfall Conqueror",
+    "icon": "👑",
+    "kind": "achievement"
+  },
+  {
+    "id": "first_catch",
+    "name": "First Catch",
+    "icon": "🎣",
+    "kind": "achievement"
+  },
+  {
+    "id": "grand_warlord",
+    "name": "Grand Warlord",
+    "icon": "⚔️",
+    "kind": "achievement"
+  },
+  {
+    "id": "grandmaster_of_trades",
+    "name": "Grandmaster of Trades",
+    "icon": "🎖️",
+    "kind": "achievement"
+  },
+  {
+    "id": "grandmaster_smith",
+    "name": "Grandmaster Smith",
+    "icon": "⚒️",
+    "kind": "achievement"
+  },
+  {
+    "id": "green_thumb",
+    "name": "Green Thumb",
+    "icon": "🌱",
+    "kind": "achievement"
+  },
+  {
+    "id": "highland_conqueror",
+    "name": "Highland Conqueror",
+    "icon": "👑",
+    "kind": "achievement"
+  },
+  {
+    "id": "jack_of_all_trades",
+    "name": "Jack of All Trades",
+    "icon": "🧭",
+    "kind": "achievement"
+  },
+  {
+    "id": "marsh_conqueror",
+    "name": "Marsh Conqueror",
+    "icon": "👻",
+    "kind": "achievement"
+  },
+  {
+    "id": "master_farmer",
+    "name": "Master Farmer",
+    "icon": "🌟",
+    "kind": "achievement"
+  },
+  {
+    "id": "master_rancher",
+    "name": "Master Rancher",
+    "icon": "🐎",
+    "kind": "achievement"
+  },
+  {
+    "id": "master_smith",
+    "name": "Master Smith",
+    "icon": "⚒️",
+    "kind": "achievement"
+  },
+  {
+    "id": "proven_in_battle",
+    "name": "Proven in Battle",
+    "icon": "🏆",
+    "kind": "achievement"
+  },
+  {
+    "id": "ranch_hand",
+    "name": "Ranch Hand",
+    "icon": "🐐",
+    "kind": "achievement"
+  },
+  {
+    "id": "rat_catcher",
+    "name": "Rat Catcher",
+    "icon": "🐀",
+    "kind": "achievement"
+  },
+  {
+    "id": "rune_forged",
+    "name": "Rune Forged",
+    "icon": "🔮",
+    "kind": "achievement"
+  },
+  {
+    "id": "seasoned_warrior",
+    "name": "Seasoned Warrior",
+    "icon": "🛡️",
+    "kind": "achievement"
+  },
+  {
+    "id": "steel_forged",
+    "name": "Steel Forged",
+    "icon": "🔩",
+    "kind": "achievement"
+  },
+  {
+    "id": "woodsman",
+    "name": "Woodsman",
+    "icon": "🪓",
+    "kind": "achievement"
+  },
+  {
+    "id": "emberfall_wastes",
+    "name": "Emberfall Wastes",
+    "icon": "🌋",
+    "kind": "area"
+  },
+  {
+    "id": "frostfang_highlands",
+    "name": "Frostfang Highlands",
+    "icon": "🐺",
+    "kind": "area"
+  },
+  {
+    "id": "shadowfen_marsh",
+    "name": "Shadowfen Marsh",
+    "icon": "🌫️",
+    "kind": "area"
+  },
+  {
+    "id": "training_grounds",
+    "name": "Training Grounds",
+    "icon": "⚔️",
+    "kind": "area"
+  },
+  {
+    "id": "attack",
+    "name": "Attack",
+    "icon": "🗡️",
+    "kind": "combat_stat"
+  },
+  {
+    "id": "defence",
+    "name": "Defence",
+    "icon": "🛡️",
+    "kind": "combat_stat"
+  },
+  {
+    "id": "hitpoints",
+    "name": "Hitpoints",
+    "icon": "❤️",
+    "kind": "combat_stat"
+  },
+  {
+    "id": "strength",
+    "name": "Strength",
+    "icon": "💪",
+    "kind": "combat_stat"
+  },
+  {
+    "id": "emberfall_crucible",
+    "name": "Emberfall Crucible",
+    "icon": "🌋",
+    "kind": "dungeon",
+    "description": "A forge built into the volcano itself, where the Wastes send whatever the "
+  },
+  {
+    "id": "frozen_bastion",
+    "name": "Frozen Bastion",
+    "icon": "🏔️",
+    "kind": "dungeon",
+    "description": "A fortress carved into the Frostfang ice, held by raiders and worse. The "
+  },
+  {
+    "id": "goblin_den",
+    "name": "Goblin Den",
+    "icon": "🏚️",
+    "kind": "dungeon",
+    "description": "A collapsed mine goblins have claimed as a warren. Clear it room by room — "
+  },
+  {
+    "id": "sunken_crypt",
+    "name": "Sunken Crypt",
+    "icon": "⚰️",
+    "kind": "dungeon",
+    "description": "A flooded tomb where Shadowfen Marsh buries what it drags under. Deeper, "
+  },
+  {
+    "id": "ash_wraith",
+    "name": "Ash Wraith",
+    "icon": "👺",
+    "kind": "enemy"
+  },
+  {
+    "id": "bog_troll",
+    "name": "Bog Troll",
+    "icon": "🧌",
+    "kind": "enemy"
+  },
+  {
+    "id": "dark_cultist",
+    "name": "Dark Cultist",
+    "icon": "🧙",
+    "kind": "enemy"
+  },
+  {
+    "id": "frost_wolf",
+    "name": "Frost Wolf",
+    "icon": "🐺",
+    "kind": "enemy"
+  },
+  {
+    "id": "giant_rat",
+    "name": "Giant Rat",
+    "icon": "🐀",
+    "kind": "enemy"
+  },
+  {
+    "id": "goblin",
+    "name": "Goblin",
+    "icon": "👹",
+    "kind": "enemy"
+  },
+  {
+    "id": "highland_raider",
+    "name": "Highland Raider",
+    "icon": "🪓",
+    "kind": "enemy"
+  },
+  {
+    "id": "infernal_hound",
+    "name": "Infernal Hound",
+    "icon": "🐕‍🦺",
+    "kind": "enemy"
+  },
+  {
+    "id": "molten_golem",
+    "name": "Molten Golem",
+    "icon": "🌋",
+    "kind": "enemy"
+  },
+  {
+    "id": "skeleton_warrior",
+    "name": "Skeleton Warrior",
+    "icon": "💀",
+    "kind": "enemy"
+  },
+  {
+    "id": "stone_giant",
+    "name": "Stone Giant",
+    "icon": "🗿",
+    "kind": "enemy"
+  },
+  {
+    "id": "wraith",
+    "name": "Wraith",
+    "icon": "👻",
+    "kind": "enemy"
+  },
+  {
+    "id": "adamant_bar",
+    "name": "Adamant Bar",
+    "icon": "🟩",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "adamant_boots",
+    "name": "Adamant Boots",
+    "icon": "👢",
+    "kind": "item",
+    "category": "equipment",
+    "slot": "boots"
+  },
+  {
+    "id": "adamant_helmet",
+    "name": "Adamant Helmet",
+    "icon": "⛑️",
+    "kind": "item",
+    "category": "equipment",
+    "slot": "helmet"
+  },
+  {
+    "id": "adamant_ore",
+    "name": "Adamant Ore",
+    "icon": "🟢",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "adamant_shield",
+    "name": "Adamant Shield",
+    "icon": "🛡️",
+    "kind": "item",
+    "category": "equipment",
+    "slot": "shield"
+  },
+  {
+    "id": "adamant_sword",
+    "name": "Adamant Sword",
+    "icon": "⚔️",
+    "kind": "item",
+    "category": "equipment",
+    "slot": "weapon"
+  },
+  {
+    "id": "air_rune",
+    "name": "Air Rune",
+    "icon": "🌀",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "ancient_coin",
+    "name": "Ancient Coin",
+    "icon": "🪙",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "ash",
+    "name": "Ash",
+    "icon": "⚪",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "ash_wraith_essence",
+    "name": "Ash Wraith Essence",
+    "icon": "💨",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "barley",
+    "name": "Barley",
+    "icon": "🌾",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "barley_seed",
+    "name": "Barley Seed",
+    "icon": "🌱",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "blood_rune",
+    "name": "Blood Rune",
+    "icon": "🔴",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "boar_tusk",
+    "name": "Boar Tusk",
+    "icon": "🦷",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "bones",
+    "name": "Bones",
+    "icon": "🦴",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "bread",
+    "name": "Bread",
+    "icon": "🍞",
+    "kind": "item",
+    "category": "food"
+  },
+  {
+    "id": "bronze_bar",
+    "name": "Bronze Bar",
+    "icon": "🟫",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "bronze_boots",
+    "name": "Bronze Boots",
+    "icon": "👢",
+    "kind": "item",
+    "category": "equipment",
+    "slot": "boots"
+  },
+  {
+    "id": "bronze_helmet",
+    "name": "Bronze Helmet",
+    "icon": "⛑️",
+    "kind": "item",
+    "category": "equipment",
+    "slot": "helmet"
+  },
+  {
+    "id": "bronze_shield",
+    "name": "Bronze Shield",
+    "icon": "🛡️",
+    "kind": "item",
+    "category": "equipment",
+    "slot": "shield"
+  },
+  {
+    "id": "bronze_sword",
+    "name": "Bronze Sword",
+    "icon": "🗡️",
+    "kind": "item",
+    "category": "equipment",
+    "slot": "weapon"
+  },
+  {
+    "id": "burnt_food",
+    "name": "Burnt Food",
+    "icon": "🔥",
+    "kind": "item",
+    "category": "food"
+  },
+  {
+    "id": "cake",
+    "name": "Cake",
+    "icon": "🍰",
+    "kind": "item",
+    "category": "food"
+  },
+  {
+    "id": "carrot",
+    "name": "Carrot",
+    "icon": "🥕",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "carrot_seed",
+    "name": "Carrot Seed",
+    "icon": "🌱",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "chaos_rune",
+    "name": "Chaos Rune",
+    "icon": "🌪️",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "charcoal",
+    "name": "Charcoal",
+    "icon": "⚫",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "chicken",
+    "name": "Chicken",
+    "icon": "🐔",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "coal",
+    "name": "Coal",
+    "icon": "⚫",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "cooked_eel",
+    "name": "Cooked Eel",
+    "icon": "🍢",
+    "kind": "item",
+    "category": "food"
+  },
+  {
+    "id": "cooked_herring",
+    "name": "Cooked Herring",
+    "icon": "🍤",
+    "kind": "item",
+    "category": "food"
+  },
+  {
+    "id": "cooked_silverfin",
+    "name": "Cooked Silverfin",
+    "icon": "🍥",
+    "kind": "item",
+    "category": "food"
+  },
+  {
+    "id": "cooked_trout",
+    "name": "Cooked Trout",
+    "icon": "🐟",
+    "kind": "item",
+    "category": "food"
+  },
+  {
+    "id": "copper_ore",
+    "name": "Copper Ore",
+    "icon": "🟠",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "cow",
+    "name": "Cow",
+    "icon": "🐄",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "cowhide",
+    "name": "Cowhide",
+    "icon": "🟤",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "death_rune",
+    "name": "Death Rune",
+    "icon": "💀",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "egg",
+    "name": "Egg",
+    "icon": "🥚",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "emberfall_crown",
+    "name": "Emberfall Crown",
+    "icon": "👑",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "feathers",
+    "name": "Feathers",
+    "icon": "🪶",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "fire_rune",
+    "name": "Fire Rune",
+    "icon": "🔺",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "frost_wolf_pelt",
+    "name": "Frost Wolf Pelt",
+    "icon": "🐺",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "frozen_crown",
+    "name": "Frozen Crown",
+    "icon": "👑",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "fur",
+    "name": "Fur",
+    "icon": "🦫",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "giant_core",
+    "name": "Giant Core",
+    "icon": "🔷",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "goat",
+    "name": "Goat",
+    "icon": "🐐",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "goblin_ear",
+    "name": "Goblin Ear",
+    "icon": "👂",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "golden_stag_hide",
+    "name": "Golden Stag Hide",
+    "icon": "✨",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "golden_wheat",
+    "name": "Golden Wheat",
+    "icon": "🌟",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "golden_wheat_seed",
+    "name": "Golden Wheat Seed",
+    "icon": "🌱",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "horseshoe",
+    "name": "Horseshoe",
+    "icon": "🧲",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "infernal_fang",
+    "name": "Infernal Fang",
+    "icon": "🦷",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "iron_bar",
+    "name": "Iron Bar",
+    "icon": "⬜",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "iron_boots",
+    "name": "Iron Boots",
+    "icon": "👢",
+    "kind": "item",
+    "category": "equipment",
+    "slot": "boots"
+  },
+  {
+    "id": "iron_helmet",
+    "name": "Iron Helmet",
+    "icon": "⛑️",
+    "kind": "item",
+    "category": "equipment",
+    "slot": "helmet"
+  },
+  {
+    "id": "iron_ore",
+    "name": "Iron Ore",
+    "icon": "🔘",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "iron_shield",
+    "name": "Iron Shield",
+    "icon": "🛡️",
+    "kind": "item",
+    "category": "equipment",
+    "slot": "shield"
+  },
+  {
+    "id": "iron_sword",
+    "name": "Iron Sword",
+    "icon": "⚔️",
+    "kind": "item",
+    "category": "equipment",
+    "slot": "weapon"
+  },
+  {
+    "id": "junk",
+    "name": "Junk",
+    "icon": "🥾",
+    "kind": "item",
+    "category": "resource",
+    "slot": "weapon"
+  },
+  {
+    "id": "logs",
+    "name": "Logs",
+    "icon": "🪵",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "milk",
+    "name": "Milk",
+    "icon": "🥛",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "mithril_bar",
+    "name": "Mithril Bar",
+    "icon": "🟦",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "mithril_boots",
+    "name": "Mithril Boots",
+    "icon": "👢",
+    "kind": "item",
+    "category": "equipment",
+    "slot": "boots"
+  },
+  {
+    "id": "mithril_helmet",
+    "name": "Mithril Helmet",
+    "icon": "⛑️",
+    "kind": "item",
+    "category": "equipment",
+    "slot": "helmet"
+  },
+  {
+    "id": "mithril_ore",
+    "name": "Mithril Ore",
+    "icon": "🔵",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "mithril_shield",
+    "name": "Mithril Shield",
+    "icon": "🛡️",
+    "kind": "item",
+    "category": "equipment",
+    "slot": "shield"
+  },
+  {
+    "id": "mithril_sword",
+    "name": "Mithril Sword",
+    "icon": "🗡️",
+    "kind": "item",
+    "category": "equipment",
+    "slot": "weapon"
+  },
+  {
+    "id": "molten_core",
+    "name": "Molten Core",
+    "icon": "🔥",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "oak_logs",
+    "name": "Oak Logs",
+    "icon": "🪵",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "potato",
+    "name": "Potato",
+    "icon": "🥔",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "potato_seed",
+    "name": "Potato Seed",
+    "icon": "🌱",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "pumpkin",
+    "name": "Pumpkin",
+    "icon": "🎃",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "pumpkin_seed",
+    "name": "Pumpkin Seed",
+    "icon": "🌱",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "raider_emblem",
+    "name": "Raider Emblem",
+    "icon": "🏵️",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "rat_tail",
+    "name": "Rat Tail",
+    "icon": "🐁",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "raw_eel",
+    "name": "Raw Eel",
+    "icon": "🐍",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "raw_herring",
+    "name": "Raw Herring",
+    "icon": "🐟",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "raw_meat",
+    "name": "Raw Meat",
+    "icon": "🥩",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "raw_silverfin",
+    "name": "Raw Silverfin",
+    "icon": "🐡",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "raw_trout",
+    "name": "Raw Trout",
+    "icon": "🐠",
+    "kind": "item",
+    "category": "resource",
+    "slot": "weapon"
+  },
+  {
+    "id": "rune_bar",
+    "name": "Rune Bar",
+    "icon": "🟪",
+    "kind": "item",
+    "category": "resource",
+    "slot": "weapon"
+  },
+  {
+    "id": "rune_boots",
+    "name": "Rune Boots",
+    "icon": "👢",
+    "kind": "item",
+    "category": "equipment",
+    "slot": "boots"
+  },
+  {
+    "id": "rune_essence",
+    "name": "Rune Essence",
+    "icon": "💠",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "rune_helmet",
+    "name": "Rune Helmet",
+    "icon": "⛑️",
+    "kind": "item",
+    "category": "equipment",
+    "slot": "helmet"
+  },
+  {
+    "id": "rune_ore",
+    "name": "Rune Ore",
+    "icon": "🟣",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "rune_shield",
+    "name": "Rune Shield",
+    "icon": "🛡️",
+    "kind": "item",
+    "category": "equipment",
+    "slot": "shield"
+  },
+  {
+    "id": "rune_sword",
+    "name": "Rune Sword",
+    "icon": "⚔️",
+    "kind": "item",
+    "category": "equipment",
+    "slot": "weapon"
+  },
+  {
+    "id": "rusty_ancient_dagger",
+    "name": "Rusty Ancient Dagger",
+    "icon": "🗡️",
+    "kind": "item",
+    "category": "equipment",
+    "slot": "weapon"
+  },
+  {
+    "id": "sheep",
+    "name": "Sheep",
+    "icon": "🐑",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "silver_fox_pelt",
+    "name": "Silver Fox Pelt",
+    "icon": "🦊",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "stag_antler",
+    "name": "Stag Antler",
+    "icon": "🦌",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "steel_bar",
+    "name": "Steel Bar",
+    "icon": "⬛",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "steel_boots",
+    "name": "Steel Boots",
+    "icon": "👢",
+    "kind": "item",
+    "category": "equipment",
+    "slot": "boots"
+  },
+  {
+    "id": "steel_helmet",
+    "name": "Steel Helmet",
+    "icon": "⛑️",
+    "kind": "item",
+    "category": "equipment",
+    "slot": "helmet"
+  },
+  {
+    "id": "steel_shield",
+    "name": "Steel Shield",
+    "icon": "🛡️",
+    "kind": "item",
+    "category": "equipment",
+    "slot": "shield"
+  },
+  {
+    "id": "steel_sword",
+    "name": "Steel Sword",
+    "icon": "⚔️",
+    "kind": "item",
+    "category": "equipment",
+    "slot": "weapon"
+  },
+  {
+    "id": "tin_ore",
+    "name": "Tin Ore",
+    "icon": "⚪",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "troll_hide",
+    "name": "Troll Hide",
+    "icon": "🟢",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "warhorse",
+    "name": "Warhorse",
+    "icon": "🐎",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "water_rune",
+    "name": "Water Rune",
+    "icon": "💧",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "willow_logs",
+    "name": "Willow Logs",
+    "icon": "🪵",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "wool",
+    "name": "Wool",
+    "icon": "🧶",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "wraith_essence",
+    "name": "Wraith Essence",
+    "icon": "✨",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "yew_logs",
+    "name": "Yew Logs",
+    "icon": "🪵",
+    "kind": "item",
+    "category": "resource"
+  },
+  {
+    "id": "achievements",
+    "name": "Achievements",
+    "icon": "🏆",
+    "kind": "nav"
+  },
+  {
+    "id": "bank",
+    "name": "Bank",
+    "icon": "🎒",
+    "kind": "nav"
+  },
+  {
+    "id": "codex",
+    "name": "Codex",
+    "icon": "📖",
+    "kind": "nav"
+  },
+  {
+    "id": "combat",
+    "name": "Combat",
+    "icon": "⚔️",
+    "kind": "nav"
+  },
+  {
+    "id": "dungeons",
+    "name": "Dungeons",
+    "icon": "🗝️",
+    "kind": "nav"
+  },
+  {
+    "id": "farming",
+    "name": "Farming",
+    "icon": "🌾",
+    "kind": "nav"
+  },
+  {
+    "id": "pets",
+    "name": "Pets",
+    "icon": "🐾",
+    "kind": "nav"
+  },
+  {
+    "id": "quests",
+    "name": "Quests",
+    "icon": "📜",
+    "kind": "nav"
+  },
+  {
+    "id": "ranching",
+    "name": "Ranching",
+    "icon": "🐄",
+    "kind": "nav"
+  },
+  {
+    "id": "settings",
+    "name": "Settings",
+    "icon": "⚙️",
+    "kind": "nav"
+  },
+  {
+    "id": "shop",
+    "name": "Shop",
+    "icon": "🛒",
+    "kind": "nav"
+  },
+  {
+    "id": "pet_combat",
+    "name": "Loyal Hound",
+    "icon": "🐕",
+    "kind": "pet",
+    "description": "A rare find from any kill. +3% XP from every kill once found."
+  },
+  {
+    "id": "pet_cooking",
+    "name": "Kitchen Chick",
+    "icon": "🐔",
+    "kind": "pet",
+    "description": "A rare find while Cooking. +2% Cooking speed once found."
+  },
+  {
+    "id": "pet_farming",
+    "name": "Garden Sprite",
+    "icon": "🧚",
+    "kind": "pet",
+    "description": "A rare find on harvest. +2% faster crop growth once found."
+  },
+  {
+    "id": "pet_firemaking",
+    "name": "Ember Salamander",
+    "icon": "🦎",
+    "kind": "pet",
+    "description": "A rare find while Firemaking. +2% Firemaking speed once found."
+  },
+  {
+    "id": "pet_fishing",
+    "name": "River Otter",
+    "icon": "🦦",
+    "kind": "pet",
+    "description": "A rare find while Fishing. +2% Fishing speed once found."
+  },
+  {
+    "id": "pet_hunting",
+    "name": "Trail Fox",
+    "icon": "🦊",
+    "kind": "pet",
+    "description": "A rare find while Hunting. +2% Hunting speed once found."
+  },
+  {
+    "id": "pet_mining",
+    "name": "Tunnel Badger",
+    "icon": "🦡",
+    "kind": "pet",
+    "description": "A rare find while Mining. +2% Mining speed once found."
+  },
+  {
+    "id": "pet_ranching",
+    "name": "Barnyard Cat",
+    "icon": "🐈",
+    "kind": "pet",
+    "description": "A rare find on collection. +2% faster animal raising once found."
+  },
+  {
+    "id": "pet_runecrafting",
+    "name": "Arcane Owl",
+    "icon": "🦉",
+    "kind": "pet",
+    "description": "A rare find while Runecrafting. +2% Runecrafting speed once found."
+  },
+  {
+    "id": "pet_smithing",
+    "name": "Forge Wyrmling",
+    "icon": "🐉",
+    "kind": "pet",
+    "description": "A rare find while Smithing. +2% Smithing speed once found."
+  },
+  {
+    "id": "pet_woodcutting",
+    "name": "Timber Squirrel",
+    "icon": "🐿️",
+    "kind": "pet",
+    "description": "A rare find while Woodcutting. +2% Woodcutting speed once found."
+  },
+  {
+    "id": "aegis",
+    "name": "Prayer of the Aegis",
+    "icon": "🛡️",
+    "kind": "prayer"
+  },
+  {
+    "id": "fury",
+    "name": "Prayer of Fury",
+    "icon": "💪",
+    "kind": "prayer"
+  },
+  {
+    "id": "might",
+    "name": "Prayer of Might",
+    "icon": "💪",
+    "kind": "prayer"
+  },
+  {
+    "id": "precision",
+    "name": "Prayer of Precision",
+    "icon": "🎯",
+    "kind": "prayer"
+  },
+  {
+    "id": "protection",
+    "name": "Prayer of Protection",
+    "icon": "🛡️",
+    "kind": "prayer"
+  },
+  {
+    "id": "sanctity",
+    "name": "Prayer of Sanctity",
+    "icon": "❤️",
+    "kind": "prayer"
+  },
+  {
+    "id": "vigor",
+    "name": "Prayer of Vigor",
+    "icon": "❤️",
+    "kind": "prayer"
+  },
+  {
+    "id": "zeal",
+    "name": "Prayer of Zeal",
+    "icon": "🎯",
+    "kind": "prayer"
+  },
+  {
+    "id": "blooded_blade",
+    "name": "Blooded Blade",
+    "icon": "⚔️",
+    "kind": "quest"
+  },
+  {
+    "id": "bog_cull",
+    "name": "Bog Cull",
+    "icon": "🧌",
+    "kind": "quest"
+  },
+  {
+    "id": "hounds_of_ember",
+    "name": "Hounds of Ember",
+    "icon": "🐕‍🦺",
+    "kind": "quest"
+  },
+  {
+    "id": "kitchen_basics",
+    "name": "Kitchen Basics",
+    "icon": "🍳",
+    "kind": "quest"
+  },
+  {
+    "id": "marsh_rumors",
+    "name": "Marsh Rumors",
+    "icon": "🌫️",
+    "kind": "quest"
+  },
+  {
+    "id": "proven_adventurer",
+    "name": "Proven Adventurer",
+    "icon": "🏆",
+    "kind": "quest"
+  },
+  {
+    "id": "rune_reckoning",
+    "name": "Rune Reckoning",
+    "icon": "🔮",
+    "kind": "quest"
+  },
+  {
+    "id": "steel_resolve",
+    "name": "Steel Resolve",
+    "icon": "🔩",
+    "kind": "quest"
+  },
+  {
+    "id": "the_molten_trial",
+    "name": "The Molten Trial",
+    "icon": "🌋",
+    "kind": "quest"
+  },
+  {
+    "id": "wolves_at_the_door",
+    "name": "Wolves at the Door",
+    "icon": "🐺",
+    "kind": "quest"
+  },
+  {
+    "id": "wraiths_of_ash",
+    "name": "Wraiths of Ash",
+    "icon": "👺",
+    "kind": "quest"
+  },
+  {
+    "id": "cooking",
+    "name": "Cooking",
+    "icon": "🍳",
+    "kind": "skill"
+  },
+  {
+    "id": "firemaking",
+    "name": "Firemaking",
+    "icon": "🔥",
+    "kind": "skill"
+  },
+  {
+    "id": "fishing",
+    "name": "Fishing",
+    "icon": "🎣",
+    "kind": "skill"
+  },
+  {
+    "id": "hunting",
+    "name": "Hunting",
+    "icon": "🪤",
+    "kind": "skill"
+  },
+  {
+    "id": "mining",
+    "name": "Mining",
+    "icon": "⛏️",
+    "kind": "skill"
+  },
+  {
+    "id": "runecrafting",
+    "name": "Runecrafting",
+    "icon": "🔮",
+    "kind": "skill"
+  },
+  {
+    "id": "smithing",
+    "name": "Smithing",
+    "icon": "🔨",
+    "kind": "skill"
+  },
+  {
+    "id": "woodcutting",
+    "name": "Woodcutting",
+    "icon": "🪓",
+    "kind": "skill"
+  },
+  {
+    "id": "air_bolt",
+    "name": "Air Bolt",
+    "icon": "🌀",
+    "kind": "spell"
+  },
+  {
+    "id": "blood_bolt",
+    "name": "Blood Bolt",
+    "icon": "🩸",
+    "kind": "spell"
+  },
+  {
+    "id": "chaos_bolt",
+    "name": "Chaos Bolt",
+    "icon": "🌪️",
+    "kind": "spell"
+  },
+  {
+    "id": "death_bolt",
+    "name": "Death Bolt",
+    "icon": "💀",
+    "kind": "spell"
+  },
+  {
+    "id": "fire_bolt",
+    "name": "Fire Bolt",
+    "icon": "🔺",
+    "kind": "spell"
+  },
+  {
+    "id": "water_bolt",
+    "name": "Water Bolt",
+    "icon": "💧",
+    "kind": "spell"
+  }
+]

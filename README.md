@@ -831,6 +831,23 @@ Adding more of anything above stays additive:
   exactly — see "Frostfang Highlands, Frozen Bastion, and Steel/Mithril/Adamant"
   above for the shape three more tiers actually took.
 
+### Generating art with a local ComfyUI
+
+Every icon above is still an emoji string (`icon: '🌾'` fields throughout
+`data/*.ts`) — there's no image asset pipeline in the game itself.
+`tools/comfyui/` adds one, as opt-in local tooling: `extract_manifest.py`
+scans `src/data/*.ts` (plus `NavRail.tsx`'s hardcoded nav tabs) into a
+210-entry manifest tagged by kind (item/enemy/pet/skill/achievement/quest/
+spell/prayer/area/dungeon/...), and `generate_assets.py` drives a **ComfyUI
+instance running on your own machine** through its HTTP API to batch-
+generate a pixel-art icon (or background scene, for areas/dungeons) per
+entry, then post-processes each with Pillow (downsample + palette-quantize
++ nearest-neighbour upscale) so a raw diffusion output reads as crisp pixel
+art instead of a blurry 512×512 image. See `tools/comfyui/README.md` for
+the full walkthrough. This only produces image files in a gitignored
+output folder — wiring them into the UI in place of the emoji strings is a
+separate, not-yet-done follow-up.
+
 ## Development
 
 ```

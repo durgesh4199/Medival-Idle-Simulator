@@ -775,6 +775,35 @@ seeded via `page.evaluate` rather than `addInitScript`, since `addInitScript`
 re-seeds on every navigation including the reload Reset triggers, which
 would have hidden the same race bug during testing.
 
+### The "currently running" indicator
+
+`NavRail`'s XP-progress rings already show *what page you're looking at*
+(`isActive` — a gold background and left accent bar) and *how close each
+skill is to leveling* (the ring itself). Neither one says *what the game is
+actually doing right now* while you're off browsing the Bank or the Codex —
+so a skill icon can look identical whether it's mid-action or completely
+idle. `RailButton` now takes a separate `isRunning` prop for that: a small
+pulsing green dot (a solid circle plus an `animate-ping` layer, bordered in
+`border-rail` so it stands out against the dark rail) pinned to the icon's
+bottom-right corner.
+
+`isRunning` reflects the game's actual mutual-exclusion model rather than
+being a UI-only guess: `NavRail` derives `runningSkillId` from
+`activeAction` (via `actionsById[...].skillId`) for the skill icons, and maps
+`combat !== null` / `dungeonRun !== null` onto the Combat/Dungeons icons —
+the same three store fields that `gameStore`'s own start-functions already
+treat as mutually exclusive with each other. Farming and Ranching are
+deliberately left out: their plots/pens grow in parallel with everything
+else (see their own sections above) rather than occupying that exclusive
+slot, and they already surface readiness via `StatusBar`'s own "N ready"
+badge, so a permanent dot there would just be noise.
+
+Verified live: with no activity running, no rail icon shows a dot; starting
+Fishing lights the Fishing icon's dot; switching to Combat and starting a
+fight moves the dot to the Combat icon and clears it from Fishing in the
+same update — confirming the indicator tracks `gameStore`'s real
+mutually-exclusive activity state, not just whichever page was clicked last.
+
 ## Extending the game
 
 Adding more of anything above stays additive:

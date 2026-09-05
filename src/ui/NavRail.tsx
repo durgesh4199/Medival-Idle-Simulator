@@ -1,4 +1,4 @@
-import { COMBAT_SKILL_IDS, skills } from '../data'
+import { COMBAT_SKILL_IDS, actionsById, skills } from '../data'
 import type { SkillId } from '../data/types'
 import { xpProgress } from '../engine/xp'
 import { useGameStore } from '../state/gameStore'
@@ -69,12 +69,19 @@ function RailButton({
   icon,
   title,
   isActive,
+  isRunning,
   percent,
   onClick,
 }: {
   icon: string
   title: string
   isActive: boolean
+  /** Whether this is the one thing currently occupying `activeAction`/
+   *  `combat`/`dungeonRun`'s mutually-exclusive "current activity" slot —
+   *  independent of `isActive` (which page you're *looking at*), so the
+   *  dot stays lit on whatever you're actually doing even while you browse
+   *  the Bank or Codex. */
+  isRunning?: boolean
   /** XP progress toward next level, 0-100. Omit for destinations with no
    *  level of their own (Bank/Shop/Quests) — they get a plain icon. */
   percent?: number
@@ -83,7 +90,7 @@ function RailButton({
   return (
     <button
       type="button"
-      title={title}
+      title={isRunning ? `${title} — in progress` : title}
       onClick={onClick}
       className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-xl transition-colors ${
         isActive
@@ -98,6 +105,14 @@ function RailButton({
       <span className="relative" aria-hidden>
         {icon}
       </span>
+      {isRunning && (
+        <span
+          aria-hidden
+          className="absolute bottom-0.5 right-0.5 h-2.5 w-2.5 rounded-full border-2 border-rail bg-green-500"
+        >
+          <span className="absolute inset-0 animate-ping rounded-full bg-green-500 opacity-75" />
+        </span>
+      )}
     </button>
   )
 }
@@ -110,6 +125,14 @@ function RailButton({
  */
 export function NavRail({ view, selectedSkill, onSelectSkill, onChangeView }: Props) {
   const skillXp = useGameStore((s) => s.skillXp)
+  const activeAction = useGameStore((s) => s.activeAction)
+  const combat = useGameStore((s) => s.combat)
+  const dungeonRun = useGameStore((s) => s.dungeonRun)
+
+  // The one skill (if any) whose action is actually running right now —
+  // independent of `selectedSkill`, which just tracks what's currently
+  // shown in the Skills view.
+  const runningSkillId = activeAction ? actionsById[activeAction.actionId]?.skillId : undefined
 
   const combatPercent =
     COMBAT_SKILL_IDS.reduce((sum, id) => sum + xpProgress(skillXp[id] ?? 0).percent, 0) /
@@ -124,6 +147,12 @@ export function NavRail({ view, selectedSkill, onSelectSkill, onChangeView }: Pr
     farming: farmingPercent,
     ranching: ranchingPercent,
   }
+  // Combat/Dungeons are `activeAction`/`combat`/`dungeonRun`'s other two
+  // mutually-exclusive slots — at most one of all three is ever non-null.
+  const extraTabRunning: Partial<Record<Exclude<View, 'skills'>, boolean>> = {
+    combat: combat !== null,
+    dungeons: dungeonRun !== null,
+  }
 
   return (
     <nav className="flex w-14 shrink-0 flex-col items-center gap-1 overflow-y-auto border-r border-line bg-rail py-2">
@@ -135,6 +164,7 @@ export function NavRail({ view, selectedSkill, onSelectSkill, onChangeView }: Pr
             icon={skill.icon}
             title={`${skill.name} (Lv ${progress.level})`}
             isActive={view === 'skills' && skill.id === selectedSkill}
+            isRunning={skill.id === runningSkillId}
             percent={progress.percent}
             onClick={() => {
               onSelectSkill(skill.id)
@@ -152,6 +182,7 @@ export function NavRail({ view, selectedSkill, onSelectSkill, onChangeView }: Pr
           icon={tab.icon}
           title={tab.label}
           isActive={view === tab.view}
+          isRunning={extraTabRunning[tab.view]}
           percent={extraTabPercent[tab.view]}
           onClick={() => onChangeView(tab.view)}
         />

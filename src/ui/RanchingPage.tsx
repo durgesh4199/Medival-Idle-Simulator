@@ -1,4 +1,4 @@
-import { getItem, ranchAnimals, ranchAnimalsById } from '../data'
+import { getItem, ranchAnimals, ranchAnimalsById, ranchPenUnlockLevels } from '../data'
 import { isMasteryPoolFull, masteryLevelForXp } from '../engine/masteryEngine'
 import {
   isMature,
@@ -33,6 +33,22 @@ function PenCard({ penIndex }: { penIndex: number }) {
 
   const pen = ranchPens[penIndex]
   const animal = pen.animalId ? ranchAnimalsById[pen.animalId] : undefined
+  const unlockLevel = ranchPenUnlockLevels[penIndex] ?? Infinity
+  const penLocked = levelOf('ranching') < unlockLevel
+
+  if (penLocked) {
+    return (
+      <div className="overflow-hidden rounded-xl border border-line border-dashed bg-panel opacity-60">
+        <div className="border-b border-line bg-panel-soft px-3 py-2 text-center text-sm font-semibold text-neutral-300">
+          Pen {penIndex + 1}
+        </div>
+        <div className="flex flex-col items-center gap-2 p-4 text-center">
+          <span className="text-3xl grayscale">🔒</span>
+          <span className="text-xs text-neutral-500">Unlocks at Ranching level {unlockLevel}</span>
+        </div>
+      </div>
+    )
+  }
 
   if (animal && pen.placedAt != null) {
     const mature = isMature(pen, animal, now)

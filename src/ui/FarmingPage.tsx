@@ -1,4 +1,4 @@
-import { farmingCrops, farmingCropsById, getItem } from '../data'
+import { farmingCrops, farmingCropsById, farmingPlotUnlockLevels, getItem } from '../data'
 import { isPlotReady, plotProgress } from '../engine/farmingEngine'
 import { isMasteryPoolFull, masteryLevelForXp } from '../engine/masteryEngine'
 import { useGameStore } from '../state/gameStore'
@@ -29,6 +29,22 @@ function PlotCard({ plotIndex }: { plotIndex: number }) {
   const crop = plot.cropId ? farmingCropsById[plot.cropId] : undefined
   const ready = isPlotReady(plot, crop, now)
   const percent = plotProgress(plot, crop, now)
+  const unlockLevel = farmingPlotUnlockLevels[plotIndex] ?? Infinity
+  const plotLocked = levelOf('farming') < unlockLevel
+
+  if (plotLocked) {
+    return (
+      <div className="overflow-hidden rounded-xl border border-line border-dashed bg-panel opacity-60">
+        <div className="border-b border-line bg-panel-soft px-3 py-2 text-center text-sm font-semibold text-neutral-300">
+          Plot {plotIndex + 1}
+        </div>
+        <div className="flex flex-col items-center gap-2 p-4 text-center">
+          <span className="text-3xl grayscale">🔒</span>
+          <span className="text-xs text-neutral-500">Unlocks at Farming level {unlockLevel}</span>
+        </div>
+      </div>
+    )
+  }
 
   if (crop && plot.plantedAt != null) {
     const remainingMs = plot.plantedAt + crop.growDurationMs - now

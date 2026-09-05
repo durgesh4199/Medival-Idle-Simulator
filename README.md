@@ -177,29 +177,6 @@ through the normal save/offline-catchup path, and show up right where the player
 already looking — inside the selected action's detail card in `SkillPanel`, not a
 separate screen.
 
-**Follow-up fix:** Farming and Ranching both shipped with an explicit "no
-Mastery yet, a natural follow-up" note — and since `masteryXp`/`masteryPoolXp`
-are already plain `Record<string, number>`, not typed to `Action.id`/`SkillId`
-specifically, extending them needed no new engine surface, only new call
-sites. `plantCrop`/`placeAnimal` key `masteryXp` by the crop/animal id itself
-(same reasoning as Action.id: rewards replanting the same crop, not just
-training Farming in general) and apply `masterySpeedBonus` via the same
-backdated-timestamp trick already used for the Farming/Ranching pets' bonus,
-additively — matching `pets.ts`'s own comment that pet + Mastery bonuses were
-always meant to combine, everywhere. `harvestCrop`/`collectRanch` roll
-`rollMasteryPoolBonus` against `masteryPoolXp.farming`/`.ranching` to double a
-harvest's yield or a collection's batch count, the same "flat chance once
-full" perk skills get — and while touching this, the two Pet rolls switched
-from using the raw skill level (a stand-in noted at the time as "since Farming
-has no Mastery") to the crop/animal's own freshly-updated mastery level,
-matching the pattern skills use exactly rather than approximating it.
-`FarmingPage`/`RanchingPage` gained a small "🎖️ Mastery Lv N · Pool FULL" line
-on each plot/pen card. Verified live: mastery XP accumulates the right amount
-per harvest/collection, the displayed level matches `masteryLevelForXp`
-exactly, and forcing the pool-bonus roll (via a stubbed `Math.random`) doubles
-the harvested/collected amount, all through the real store, not just the pure
-engine functions in isolation.
-
 ### Quests
 
 Design doc §9: "A quest can require gathering, training, crafting, defeating
@@ -620,9 +597,9 @@ same "a resource feeds multiple systems" principle every other crop chain here
 follows. `pets.ts` gained a third `PetSource` variant, `{type: 'farming'}`,
 alongside the existing `{type: 'combat'}` — the same precedent for "a non-
 skill-panel system gets its own pet source" already set before Farming existed.
-Farming has no plot-unlock progression yet — a natural follow-up, not an
-oversight — but it does have Mastery now (see "Mastery comes to Farming and
-Ranching" below); that gap closed on its own turn, not this one.
+Mastery reached both Farming and Ranching, and plot/pen-unlock progression did
+too — see "Mastery, and plot/pen-unlock progression, for Farming and
+Ranching" below; both gaps closed on later turns, not this one.
 
 ### Ranching
 
@@ -661,6 +638,56 @@ system. Ranching shares every other precedent Farming set: `pets.ts`'s fourth
 `PetSource` variant (`{type: 'ranching'}`), 2 achievements, and a slot in `StatusBar`'s
 badge group — "🌾 N plots ready" and "🐄 N pens ready" now ride along together,
 since neither is mutually exclusive with anything else running.
+
+### Mastery, and plot/pen-unlock progression, for Farming and Ranching
+
+Both shipped with two explicit "natural follow-up, not an oversight" notes:
+no Mastery, and a fixed plot/pen count with no unlock progression at all.
+Both closed since, in that order.
+
+**Mastery:** since `masteryXp`/`masteryPoolXp` are already plain
+`Record<string, number>`, not typed to `Action.id`/`SkillId` specifically,
+extending them needed no new engine surface, only new call sites.
+`plantCrop`/`placeAnimal` key `masteryXp` by the crop/animal id itself (same
+reasoning as `Action.id`: rewards replanting the same crop, not just training
+Farming in general) and apply `masterySpeedBonus` via the same
+backdated-timestamp trick already used for the Farming/Ranching pets' bonus,
+additively — matching `pets.ts`'s own comment that pet + Mastery bonuses were
+always meant to combine, everywhere. `harvestCrop`/`collectRanch` roll
+`rollMasteryPoolBonus` against `masteryPoolXp.farming`/`.ranching` to double a
+harvest's yield or a collection's batch count, the same "flat chance once
+full" perk skills get — and while touching this, the two Pet rolls switched
+from using the raw skill level (a stand-in noted at the time as "since Farming
+has no Mastery") to the crop/animal's own freshly-updated mastery level,
+matching the pattern skills use exactly rather than approximating it.
+`FarmingPage`/`RanchingPage` gained a small "🎖️ Mastery Lv N · Pool FULL" line
+on each plot/pen card. Verified live: mastery XP accumulates the right amount
+per harvest/collection, the displayed level matches `masteryLevelForXp`
+exactly, and forcing the pool-bonus roll (via a stubbed `Math.random`) doubles
+the harvested/collected amount, all through the real store, not just the pure
+engine functions in isolation.
+
+**Plot/pen unlocks:** both originally had a fixed count (4) available from
+level 1, with nothing gating how many you could use — the flagged gap.
+`farmingPlotUnlockLevels`/`ranchPenUnlockLevels` are the same "exists in
+state, gated by a level check" pattern every Location/Action/CombatArea/
+Dungeon here already uses, rather than growing the array itself as levels
+rise: the state array is always its full final size (grown from 4 to 6 for
+both), and `canPlantCrop`/`canPlaceAnimal` additionally check the target
+index's own unlock level. The first four-five thresholds roughly track each
+crop/animal tier arriving with a new plot/pen to put it in; the last one or
+two are a late-game reward for training past the top crop/animal's own level
+(55/58), so there's still something to reach for afterward.
+`FarmingPage`/`RanchingPage` render a locked plot/pen as a distinct 🔒 card
+rather than the normal empty-and-plantable one. The one migration wrinkle:
+an older save's `farmingPlots`/`ranchPens` array is 4 long, not absent, so
+`?? Array.from(...)`'s usual "field doesn't exist yet" fallback doesn't cover
+it — `padArray` pads a too-short array up to the new count with fresh empty
+entries instead. Verified across three seeded saves: a fresh save (no
+`farmingPlots`/`ranchPens` field at all) renders 6 cards with 5 locked; an
+old-style save with exactly 4-length arrays also renders 6 cards (confirming
+the padding actually ran) with the correct subset locked for its level; and
+a high-level save renders all 6 unlocked in both.
 
 ### Codex
 

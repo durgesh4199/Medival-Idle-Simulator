@@ -1,5 +1,13 @@
 import { create } from 'zustand'
-import { actionsById, dungeonsById, enemiesById, farmingCropsById, ranchAnimalsById } from '../data'
+import {
+  actionsById,
+  dungeonsById,
+  enemiesById,
+  farmingCropsById,
+  farmingPlotUnlockLevels,
+  ranchAnimalsById,
+  ranchPenUnlockLevels,
+} from '../data'
 import { achievementsById } from '../data/achievements'
 import { prayersById } from '../data/combat/prayers'
 import { spellsById } from '../data/combat/spells'
@@ -232,11 +240,26 @@ interface GameState {
 const MAX_COMPLETIONS_PER_TICK = 200_000
 /** Cap on how much real-world absence is simulated at once. */
 const MAX_OFFLINE_MS = 24 * 60 * 60 * 1000
-/** Number of Farming plots available from the start — no plot-unlock
- *  progression yet, a natural follow-up noted in the README. */
-const FARMING_PLOT_COUNT = 4
-/** Number of Ranching pens available from the start — same reasoning. */
-const RANCH_PEN_COUNT = 4
+/** Total plots/pens that will ever exist — the array itself is always this
+ *  full size; `farmingPlotUnlockLevels`/`ranchPenUnlockLevels` gate which
+ *  indices are actually usable at the player's current level, the same
+ *  "exists in state, gated by a level check" pattern every Location/
+ *  Action/CombatArea/Dungeon here already uses rather than growing the
+ *  array itself as levels rise. */
+const FARMING_PLOT_COUNT = farmingPlotUnlockLevels.length
+const RANCH_PEN_COUNT = ranchPenUnlockLevels.length
+
+/** Pads a loaded save's plot/pen array up to `length` with fresh empty
+ *  entries — needed because `FARMING_PLOT_COUNT`/`RANCH_PEN_COUNT` grew
+ *  from 4 to 6 when plot/pen unlock levels shipped, so an older save's
+ *  array is simply too short, not absent; `?? Array.from(...)` alone only
+ *  covers the "field doesn't exist yet at all" case (an even older save,
+ *  from before Farming/Ranching existed), not "exists but is short". */
+function padArray<T>(arr: T[] | undefined, length: number, factory: () => T): T[] {
+  const base = arr ?? []
+  if (base.length >= length) return base
+  return [...base, ...Array.from({ length: length - base.length }, factory)]
+}
 
 export const useGameStore = create<GameState>((set, get) => ({
   gold: 0,
@@ -906,7 +929,9 @@ export const useGameStore = create<GameState>((set, get) => ({
     const state = get()
     const plot = state.farmingPlots[plotIndex]
     if (!plot || plot.cropId !== null) return false
-    if (state.levelOf('farming') < crop.requiredLevel) return false
+    const farmingLevel = state.levelOf('farming')
+    if (farmingLevel < (farmingPlotUnlockLevels[plotIndex] ?? Infinity)) return false
+    if (farmingLevel < crop.requiredLevel) return false
     return (state.inventory[crop.seedItemId] ?? 0) >= 1
   },
 
@@ -1005,7 +1030,9 @@ export const useGameStore = create<GameState>((set, get) => ({
     const state = get()
     const pen = state.ranchPens[penIndex]
     if (!pen || pen.animalId !== null) return false
-    if (state.levelOf('ranching') < animal.requiredLevel) return false
+    const ranchingLevel = state.levelOf('ranching')
+    if (ranchingLevel < (ranchPenUnlockLevels[penIndex] ?? Infinity)) return false
+    if (ranchingLevel < animal.requiredLevel) return false
     return (state.inventory[animal.animalItemId] ?? 0) >= 1
   },
 
@@ -1121,9 +1148,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       completedQuestIds: save.completedQuestIds ?? {},
       completedAchievementIds: save.completedAchievementIds ?? {},
       ownedPetIds: save.ownedPetIds ?? {},
-      farmingPlots:
-        save.farmingPlots ?? Array.from({ length: FARMING_PLOT_COUNT }, emptyPlot),
-      ranchPens: save.ranchPens ?? Array.from({ length: RANCH_PEN_COUNT }, emptyPen),
+      farmingPlots: padArray(save.farmingPlots, FARMING_PLOT_COUNT, emptyPlot),
+      ranchPens: padArray(save.ranchPens, RANCH_PEN_COUNT, emptyPen),
       eventLog: save.eventLog ?? [],
       slayerTask: save.slayerTask ?? null,
     })

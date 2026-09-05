@@ -7,12 +7,12 @@ import { prayers, prayersById } from './combat/prayers'
 import { spells, spellsById } from './combat/spells'
 import { combatPet, farmingPet, petBySkillId, pets, petsById, ranchingPet } from './pets'
 import { cookingActions, cookingLocations, cookingSkill } from './skills/cooking'
-import { farmingCrops, farmingCropsById } from './skills/farming'
+import { farmingCrops, farmingCropsById, farmingPlotUnlockLevels } from './skills/farming'
 import { fishingActions, fishingLocations, fishingSkill } from './skills/fishing'
 import { firemakingActions, firemakingLocations, firemakingSkill } from './skills/firemaking'
 import { huntingActions, huntingLocations, huntingSkill } from './skills/hunting'
 import { miningActions, miningLocations, miningSkill } from './skills/mining'
-import { ranchAnimals, ranchAnimalsById } from './skills/ranching'
+import { ranchAnimals, ranchAnimalsById, ranchPenUnlockLevels } from './skills/ranching'
 import {
   runecraftingActions,
   runecraftingLocations,
@@ -88,6 +88,7 @@ export {
   farmingCrops,
   farmingCropsById,
   farmingPet,
+  farmingPlotUnlockLevels,
   petBySkillId,
   pets,
   petsById,
@@ -98,6 +99,7 @@ export {
   ranchAnimals,
   ranchAnimalsById,
   ranchingPet,
+  ranchPenUnlockLevels,
   shopBuyableItemIds,
   spells,
   spellsById,

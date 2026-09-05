@@ -62,3 +62,11 @@ export const farmingCrops: FarmingCrop[] = [
 export const farmingCropsById: Record<string, FarmingCrop> = Object.fromEntries(
   farmingCrops.map((c) => [c.id, c]),
 )
+
+/** Farming level required to unlock each plot, by index — the "no
+ *  plot-unlock progression yet" gap the README flagged when Farming
+ *  shipped. 6 plots instead of the original fixed 4: the first four track
+ *  each crop tier (a new plot arriving alongside something new to grow in
+ *  it), the last two are a late-game reward for training past Golden
+ *  Wheat's level 55, since otherwise there'd be nothing left to reach for. */
+export const farmingPlotUnlockLevels: number[] = [1, 10, 20, 32, 45, 60]

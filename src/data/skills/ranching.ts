@@ -70,3 +70,10 @@ export const ranchAnimals: RanchAnimal[] = [
 export const ranchAnimalsById: Record<string, RanchAnimal> = Object.fromEntries(
   ranchAnimals.map((a) => [a.id, a]),
 )
+
+/** Ranching level required to unlock each pen, by index — same fix as
+ *  Farming's `farmingPlotUnlockLevels`, and the same reasoning: 6 pens
+ *  instead of the original fixed 4, the first five roughly tracking each
+ *  animal tier, the last one a late-game reward past the Warhorse's level
+ *  58. */
+export const ranchPenUnlockLevels: number[] = [1, 12, 24, 36, 50, 65]

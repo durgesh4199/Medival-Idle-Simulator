@@ -1,3 +1,4 @@
+import { ArtIcon, LocationArt } from './ArtIcon'
 import { useState } from 'react'
 import { dungeons, dungeonsById, enemiesById, getItem, items } from '../data'
 import { useGameStore } from '../state/gameStore'
@@ -96,6 +97,7 @@ export function DungeonsPage({ initialDungeonId }: { initialDungeonId?: string }
       </aside>
 
       <main className="min-w-0 shrink-0 p-4 md:flex-1 md:overflow-y-auto">
+        {selectedDungeon && <LocationArt name={selectedDungeon.name} skillId={selectedDungeon.id} />}
         {selectedDungeon && (
           <div className="max-w-2xl space-y-4">
             {showDefeatBanner && (
@@ -139,7 +141,7 @@ export function DungeonsPage({ initialDungeonId }: { initialDungeonId?: string }
                                 : 'border-line bg-panel-soft'
                           }`}
                         >
-                          {enemy?.icon ?? '❔'}
+                          {enemy ? <ArtIcon name={enemy.id} className="h-7 w-7" /> : '❔'}
                         </span>
                       )
                     })}

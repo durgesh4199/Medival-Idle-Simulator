@@ -15,8 +15,11 @@ document.
 
 The game now includes a progress-aware first adventure, a persistent pinned quest,
 item source/recipe links, and batch trading (1, 10, 100, or maximum). Navigation uses
-matching original vector icons; skill screens include illustrated medieval location
-banners. Phone screens use a labeled menu and compact location selector.
+matching brass icons; skill, combat, and dungeon screens use painted medieval location
+banners. Items and bestiary portraits use colored vector illustrations, and a desktop
+Adventure Journal shows supplies, unlocks, and milestones. Live rewards have restrained
+celebration cards with optional sounds (off by default). See
+[`docs/visual-refresh.md`](docs/visual-refresh.md) for the visual update. Phone screens use a labeled menu and compact location selector.
 
 Save loading and importing validate known content IDs, quantities, timers, equipment,
 and activity state. Version-1 saves from before optional systems existed receive

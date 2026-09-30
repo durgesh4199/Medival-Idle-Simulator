@@ -1,5 +1,5 @@
 import { ItemLink } from './ItemLink'
-import { LocationArt } from './ArtIcon'
+import { ArtIcon, LocationArt } from './ArtIcon'
 import { useState } from 'react'
 import { actionsById, actionsForLocation, getItem, locationsForSkill } from '../data'
 import type { Location, SkillId } from '../data/types'
@@ -22,7 +22,7 @@ function previewIcons(loc: Location): string[] {
     for (const output of actionsById[actionId]?.outputs ?? []) {
       if (seen.has(output.itemId)) continue
       seen.add(output.itemId)
-      icons.push(getItem(output.itemId).icon)
+      icons.push(output.itemId)
       if (icons.length >= 5) return icons
     }
   }
@@ -96,9 +96,7 @@ export function SkillPanel({ skillId, initialActionId }: Props) {
                   )}
                   <div className="flex shrink-0 gap-1 text-base">
                     {icons.map((icon, i) => (
-                      <span key={i} aria-hidden>
-                        {icon}
-                      </span>
+                      <ArtIcon key={i} name={icon} className="h-6 w-6" />
                     ))}
                   </div>
                 </div>
@@ -148,7 +146,7 @@ export function SkillPanel({ skillId, initialActionId }: Props) {
         </div>
 
         {selectedAction && (
-          <div className="max-w-md overflow-hidden rounded-xl border border-line bg-panel">
+          <div className="action-card w-full max-w-xl overflow-hidden rounded-xl border border-line bg-panel">
             <div className="border-b border-line bg-panel-soft px-4 py-2 font-semibold text-gold">
               {selectedAction.name}
             </div>
@@ -163,7 +161,7 @@ export function SkillPanel({ skillId, initialActionId }: Props) {
                     return (
                       <div key={input.itemId} className="flex items-center justify-between text-sm">
                         <span>
-                          <ItemLink itemId={item.id}>{item.icon} {item.name}</ItemLink> x{input.qty}
+                          <ItemLink itemId={item.id}><ArtIcon name={item.id} className="inline-block h-6 w-6 align-middle" /> {item.name}</ItemLink> x{input.qty}
                         </span>
                         <span className={have < input.qty ? 'text-red-400' : 'text-neutral-400'}>
                           You have {have}
@@ -185,7 +183,7 @@ export function SkillPanel({ skillId, initialActionId }: Props) {
                     return (
                       <div key={output.itemId} className="flex items-center justify-between text-sm">
                         <span>
-                          <ItemLink itemId={item.id}>{item.icon} {item.name}</ItemLink>{' '}
+                          <ItemLink itemId={item.id}><ArtIcon name={item.id} className="inline-block h-6 w-6 align-middle" /> {item.name}</ItemLink>{' '}
                           <span className="text-neutral-500">{(output.chance * 100).toFixed(2)}%</span>
                         </span>
                         <span className="tabular-nums text-neutral-400">
@@ -253,7 +251,7 @@ export function SkillPanel({ skillId, initialActionId }: Props) {
                     return (
                       <div key={special.itemId} className="flex items-center justify-between text-sm">
                         <span>
-                          <ItemLink itemId={item.id}>{item.icon} {item.name}</ItemLink>{' '}
+                          <ItemLink itemId={item.id}><ArtIcon name={item.id} className="inline-block h-6 w-6 align-middle" /> {item.name}</ItemLink>{' '}
                           <span className="text-neutral-500">{(special.chance * 100).toFixed(2)}%</span>
                         </span>
                         <span className="tabular-nums text-neutral-400">{inventory[special.itemId] ?? 0}</span>

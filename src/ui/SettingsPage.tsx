@@ -1,3 +1,4 @@
+import { usePresentationSettings } from './presentationSettings'
 import { parseSaveData } from '../engine/saveValidation'
 import { useRef, useState } from 'react'
 import { initGame, saveNow, stopGameLoop } from '../engine/gameLoop'
@@ -30,6 +31,8 @@ function downloadJson(filename: string, content: string) {
  * operations on the save file itself, not events inside the simulation.
  */
 export function SettingsPage() {
+  const soundEnabled = usePresentationSettings(s => s.soundEnabled)
+  const toggleSound = usePresentationSettings(s => s.toggleSound)
   const saveError = useSaveStatus((s) => s.error)
   const recoveryRequired = useSaveStatus((s) => s.recoveryRequired)
   const recoveredBackup = useSaveStatus((s) => s.recoveredBackup)
@@ -133,6 +136,11 @@ export function SettingsPage() {
   return (
     <div className="flex-1 overflow-y-auto p-4">
       <div className="mx-auto max-w-2xl space-y-4">
+        <section className="rounded-xl border border-line bg-panel p-4">
+          <h2 className="mb-2 font-serif text-lg text-gold">Atmosphere</h2>
+          <p className="mb-3 text-xs text-neutral-400">A gentle chime celebrates level-ups, quests, and rare discoveries. Sound is optional; animations follow your device’s reduced-motion preference.</p>
+          <button type="button" role="switch" aria-checked={soundEnabled} onClick={toggleSound} className="rounded-lg border border-gold/30 bg-gold/10 px-3 py-2 text-sm text-gold">Reward sounds: {soundEnabled ? 'On' : 'Off'}</button>
+        </section>
         {saveError && (
           <section
             role="alert"

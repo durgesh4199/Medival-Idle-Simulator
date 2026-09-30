@@ -1,3 +1,6 @@
+import { EnemyArt } from './EnemyArt'
+import { enemiesById, items } from '../data'
+import { ItemArt } from './ItemArt'
 /** Small original vector illustrations: one palette and stroke style on every device. */
 const drawings: Record<string, string> = {
   fish: 'M10 32c8-14 25-14 36 0-11 14-28 14-36 0Zm36 0 10-10v20ZM20 28h1M28 24l6-7 5 9M28 40l6 7 5-9',
@@ -61,6 +64,8 @@ function kind(name: string): string {
   return 'bag'
 }
 export function ArtIcon({ name, className = 'h-7 w-7' }: { name: string; className?: string }) {
+  if (Object.hasOwn(enemiesById, name)) return <EnemyArt name={name} className={className} />
+  if (Object.hasOwn(items, name)) return <ItemArt name={name} className={className} />
   return (
     <svg
       viewBox="0 0 64 64"
@@ -78,48 +83,36 @@ export function ArtIcon({ name, className = 'h-7 w-7' }: { name: string; classNa
 }
 
 export function LocationArt({ name, skillId }: { name: string; skillId: string }) {
-  const water = skillId === 'fishing'
-  const forge = ['smithing', 'firemaking', 'cooking'].includes(skillId)
+  const region = `${name} ${skillId}`.toLowerCase()
+  const scene = /frost|frozen|snow|mining|quarry/.test(region)
+    ? 'mountain'
+    : /ember|forge|smith|firemaking|cooking|crucible/.test(region)
+      ? 'forge'
+      : /wood|forest|hunting|marsh|crypt|rune|dungeon/.test(region)
+        ? 'forest'
+        : 'shore'
+  const atmosphere = /marsh|crypt/.test(region) ? 'mist' : /deepwater/.test(region) ? 'night' : ''
   return (
-    <div className="relative mb-4 overflow-hidden rounded-xl border border-gold/20 bg-rail">
-      <svg
-        viewBox="0 0 800 160"
-        preserveAspectRatio="none"
-        className="h-24 w-full sm:h-32"
-        aria-hidden="true"
-      >
-        <rect width="800" height="160" fill="#17252d" />
-        <circle cx="650" cy="36" r="22" fill="#e3b155" opacity=".7" />
-        <path d="M0 120 120 35 260 122 420 20 600 135 730 55 800 110V160H0Z" fill="#263b3b" />
-        <path d="M0 130 160 95 290 135 490 80 640 128 800 92V160H0Z" fill="#314a40" />
-        {water ? (
-          <>
-            <path d="M0 133Q190 95 370 138T800 123V160H0Z" fill="#31566a" />
-            <path d="M20 145h160m55 7h200m150-15h170" stroke="#b9cbd1" opacity=".5" />
-          </>
-        ) : (
-          <path d="M300 160 400 112h24l115 48" fill="#8a6a35" opacity=".5" />
-        )}
-        <path
-          d="M80 130V73h25v15h18V73h25v57ZM80 73V55h8v8h9v-8h8v18M123 73V55h8v8h9v-8h8v18"
-          fill="#9f916e"
-        />
-        <path
-          d="M184 143V60m-30 45 30-54 30 54m-42-24 12-26 12 26M702 150V82m-29 40 29-59 29 59"
-          stroke="#14271f"
-          strokeWidth="12"
-          strokeLinejoin="round"
-        />
-        {forge && (
-          <>
-            <path d="M525 141V99l25-28 25 28v42Z" fill="#8a6a35" />
-            <path d="M540 140v-25q10-15 20 0v25" fill="#e3b155" />
-            <path d="M570 97V59h8v47" stroke="#a28c64" strokeWidth="7" />
-          </>
-        )}
-      </svg>
-      <div className="absolute inset-0 flex items-end bg-gradient-to-t from-rail/90 to-transparent p-3">
-        <p className="font-serif text-lg tracking-wide text-gold">{name}</p>
+    <div className={`location-scene scene-${scene} atmosphere-${atmosphere}`} data-scene={scene}>
+      <img
+        src={`${import.meta.env.BASE_URL}art/medieval-world.webp`}
+        alt=""
+        className="scene-atlas"
+        decoding="async"
+      />
+      <div className="scene-shade" />
+      <div className="scene-caption">
+        <span className="scene-eyebrow">The realm awaits</span>
+        <p className="scene-title">{name}</p>
+        <span className="scene-description">
+          {scene === 'shore'
+            ? 'Quiet waters. A new adventure.'
+            : scene === 'forest'
+              ? 'Beyond the paths, something stirs.'
+              : scene === 'forge'
+                ? 'From raw materials to legendary craft.'
+                : 'Fortune favors those who venture higher.'}
+        </span>
       </div>
     </div>
   )

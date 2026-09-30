@@ -35,7 +35,7 @@ function EnemyCard({ enemy }: { enemy: Enemy }) {
   return (
     <div className="overflow-hidden rounded-xl border border-line bg-panel">
       <div className="flex items-center gap-2 border-b border-line bg-panel-soft px-3 py-2">
-        <span className="text-2xl">{enemy.icon}</span>
+        <ArtIcon name={enemy.id} className="h-10 w-10" />
         <span className="font-semibold text-neutral-100">{enemy.name}</span>
       </div>
       <div className="space-y-2 p-3 text-sm">

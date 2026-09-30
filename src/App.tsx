@@ -1,3 +1,5 @@
+import { AdventureJournal } from './ui/AdventureJournal'
+import { RewardToast } from './ui/RewardToast'
 import { GameNavigation, type Destination } from './ui/gameNavigation'
 import { GoalPanel } from './ui/GoalPanel'
 import { ItemDetails } from './ui/ItemDetails'
@@ -106,9 +108,11 @@ function App() {
           {view === 'pets' && <PetsPage />}
           {view === 'codex' && <CodexPage />}
           {view === 'settings' && <SettingsPage />}
+          <AdventureJournal />
         </div>
         <StatusBar />
         <PetFoundToast />
+        <RewardToast />
         <OfflineModal />
         {itemId && <ItemDetails key={itemId} itemId={itemId} onClose={() => setItemId(null)} />}
       </div>

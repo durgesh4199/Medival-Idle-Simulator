@@ -373,6 +373,13 @@ export const useGameStore = create<GameState>((set, get) => ({
           inventory[itemId] = (inventory[itemId] ?? 0) + qty
         }
 
+        for (const drop of action.specialOutputs ?? []) {
+          if ((rewards[drop.itemId] ?? 0) > 0) {
+            const item = items[drop.itemId]
+            eventLog = pushLogEntry(eventLog, item.icon, `Found rare loot: ${item.name}!`, cursor + durationMs)
+          }
+        }
+
         skillXp[action.skillId] = (skillXp[action.skillId] ?? 0) + action.xp
         masteryXp[action.id] = (masteryXp[action.id] ?? 0) + action.xp
         masteryPoolXp[action.skillId] = poolXp + action.xp

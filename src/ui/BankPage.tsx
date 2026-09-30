@@ -43,7 +43,7 @@ function EquipmentSlotBox({ slot, label, icon }: { slot: EquipmentSlot; label: s
           : 'border-dashed border-line bg-panel/50'
       }`}
     >
-      <span className={`text-2xl ${equipped ? '' : 'opacity-30'}`}>{equipped?.icon ?? icon}</span>
+      {equipped ? <ArtIcon name={equipped.id} className="h-10 w-10" /> : <span className="text-2xl opacity-30">{icon}</span>}
       <span className="truncate text-[10px] text-neutral-400">{equipped?.name ?? label}</span>
     </button>
   )
@@ -57,7 +57,7 @@ function InventoryCard({ item, qty }: { item: Item; qty: number }) {
       data-item-id={item.id}
       className="flex flex-col items-center gap-1 rounded-lg border border-line bg-panel p-2 text-center"
     >
-      <ArtIcon name={item.id} className="h-9 w-9" />
+      <ArtIcon name={item.id} className="h-12 w-12" />
       <span className="w-full truncate text-xs text-neutral-200"><ItemLink itemId={item.id}>{item.name}</ItemLink></span>
       <span className="text-[11px] text-neutral-500">
         x{qty}

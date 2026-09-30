@@ -21,6 +21,7 @@ export interface LogEntry {
 /** Ring-buffer cap — recent history, not a permanent record; keeps the
  *  save small and the Activity tab scannable. */
 const MAX_LOG_ENTRIES = 50
+let nextEntryId = 0
 
 /** Display metadata for the skillXp keys that aren't a `SkillId` or a
  *  `CombatSkillId` — Slayer, Farming, and Ranching all train through the
@@ -44,7 +45,7 @@ function displayFor(skillId: string): { label: string; icon: string } {
 /** Prepends one entry and trims to `MAX_LOG_ENTRIES` — newest first, same
  *  "most recent at the top" convention as `OfflineSummary`. */
 export function pushLogEntry(log: LogEntry[], icon: string, message: string, at: number): LogEntry[] {
-  const entry: LogEntry = { id: `${at}-${Math.random().toString(36).slice(2, 8)}`, icon, message, at }
+  const entry: LogEntry = { id: `${at}-${++nextEntryId}`, icon, message, at }
   const next = [entry, ...log]
   return next.length > MAX_LOG_ENTRIES ? next.slice(0, MAX_LOG_ENTRIES) : next
 }

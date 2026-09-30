@@ -391,7 +391,10 @@ test('a fresh player can follow the guide from fishing to prepared combat', asyn
     .getByRole('button', { name: 'Equip', exact: true })
     .click()
   await guide.getByRole('button', { name: 'Prepare combat', exact: true }).click()
-  await page.getByRole('button', { name: /Cooked Herring/ }).click()
+  await page
+    .getByRole('main')
+    .getByRole('button', { name: /Cooked Herring/ })
+    .click()
   await expect(guide).toContainText('Blooded Blade')
   await page.getByRole('button', { name: 'Fight Giant Rat', exact: true }).click()
   await page.clock.fastForward(100_000)
@@ -400,4 +403,46 @@ test('a fresh player can follow the guide from fishing to prepared combat', asyn
   expect(saved.selectedFoodItemId).toBe('cooked_herring')
   expect(saved.activeAction).toBeNull()
   expect(saved.killCounts.giant_rat).toBeGreaterThan(0)
+})
+
+test('milestone feedback appears for live rewards and sound remains optional', async ({ page }) => {
+  await seed(page, { inventory: { raw_herring: 5 } })
+  await page
+    .getByRole('region', { name: 'Adventure guide' })
+    .getByRole('button', { name: 'Claim reward', exact: true })
+    .click()
+  await expect(page.getByRole('status').filter({ hasText: 'Adventure rewarded' })).toContainText(
+    'Completed "A Fisherman',
+  )
+  await settings(page)
+  const sound = page.getByRole('switch', { name: /Reward sounds/ })
+  await expect(sound).toHaveAttribute('aria-checked', 'false')
+  await sound.click()
+  await expect(sound).toHaveAttribute('aria-checked', 'true')
+  await page.reload()
+  await settings(page)
+  await expect(page.getByRole('switch', { name: /Reward sounds/ })).toHaveAttribute(
+    'aria-checked',
+    'true',
+  )
+})
+
+test('rare loot creates a discovery notification in the activity log', async ({ page }) => {
+  await page.clock.install()
+  await seed(page, { skillXp: { fishing: 10000 } })
+  await page.evaluate(() => {
+    Math.random = () => 0.0001
+  })
+  await page.getByRole('button', { name: /Shrapnel River/ }).click()
+  await page.getByRole('button', { name: 'Pebble Bank', exact: true }).click()
+  await page.getByRole('button', { name: 'Start fishing', exact: true }).click()
+  await page.clock.fastForward(14_000)
+  await expect(page.getByRole('status').filter({ hasText: 'A rare discovery' })).toContainText(
+    'Rusty Ancient Dagger',
+  )
+  await page.getByRole('navigation').getByRole('button', { name: 'Codex', exact: true }).click()
+  await page.getByRole('button', { name: /^Activity/ }).click()
+  await expect(
+    page.getByText('Found rare loot: Rusty Ancient Dagger!', { exact: true }).first(),
+  ).toBeVisible()
 })

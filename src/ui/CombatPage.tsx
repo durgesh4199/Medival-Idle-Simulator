@@ -1,3 +1,4 @@
+import { ArtIcon, LocationArt } from './ArtIcon'
 import { useState } from 'react'
 import { combatAreas, combatSkillDisplay, combatSkillOrder, enemiesById, getItem, items } from '../data'
 import { slayerTaskProgress } from '../engine/slayerEngine'
@@ -191,6 +192,7 @@ export function CombatPage({ initialEnemyId }: { initialEnemyId?: string }) {
       </aside>
 
       <main className="min-w-0 shrink-0 p-4 md:flex-1 md:overflow-y-auto">
+        <LocationArt name={area.name} skillId={area.id} />
         {selectedEnemy && (
           <div className="max-w-2xl space-y-4">
             {showDefeatBanner && (
@@ -227,7 +229,7 @@ export function CombatPage({ initialEnemyId }: { initialEnemyId?: string }) {
 
                 <div className="space-y-2 p-4">
                   <div className="flex items-center gap-2">
-                    <span className="text-2xl">{selectedEnemy.icon}</span>
+                    <ArtIcon name={selectedEnemy.id} className="h-12 w-12" />
                     <span className="font-semibold text-neutral-100">{selectedEnemy.name}</span>
                   </div>
                   <div className="flex justify-between text-xs text-neutral-400">

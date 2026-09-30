@@ -64,3 +64,69 @@ main { min-width: 0; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* Stone, aged brass and forest cloth keep the interface within the illustrated realm. */
+@theme {
+  --color-app: #151c19;
+  --color-rail: #101612;
+  --color-panel: #222923;
+  --color-panel-soft: #2d342b;
+  --color-line: #3a4437;
+  --color-line-soft: #55604a;
+  --color-gold: #e4c184;
+  --color-gold-dim: #9b7b48;
+  --color-brand: #65a47c;
+  --color-brand-dim: #457556;
+}
+body, #root { background: #151c19; }
+.bg-app {
+  background-image: radial-gradient(ellipse at 75% 0%, #b3955220, transparent 60%),
+    radial-gradient(ellipse at 0% 100%, #54796015, transparent 50%);
+}
+.bg-panel {
+  background-image: linear-gradient(130deg, #e2bf7710, transparent 55%),
+    repeating-linear-gradient(0deg, #ffffff03 0px, #ffffff03 1px, transparent 1px, transparent 4px);
+  box-shadow: inset 0 1px 0 #f0d49a08, 0 5px 20px #00000012;
+}
+.bg-rail {
+  background-image: repeating-linear-gradient(95deg, #d4b67f03 0px, #d4b67f03 1px, transparent 1px, transparent 12px);
+}
+header { box-shadow: 0 2px 14px #0004; z-index: 1; }
+h2, h3 { font-family: Georgia, 'Times New Roman', serif; }
+button { transition: background-color .15s, border-color .15s, box-shadow .15s; }
+button.bg-brand { box-shadow: inset 0 1px 0 #ffffff28, 0 3px 10px #0003; }
+button.bg-brand:hover { box-shadow: inset 0 1px 0 #ffffff38, 0 0 18px #65a47c20; }
+.item-art { filter: drop-shadow(0 2px 2px #0005); }
+[data-item-id] { position: relative; transition: border-color .15s, background-color .15s; }
+[data-item-id]:hover { border-color: #b69a5f; background-color: #343a2d; }
+.action-card { box-shadow: 0 12px 35px #0003, inset 0 1px 0 #f1d49b16; }
+.location-scene { position: relative; height: 216px; flex-shrink: 0; overflow: hidden; border-radius: 12px; border: 1px solid #bfa26d66; background: #263a31; box-shadow: 0 8px 25px #0004; }
+.scene-atlas { position: absolute; width: 200%; height: 200%; max-width: none; object-fit: cover; top: 0; left: 0; }
+.scene-forest .scene-atlas { left: -100%; }
+.scene-forge .scene-atlas { top: -100%; }
+.scene-mountain .scene-atlas { top: -100%; left: -100%; }
+.atmosphere-mist .scene-atlas { filter: saturate(.6) hue-rotate(20deg) brightness(.75); }
+.atmosphere-night .scene-atlas { filter: saturate(.65) hue-rotate(20deg) brightness(.65); }
+.scene-shade { position: absolute; inset: 0; background: linear-gradient(0deg, #0a100fed, #0a100f55 45%, transparent 90%); }
+.scene-caption { position: absolute; bottom: 20px; left: 22px; right: 20px; }
+.scene-eyebrow { display: block; margin-bottom: 4px; font-size: 9px; letter-spacing: .25em; text-transform: uppercase; color: #e8d4a6; }
+.scene-title { margin: 0; font: 28px Georgia, serif; color: #fff1d2; text-shadow: 0 2px 8px #000; }
+.scene-description { display: block; margin-top: 6px; font-size: 11px; color: #dad5c7; }
+.adventure-journal { background: linear-gradient(100deg, #1a211c, #22271e); }
+.journal-rule { height: 1px; background: linear-gradient(90deg, #c6a765, transparent); }
+.journal-unlock { background: linear-gradient(140deg, #d0ab6110, transparent); }
+.journal-unlock:hover { border-color: #b69a5f; }
+.reward-toast { background: linear-gradient(125deg, #3a3827, #1d2923); animation: reward-arrive .45s ease-out both; }
+.reward-emblem { display: flex; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; border: 1px solid #cda866; background: radial-gradient(circle, #b5983930, transparent); }
+.reward-spark { position: absolute; width: 4px; height: 4px; background: #f1ce7b; border-radius: 50%; animation: reward-spark 1.5s ease-out both; }
+.spark-one { top: 12px; right: 28px; }
+.spark-two { top: 28px; left: 24px; animation-delay: .2s; }
+.spark-three { bottom: 20px; right: 65px; animation-delay: .4s; }
+@keyframes reward-arrive { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes reward-spark { from { opacity: 0; transform: translateY(8px) scale(.4); } 30% { opacity: 1; } to { opacity: 0; transform: translateY(-25px) scale(1.2); } }
+@media (max-width: 767px) {
+  .location-scene { height: 144px; }
+  .scene-caption { bottom: 14px; left: 16px; }
+  .scene-title { font-size: 23px; }
+  .scene-description { display: none; }
+}

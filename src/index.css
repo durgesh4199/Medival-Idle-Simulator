@@ -130,3 +130,148 @@ button.bg-brand:hover { box-shadow: inset 0 1px 0 #ffffff38, 0 0 18px #65a47c20;
   .scene-title { font-size: 23px; }
   .scene-description { display: none; }
 }
+
+/* Scene-led interface: original artwork with compact, floating game controls. */
+@theme { --color-rail: #161714; --color-panel: #292a24; --color-panel-soft: #35362e; --color-line: #535345; --color-brand: #248b38; --color-brand-dim: #176528; }
+.realm-header { height: 50px; background: #171815; border-bottom: 3px solid #33362c; }
+.realm-header .bg-panel { border-radius: 3px; }
+.reference-shell h2, .reference-shell h3 { font-family: inherit; }
+.scene-navigation { padding-inline: 3px; width: 52px; background: #191b18ed; }
+.scene-navigation button { gap: 0; border-radius: 2px; }
+.scene-navigation button > span:nth-last-child(1):not([aria-hidden]), .scene-navigation button > span:nth-child(3):not([aria-hidden]) { display: none; }
+.scene-navigation button > span[aria-hidden] { width: 44px; }
+.world-scene { position: absolute; inset: 0; overflow: hidden; pointer-events: none; background: #32594f; }
+.world-landscape { width: 100%; height: 100%; position: absolute; inset: 0; }
+.world-combat::after { content: ''; position: absolute; inset: 0; background: #09242c55; }
+.world-cave { background: #142832; }
+.world-cave > svg:first-child { filter: saturate(.45) brightness(.5); }
+.world-workshop > svg:first-child { display: none; }
+.world-scene::after { content: ''; position: absolute; inset: 0; box-shadow: inset 0 0 140px #07171366; }
+.skill-world, .combat-world { position: relative; flex: 1; min-width: 0; overflow: auto; isolation: isolate; }
+.scene-skill-content { position: relative; z-index: 1; min-height: 100%; padding: 85px 28px 24px; display: grid; grid-template-columns: minmax(240px,1fr) minmax(300px,370px); gap: 24px; align-items: start; }
+.location-switcher { position: absolute; z-index: 3; top: 12px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; max-width: calc(100% - 32px); padding: 8px 12px; background: #2d3028ee; border: 1px solid #6c6b55; box-shadow: 0 5px 0 #10151299; }
+.location-switcher h2 { white-space: nowrap; margin: 0; font-size: 11px; }
+.location-switcher > div { flex-direction: row; }
+.location-switcher button { min-width: 100px; border-radius: 2px; }
+.location-switcher button > div:last-child { display: none; }
+.location-switcher button > div:first-child { font-size: 11px; padding: 5px 8px; }
+.mobile-scene-location { display: none; }
+.skill-fishing .spot-picker { grid-column: 2; margin-top: clamp(5px,15vh,140px); }
+.skill-fishing .action-card { grid-column: 2; }
+.action-card { border-radius: 3px !important; border: 2px solid #565448; border-bottom: 7px solid #171b16; background: #2b2c25f2; }
+.action-card > div:first-child { background: #086575; color: #e3eeee; border-bottom: 2px solid #063d46; font-size: 14px; }
+.action-card .bg-panel-soft { background: #20241fcc; }
+.action-card button { border-radius: 2px; }
+.action-card button.bg-red-600 { background: #940e08; }
+.action-card .space-y-1 > div:nth-child(odd) { background: #111d2180; }
+.fishing-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px; }
+.fishing-options label { display: flex; flex-direction: column; gap: 5px; }
+.fishing-options select, .mobile-scene-location select { width: 100%; color: #302d23; background: #d2c5a6; border: 1px solid #a88c56; padding: 6px; }
+.fishing-options p { grid-column: 1/-1; color: #bec4b4; font-size: 10px; line-height: 1.5; }
+.fishing-boat { position: absolute; left: 16%; top: 35%; width: 190px; height: 160px; }
+.boat-working { animation: boat-rock 5s ease-in-out infinite; }
+.lake-fish svg { position: absolute; width: 44px; height: 24px; opacity: .85; }
+.fish-swimming svg { animation: fish-drift 16s ease-in-out infinite alternate; }
+@keyframes boat-rock { 50% { transform: translateY(6px) rotate(2deg); } }
+@keyframes fish-drift { to { transform: translateX(75px); } }
+.tree-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.tree-grid button { display: grid; grid-template-columns: 85px 1fr; align-items: center; text-align: left; padding: 8px; background: #20251fe8; border-radius: 2px; min-height: 124px; color: #eceddb; }
+.tree-card-art { grid-row: 1/3; width: 85px; height: 106px; background: #c4bea4; }
+.tree-card-info { font-size: 10px; color: #c3cabc; padding-left: 8px; line-height: 1.8; }
+.tree-grid button > span:not(.tree-card-info) { background: #086575; padding: 6px 8px; }
+.selected-tree { grid-column: 2; grid-row: 1; height: 330px; display: flex; justify-content: center; }
+.selected-tree-art { width: 100%; height: 100%; filter: drop-shadow(0 9px 8px #0004); }
+.skill-woodcutting .spot-picker, .skill-mining .spot-picker { grid-row: 1 / span 2; }
+.skill-woodcutting .action-card, .skill-mining .action-card { grid-column: 2; }
+.tree-health { font-size: 12px; }
+.tree-health-bar { display: flex; gap: 3px; margin: 8px 0; height: 10px; }
+.tree-health-bar span { background: #474942; flex: 1; }
+.tree-health-bar .healthy { background: #7f9b44; }
+.tree-health p { font-size: 10px; color: #c0c8b7; line-height: 1.5; }
+.production-emblem { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 15px; }
+.production-emblem svg { border: 3px solid #1996a0; border-radius: 50%; padding: 12px; width: 130px; height: 130px; background: #181d18; }
+.skill-smithing .spot-picker, .skill-cooking .spot-picker, .skill-firemaking .spot-picker, .skill-runecrafting .spot-picker { background: #2a2c25f2; padding: 16px; border: 1px solid #63604d; min-height: 500px; }
+.skill-smithing .spot-picker > div, .skill-cooking .spot-picker > div, .skill-firemaking .spot-picker > div, .skill-runecrafting .spot-picker > div { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
+.realm-panel { background: #272923ed; border: 2px solid #62604e; border-bottom: 6px solid #111913; box-shadow: 0 8px 20px #0003; }
+.combat-world { display: grid; grid-template-columns: 265px minmax(0,1fr); gap: 18px; padding: 85px 20px 20px; }
+.combat-preparation { position: relative; z-index: 1; padding: 12px; height: fit-content; }
+.combat-preparation > div:first-of-type { flex-direction: row; flex-wrap: wrap; }
+.combat-preparation > div:first-of-type button { padding: 5px; font-size: 10px; }
+.combat-equipment { display: grid; grid-template-columns: repeat(3,1fr); gap: 5px; max-width: 195px; margin: 12px auto; }
+.combat-equipment > div { display: flex; justify-content: center; align-items: center; height: 48px; border: 1px solid #797b69; background: #35403e; }
+.combat-equipment span { font-size: 9px; color: #c4c9bb; text-transform: capitalize; }
+.equipment-helmet { grid-column: 2; }
+.equipment-amulet { grid-column: 1; }
+.realm-heading { color: #dfd9c4; text-align: center; font-size: 12px; }
+.combat-stage { position: relative; z-index: 1; min-width: 0; }
+.enemy-figure { min-height: 350px; height: 44vh; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+.enemy-stage-art { width: min(380px,80%); height: 90%; filter: drop-shadow(0 14px 12px #081e2166); }
+.enemy-figure > span { font-size: 22px; color: #fff; text-shadow: 0 2px 4px #000; font-weight: 700; }
+.combat-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
+.combat-controls > * { margin-top: 0 !important; }
+.combat-vitals { grid-column: 1/-1; }
+.combat-health-row { font-size: 13px; }
+.enemy-stat-panel { background: #121a15aa; }
+.combat-food { font-size: 12px; }
+@media (min-width: 1024px) { .scene-navigation { width: 52px; } }
+@media (max-width: 1100px) and (min-width: 768px) { .tree-grid { grid-template-columns: 1fr; } .scene-skill-content { padding-inline: 16px; gap: 16px; grid-template-columns: minmax(210px,1fr) minmax(280px,340px); } }
+@media (max-width: 1023px) { .scene-navigation { width: 205px; } .scene-navigation button > span:nth-child(3):not([aria-hidden]) { display: inline; } }
+@media (max-width: 767px) {
+  .scene-skill-content { display: flex; flex-direction: column; padding: 16px; gap: 14px; }
+  .skill-world { min-height: 0; }
+  .location-switcher { display: none; }
+  .mobile-scene-location { display: flex; flex-direction: column; gap: 5px; width: 100%; font-size: 12px; background: #202b24dd; padding: 8px; }
+  .skill-fishing .spot-picker { margin-top: 150px; width: 100%; }
+  .scene-skill-content .action-card { max-width: none; }
+  .spot-picker { width: 100%; }
+  .selected-tree { height: 220px; width: 100%; order: 0; }
+  .tree-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+  .tree-grid button { grid-template-columns: 1fr; padding: 5px; text-align: center; }
+  .tree-card-art { grid-row: auto; margin: auto; }
+  .tree-card-info { padding-left: 0; }
+  .fishing-boat { left: 12%; top: 90px; width: 155px; }
+  .lake-fish svg { width: 28px; }
+  .combat-world { display: flex; flex-direction: column; padding: 12px; }
+  .combat-preparation { order: 2; width: 100%; }
+  .combat-stage { width: 100%; }
+  .enemy-figure { height: 250px; min-height: 250px; }
+  .combat-controls { display: flex; flex-direction: column; }
+  .combat-controls > * { width: 100%; }
+  .skill-smithing .spot-picker, .skill-cooking .spot-picker, .skill-firemaking .spot-picker, .skill-runecrafting .spot-picker { min-height: 0; }
+}
+@media (min-width: 1101px) {
+  .combat-world { padding-top: 20px; grid-template-columns: 265px minmax(0,1fr); }
+  .combat-stage { display: flex; flex-direction: column; }
+  .enemy-figure { height: 43vh; min-height: 280px; margin-top: 75px; }
+  .combat-controls { grid-template-columns: minmax(0,1fr) 280px; }
+  .combat-vitals { position: relative; grid-column: 1 / -1; }
+  .combat-vitals > div:first-child { display: none; }
+  .combat-health-row { position: absolute; top: calc(-43vh - 75px); width: 100%; border: 1px solid #747766; background: #19211cbf; }
+  .combat-health-row > div { padding: 8px 12px; }
+  .combat-health-row .h-3 { height: 18px; border-radius: 2px; }
+  .combat-health-row .h-3 > div { border-radius: 2px; }
+  .combat-health-row svg { display: none; }
+}
+.illustrated-world { position: absolute; inset: 0; overflow: hidden; z-index: 1; }
+.illustrated-world img { position: absolute; width: 200%; height: 200%; max-width: none; object-fit: fill; }
+.illustrated-world.scene-forest img, .illustrated-world.scene-combat img { left: -100%; }
+.illustrated-world.scene-cave img { top: -100%; }
+.illustrated-world.scene-workshop img { left: -100%; top: -100%; }
+.world-scene > svg { display: none; }
+.world-scene > .fishing-boat { display: block; z-index: 2; }
+.lake-fish { position: absolute; inset: 0; z-index: 2; }
+.world-scene::after { z-index: 1; }
+.recipe-details { padding: 18px; font-size: 12px; }
+.recipe-details > svg { margin: 15px auto; }
+.recipe-details h3 { margin-block: 16px 8px; font-size: 13px; color: #e7dbc1; }
+.recipe-details p { color: #c4c6b6; font-size: 11px; line-height: 1.7; }
+.recipe-details > div { display: flex; justify-content: space-between; gap: 8px; padding: 8px 4px; background: #151c1a; margin-bottom: 3px; }
+@media (min-width: 1200px) {
+  .skill-smithing .scene-skill-content, .skill-cooking .scene-skill-content, .skill-firemaking .scene-skill-content, .skill-runecrafting .scene-skill-content { grid-template-columns: minmax(250px,1.4fr) minmax(240px,1fr) minmax(280px,1fr); gap: 14px; }
+}
+@media (min-width: 768px) and (max-width: 1199px) { .recipe-details { grid-column: 1; } .recipe-details + .action-card { grid-column: 2; grid-row: 1 / span 2; } }
+@media (max-width: 767px) { .recipe-details { width: 100%; } }
+@media (min-width: 1101px) {
+  .combat-stage .enemy-figure { padding-right: 280px; }
+  .enemy-stat-panel { position: absolute; right: 0; top: calc(-43vh + 45px); width: 255px; display: flex; flex-direction: column; padding: 18px; gap: 16px; background: #20251ff2; border: 2px solid #66644f; box-shadow: 0 7px 0 #101b17; }
+}

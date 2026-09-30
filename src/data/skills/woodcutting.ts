@@ -20,6 +20,8 @@ export const woodcuttingLocations: Location[] = [
 export const woodcuttingActions: Action[] = [
   {
     id: 'chop_normal_tree',
+    hitsPerCycle: 3,
+    hitOutputs: [{ itemId: 'logs', chance: 0.0025, qty: 1 }],
     skillId: 'woodcutting',
     locationId: 'forest_edge',
     name: 'Normal Tree',
@@ -30,6 +32,8 @@ export const woodcuttingActions: Action[] = [
   },
   {
     id: 'chop_oak_tree',
+    hitsPerCycle: 4,
+    hitOutputs: [{ itemId: 'logs', chance: 0.0025, qty: 1 }],
     skillId: 'woodcutting',
     locationId: 'forest_edge',
     name: 'Oak Tree',
@@ -40,6 +44,8 @@ export const woodcuttingActions: Action[] = [
   },
   {
     id: 'chop_willow_tree',
+    hitsPerCycle: 5,
+    hitOutputs: [{ itemId: 'logs', chance: 0.0025, qty: 1 }],
     skillId: 'woodcutting',
     locationId: 'forest_edge',
     name: 'Willow Tree',
@@ -50,6 +56,8 @@ export const woodcuttingActions: Action[] = [
   },
   {
     id: 'chop_yew_tree',
+    hitsPerCycle: 6,
+    hitOutputs: [{ itemId: 'logs', chance: 0.0025, qty: 1 }],
     skillId: 'woodcutting',
     locationId: 'forest_edge',
     name: 'Yew Tree',

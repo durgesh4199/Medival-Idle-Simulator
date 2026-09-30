@@ -14,10 +14,7 @@ document.
 ## Release hardening and adventure guide
 
 The game now includes a progress-aware first adventure, a persistent pinned quest,
-item source/recipe links, and batch trading (1, 10, 100, or maximum). Navigation uses
-matching brass icons; skill, combat, and dungeon screens use painted medieval location
-banners. Items and bestiary portraits use colored vector illustrations, and a desktop
-Adventure Journal shows supplies, unlocks, and milestones. Live rewards have restrained
+item source/recipe links, and batch trading (1, 10, 100, or maximum). Navigation uses matching brass icons. Fishing, Woodcutting, Mining, Combat, and crafting use full-screen original illustrated environments; dungeons use location banners. Items and bestiary portraits use colored vector illustrations, and scene-based skill screens use a slim icon rail, floating controls, and a live activity footer. Live rewards have restrained
 celebration cards with optional sounds (off by default). See
 [`docs/visual-refresh.md`](docs/visual-refresh.md) for the visual update. Phone screens use a labeled menu and compact location selector.
 
@@ -32,6 +29,8 @@ Offline training and combat stop at 24 hours. Catch-up finishes permitted combat
 chunks and moves active clocks to the present, retaining partial-cycle progress;
 the next live tick cannot replay discarded absence. Farming still finishes one crop,
 and Ranching still uses each animal's stockpile cap.
+
+See [`docs/reference-interface.md`](docs/reference-interface.md) for the screenshot-inspired interface and new gathering mechanics.
 
 Run `npm test` for the Chromium regression suite. Playwright uses `/usr/bin/chromium`
 when available; otherwise install its browser with `npx playwright install chromium`.

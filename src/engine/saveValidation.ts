@@ -87,6 +87,17 @@ export function parseSaveData(value: unknown, now = Date.now()): SaveValidation 
       active.durationMs > actionsById[active.actionId].durationMs[1])
   )
     return fail('Invalid gathering action or timer.')
+  if (record(active)) {
+    const action = actionsById[active.actionId as string]
+    if (active.hitsRemaining !== undefined && (!Number.isInteger(active.hitsRemaining) ||
+      (active.hitsRemaining as number) < 1 || (active.hitsRemaining as number) > (action.hitsPerCycle ?? 1)))
+      return fail('Invalid remaining tree hits.')
+    if (active.priorityItemId != null && (action.skillId !== 'fishing' ||
+      !action.outputs.some(o => o.itemId === active.priorityItemId && o.itemId !== 'junk')))
+      return fail('Invalid priority fish.')
+    if (active.baitItemId != null && (action.skillId !== 'fishing' || active.baitItemId !== 'feathers'))
+      return fail('Invalid fishing bait.')
+  }
   const combat = value.combat
   const fight = (v: Record<string, unknown>) =>
     number(v.enemyHp) &&

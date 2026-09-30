@@ -157,7 +157,7 @@ export function NavRail({ view, selectedSkill, onSelectSkill, onChangeView }: Pr
     <nav
       id="game-navigation"
       aria-label="Game navigation"
-      className="flex h-full w-48 shrink-0 flex-col items-center gap-1 overflow-y-auto border-r border-line bg-rail py-2"
+      className="scene-navigation flex h-full w-48 shrink-0 flex-col items-center gap-1 overflow-y-auto border-r border-line bg-rail py-2"
     >
       {Object.values(skills).map((skill) => {
         const progress = xpProgress(skillXp[skill.id] ?? 0)

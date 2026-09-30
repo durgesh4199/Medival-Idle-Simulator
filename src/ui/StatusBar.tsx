@@ -82,6 +82,8 @@ export function StatusBar() {
             {Math.floor(progress.xpForNextLevel).toLocaleString()} XP
           </span>
         )}
+        {action && <span className="shrink-0 tabular-nums text-emerald-300">~{Math.round(action.xp / (action.hitsPerCycle ?? 1) * 3600000 / activeAction.durationMs).toLocaleString()} XP/hr</span>}
+        {action && <span className="shrink-0 tabular-nums text-teal-300">~{Math.round(3600000 / activeAction.durationMs / (action.hitsPerCycle ?? 1)).toLocaleString()} {action.hitsPerCycle ? 'cycles' : 'attempts'}/hr</span>}
         {passiveBadge}
       </footer>
     )

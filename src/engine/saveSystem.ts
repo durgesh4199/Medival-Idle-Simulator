@@ -18,6 +18,9 @@ const SAVE_KEY = 'medieval-idle-save'
 export const SAVE_VERSION = 1
 
 export interface ActiveActionSave {
+  hitsRemaining?: number
+  priorityItemId?: string | null
+  baitItemId?: string | null
   actionId: string
   startedAt: number
   durationMs: number

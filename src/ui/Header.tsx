@@ -81,7 +81,7 @@ export function Header({ view, selectedSkill, onToggleMenu, menuOpen }: Props) {
   const progress = xpProgress(xp)
 
   return (
-    <header className="flex h-14 shrink-0 items-center gap-4 border-b border-line bg-rail px-4">
+    <header className="realm-header flex h-14 shrink-0 items-center gap-4 border-b border-line bg-rail px-4">
       <button
         type="button"
         aria-label="Toggle navigation"
@@ -125,7 +125,7 @@ export function Header({ view, selectedSkill, onToggleMenu, menuOpen }: Props) {
           <ArtIcon name={view} />
           <span className="shrink-0 font-semibold text-neutral-100">{VIEW_META[view].title}</span>
           <span className="hidden truncate text-sm text-neutral-500 sm:inline">
-            — {VIEW_META[view].subtitle}
+
           </span>
         </div>
       )}

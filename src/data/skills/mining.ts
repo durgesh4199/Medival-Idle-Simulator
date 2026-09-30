@@ -29,6 +29,8 @@ export const miningLocations: Location[] = [
 export const miningActions: Action[] = [
   {
     id: 'mine_copper',
+    hitsPerCycle: 3,
+    hitOutputs: [{ itemId: 'copper_ore', chance: 0.0025, qty: 1 }],
     skillId: 'mining',
     locationId: 'quarry',
     name: 'Copper Rock',
@@ -39,6 +41,8 @@ export const miningActions: Action[] = [
   },
   {
     id: 'mine_tin',
+    hitsPerCycle: 3,
+    hitOutputs: [{ itemId: 'tin_ore', chance: 0.0025, qty: 1 }],
     skillId: 'mining',
     locationId: 'quarry',
     name: 'Tin Rock',
@@ -49,6 +53,8 @@ export const miningActions: Action[] = [
   },
   {
     id: 'mine_iron',
+    hitsPerCycle: 4,
+    hitOutputs: [{ itemId: 'iron_ore', chance: 0.0025, qty: 1 }],
     skillId: 'mining',
     locationId: 'quarry',
     name: 'Iron Rock',
@@ -59,6 +65,8 @@ export const miningActions: Action[] = [
   },
   {
     id: 'mine_coal',
+    hitsPerCycle: 4,
+    hitOutputs: [{ itemId: 'coal', chance: 0.0025, qty: 1 }],
     skillId: 'mining',
     locationId: 'quarry',
     name: 'Coal Rock',
@@ -71,6 +79,8 @@ export const miningActions: Action[] = [
   // from the design doc's resource-chain list.
   {
     id: 'mine_rune_essence',
+    hitsPerCycle: 2,
+    hitOutputs: [{ itemId: 'rune_essence', chance: 0.0025, qty: 1 }],
     skillId: 'mining',
     locationId: 'quarry',
     name: 'Rune Essence Rock',
@@ -84,6 +94,8 @@ export const miningActions: Action[] = [
   // Smithing's Steel-and-up bars.
   {
     id: 'mine_mithril',
+    hitsPerCycle: 5,
+    hitOutputs: [{ itemId: 'mithril_ore', chance: 0.0025, qty: 1 }],
     skillId: 'mining',
     locationId: 'quarry',
     name: 'Mithril Rock',
@@ -94,6 +106,8 @@ export const miningActions: Action[] = [
   },
   {
     id: 'mine_adamant',
+    hitsPerCycle: 5,
+    hitOutputs: [{ itemId: 'adamant_ore', chance: 0.0025, qty: 1 }],
     skillId: 'mining',
     locationId: 'quarry',
     name: 'Adamant Rock',
@@ -104,6 +118,8 @@ export const miningActions: Action[] = [
   },
   {
     id: 'mine_rune',
+    hitsPerCycle: 6,
+    hitOutputs: [{ itemId: 'rune_ore', chance: 0.0025, qty: 1 }],
     skillId: 'mining',
     locationId: 'quarry',
     name: 'Rune Rock',

@@ -1,5 +1,6 @@
+import { WorldScene, TreeArt } from './WorldScene'
 import { ItemLink } from './ItemLink'
-import { ArtIcon, LocationArt } from './ArtIcon'
+import { ArtIcon } from './ArtIcon'
 import { useState } from 'react'
 import { actionsById, actionsForLocation, getItem, locationsForSkill } from '../data'
 import type { Location, SkillId } from '../data/types'
@@ -43,6 +44,9 @@ export function SkillPanel({ skillId, initialActionId }: Props) {
   const masteryXp = useGameStore((s) => s.masteryXp)
   const masteryPoolXp = useGameStore((s) => s.masteryPoolXp)
 
+  const [priority, setPriority] = useState<string>('')
+  const [bait, setBait] = useState<string>('')
+  const configureFishing = useGameStore(s => s.configureFishing)
   const actions = locationId ? actionsForLocation(locationId) : []
   const selectedAction = actions.find((a) => a.id === actionId) ?? actions[0]
   const level = levelOf(skillId)
@@ -54,8 +58,9 @@ export function SkillPanel({ skillId, initialActionId }: Props) {
   const poolFull = isMasteryPoolFull(poolXp)
 
   return (
-    <div className="flex min-w-0 flex-1 flex-col overflow-y-auto md:flex-row md:overflow-hidden">
-      <aside className="hidden w-full shrink-0 md:block md:w-72 md:overflow-y-auto border-r border-line bg-rail p-3">
+    <div className={`skill-world skill-${skillId}`}>
+      {<WorldScene kind={skillId === 'fishing' ? 'lake' : skillId === 'mining' ? 'cave' : skillId === 'woodcutting' || skillId === 'hunting' ? 'forest' : 'workshop'} active={activeAction?.actionId === selectedAction?.id} />}
+      <aside className="location-switcher">
         <h2 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">
           Select Location
         </h2>
@@ -106,18 +111,17 @@ export function SkillPanel({ skillId, initialActionId }: Props) {
         </div>
       </aside>
 
-      <main className="flex min-w-0 flex-1 flex-col gap-4 p-4 md:overflow-y-auto">
-        <label className="flex flex-col gap-1 text-xs text-neutral-400 md:hidden">Location
+      <main className="scene-skill-content">
+        <label className="mobile-scene-location">Location
           <select aria-label="Location" value={locationId} onChange={e => {setLocationId(e.target.value); setActionId(undefined)}} className="rounded-lg border border-line bg-panel px-3 py-2 text-sm text-neutral-200">
             {locations.map(loc => <option key={loc.id} value={loc.id} disabled={level < loc.requiredLevel}>{loc.name}{level < loc.requiredLevel ? ` · Level ${loc.requiredLevel}` : ''}</option>)}
           </select>
         </label>
-        <LocationArt name={locations.find(l => l.id === locationId)?.name ?? skillId} skillId={skillId} />
-        <div>
+        <div className="spot-picker">
           <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">
             Select Spot
           </h2>
-          <div className="flex flex-wrap gap-2">
+          <div className={skillId === 'woodcutting' || skillId === 'mining' ? "tree-grid" : "flex flex-wrap gap-2"}>
             {actions.map((action) => {
               const locked = level < action.requiredLevel
               const isSelected = action.id === selectedAction?.id
@@ -127,7 +131,7 @@ export function SkillPanel({ skillId, initialActionId }: Props) {
                   key={action.id}
                   type="button"
                   disabled={locked}
-                  onClick={() => setActionId(action.id)}
+                  onClick={() => {setActionId(action.id); setPriority('')}}
                   className={`relative rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                     isSelected
                       ? 'border-gold bg-gold/10 text-gold'
@@ -137,7 +141,10 @@ export function SkillPanel({ skillId, initialActionId }: Props) {
                   {isActive && (
                     <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-brand" />
                   )}
-                  {action.name}
+                  {skillId === 'mining' && <ArtIcon name={action.outputs[0]?.itemId ?? 'mining'} className="tree-card-art" />}
+                  {skillId === 'woodcutting' && <TreeArt variant={action.id} className="tree-card-art" />}
+                  <span>{action.name}</span>
+                  {(skillId === 'woodcutting' || skillId === 'mining') && <span className="tree-card-info">{action.hitsPerCycle} hits · +{action.xp} XP · {action.durationMs[0] / 1000}–{action.durationMs[1] / 1000}s / tree</span>}
                   {locked && <span className="ml-1 text-xs text-neutral-500">(Lv {action.requiredLevel})</span>}
                 </button>
               )
@@ -145,6 +152,15 @@ export function SkillPanel({ skillId, initialActionId }: Props) {
           </div>
         </div>
 
+        {skillId === 'mining' && selectedAction && <div className="selected-tree"><ArtIcon name={selectedAction.outputs[0]?.itemId ?? 'mining'} className="selected-tree-art" /></div>}
+        {skillId === 'woodcutting' && selectedAction && <div className="selected-tree"><TreeArt variant={selectedAction.id} className="selected-tree-art" /></div>}
+        {selectedAction && !['fishing','woodcutting','mining','hunting'].includes(skillId) && <section className="recipe-details realm-panel" aria-label="Selected recipe">
+          <h2 className="realm-heading">Selected recipe</h2><ArtIcon name={selectedAction.outputs[0]?.itemId ?? skillId} className="h-20 w-20" />
+          <h3>{selectedAction.name}</h3><p>Requires level {selectedAction.requiredLevel} · +{selectedAction.xp} XP</p>
+          <h3>Ingredients</h3>{selectedAction.inputs?.map(input => <div key={input.itemId}><ItemLink itemId={input.itemId}>{getItem(input.itemId).name}</ItemLink><span>{inventory[input.itemId] ?? 0} / {input.qty}</span></div>) ?? <p>No ingredients needed.</p>}
+          <h3>Produces</h3>{selectedAction.outputs.map(o => <div key={o.itemId}><span>{getItem(o.itemId).name}</span><span>×{o.qty} · {(o.chance*100).toFixed(0)}%</span></div>)}
+          <p>Production repeats automatically until stopped or ingredients run out.</p>
+        </section>}
         {selectedAction && (
           <div className="action-card w-full max-w-xl overflow-hidden rounded-xl border border-line bg-panel">
             <div className="border-b border-line bg-panel-soft px-4 py-2 font-semibold text-gold">
@@ -152,6 +168,7 @@ export function SkillPanel({ skillId, initialActionId }: Props) {
             </div>
 
             <div className="space-y-3 p-4">
+              {!['fishing','woodcutting','mining','hunting'].includes(skillId) && <div className="production-emblem"><ArtIcon name={selectedAction.outputs[0]?.itemId ?? skillId} className="h-24 w-24" /><span>Creating · {selectedAction.name}</span></div>}
               {selectedAction.inputs && (
                 <div>
                   <div className="mb-1 text-xs font-semibold uppercase text-neutral-500">Input</div>
@@ -172,9 +189,14 @@ export function SkillPanel({ skillId, initialActionId }: Props) {
                 </div>
               )}
 
+              {selectedAction.hitsPerCycle && <div className="tree-health" aria-label={skillId === 'mining' ? 'Vein integrity' : 'Tree health'}>
+                <span>{skillId === 'mining' ? 'Vein integrity' : 'Tree health'} · {isRunningHere ? activeAction?.hitsRemaining ?? selectedAction.hitsPerCycle : selectedAction.hitsPerCycle} / {selectedAction.hitsPerCycle}</span>
+                <div className="tree-health-bar">{Array.from({length: selectedAction.hitsPerCycle ?? 1}, (_,i) => <span key={i} className={i < (isRunningHere ? activeAction?.hitsRemaining ?? selectedAction.hitsPerCycle! : selectedAction.hitsPerCycle!) ? 'healthy' : ''} />)}</div>
+                <p>Each hit grants XP. {skillId === 'mining' ? 'Breaking the vein grants ore.' : 'A full cut grants logs.'} Every hit has a 0.25% chance of an extra resource.</p>
+              </div>}
               <div>
                 <div className="mb-1 flex justify-between text-xs font-semibold uppercase text-neutral-500">
-                  <span>Output</span>
+                  <span>{skillId === 'woodcutting' ? 'Full cut rewards' : skillId === 'mining' ? 'On break rewards' : 'Output'}</span>
                   <span>Qty / You Have</span>
                 </div>
                 <div className="space-y-1">
@@ -197,7 +219,7 @@ export function SkillPanel({ skillId, initialActionId }: Props) {
 
               <div className="flex items-center gap-2 text-sm text-gold">
                 <span>📊</span>
-                <span>+{selectedAction.xp} Skill XP</span>
+                <span>+{selectedAction.xp} Skill XP {selectedAction.hitsPerCycle ? (skillId === 'mining' ? 'per vein' : 'per tree') : ''}</span>
               </div>
 
               {actionMastery && (
@@ -261,9 +283,16 @@ export function SkillPanel({ skillId, initialActionId }: Props) {
                 </div>
               )}
 
+              {skillId === 'fishing' && <div className="fishing-options">
+                <label>Priority fish<select aria-label="Priority fish" value={isRunningHere ? activeAction?.priorityItemId ?? '' : priority} onChange={e => {setPriority(e.target.value); if (isRunningHere) configureFishing(e.target.value || null, activeAction?.baitItemId ?? null)}}>
+                  <option value="">None</option>{selectedAction.outputs.filter(o => o.itemId !== 'junk').map(o => <option key={o.itemId} value={o.itemId}>{getItem(o.itemId).name}</option>)}
+                </select></label>
+                <label>Bait<select aria-label="Fishing bait" value={isRunningHere ? activeAction?.baitItemId ?? '' : bait} onChange={e => {setBait(e.target.value); if (isRunningHere) configureFishing(activeAction?.priorityItemId ?? null, e.target.value || null)}}><option value="">None</option><option value="feathers">Feathers ({inventory.feathers ?? 0})</option></select></label>
+                <p>Priority doubles a fish’s relative catch weight. One feather per catch speeds the next cast by 15%; fishing continues when bait runs out.</p>
+              </div>}
               <button
                 type="button"
-                onClick={() => (isRunningHere ? stopAction() : startAction(selectedAction.id))}
+                onClick={() => {if (isRunningHere) stopAction(); else {startAction(selectedAction.id); if (skillId === 'fishing') configureFishing(selectedAction.outputs.some(o => o.itemId === priority) ? priority : null, bait || null)}}}
                 disabled={!isRunningHere && !canStartAction(selectedAction.id)}
                 className={`w-full rounded-lg py-2 text-sm font-semibold transition-colors ${
                   isRunningHere

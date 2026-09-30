@@ -80,6 +80,9 @@ export interface Action {
   outputs: ItemDrop[]
   /** Rare drops rolled independently and IN ADDITION to a normal output. */
   specialOutputs?: ItemDrop[]
+  /** Hits required before the normal output table is awarded. */
+  hitsPerCycle?: number
+  hitOutputs?: ItemDrop[]
 }
 
 export interface Location {

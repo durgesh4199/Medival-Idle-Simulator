@@ -140,6 +140,7 @@ interface GameState {
   masteryLevelOf: (actionId: string) => number
   canStartAction: (actionId: string) => boolean
   startAction: (actionId: string) => void
+  configureFishing: (priorityItemId: string | null, baitItemId: string | null) => void
   stopAction: () => void
   /** Advances simulation to `now`, resolving every action completion in between. */
   tick: (now: number) => void
@@ -304,6 +305,14 @@ export const useGameStore = create<GameState>((set, get) => ({
     return hasRequiredInputs(action, state.inventory)
   },
 
+  configureFishing: (priorityItemId, baitItemId) => set(state => {
+    const active = state.activeAction
+    const action = active && actionsById[active.actionId]
+    if (!active || action?.skillId !== 'fishing') return state
+    if (priorityItemId && !action.outputs.some(o => o.itemId === priorityItemId && o.itemId !== 'junk')) return state
+    if (baitItemId !== null && baitItemId !== 'feathers') return state
+    return { activeAction: { ...active, priorityItemId, baitItemId } }
+  }),
   startAction: (actionId) => {
     const action = actionsById[actionId]
     if (!action || !get().canStartAction(actionId)) return
@@ -319,7 +328,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       activeAction: {
         actionId,
         startedAt: Date.now(),
-        durationMs: rollDurationMs(action) * (1 - speedBonus),
+        durationMs: rollDurationMs(action) * (1 - speedBonus) / (action.hitsPerCycle ?? 1),
+        hitsRemaining: action.hitsPerCycle,
       },
     })
   },
@@ -334,6 +344,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
       let cursor = state.activeAction.startedAt
       let durationMs = state.activeAction.durationMs
+      let hitsRemaining = state.activeAction.hitsRemaining ?? 1
       const skillXp = { ...state.skillXp }
       const inventory = { ...state.inventory }
       const masteryXp = { ...state.masteryXp }
@@ -363,7 +374,17 @@ export const useGameStore = create<GameState>((set, get) => ({
           inventory[input.itemId] = (inventory[input.itemId] ?? 0) - input.qty
         }
 
-        const rewards = rollActionRewards(action)
+        const fullCut = hitsRemaining === 1
+        const priority = state.activeAction.priorityItemId
+        const baited = action.skillId === 'fishing' && state.activeAction.baitItemId === 'feathers' && (inventory.feathers ?? 0) > 0
+        if (baited) inventory.feathers -= 1
+        const adjustedAction = priority && action.skillId === 'fishing' ? { ...action,
+          outputs: action.outputs.map(o => ({ ...o, chance: o.chance * (o.itemId === priority ? 2 : 1) })) } : action
+        const rewards = fullCut ? rollActionRewards(adjustedAction) : {}
+        for (const drop of action.hitOutputs ?? []) {
+          if (Math.random() < drop.chance) rewards[drop.itemId] = (rewards[drop.itemId] ?? 0) + drop.qty
+        }
+        hitsRemaining = fullCut ? (action.hitsPerCycle ?? 1) : hitsRemaining - 1
         const poolXp = masteryPoolXp[action.skillId] ?? 0
         if (rollMasteryPoolBonus(poolXp)) {
           // Pool-full perk: a flat chance to double this completion's output.
@@ -380,9 +401,9 @@ export const useGameStore = create<GameState>((set, get) => ({
           }
         }
 
-        skillXp[action.skillId] = (skillXp[action.skillId] ?? 0) + action.xp
-        masteryXp[action.id] = (masteryXp[action.id] ?? 0) + action.xp
-        masteryPoolXp[action.skillId] = poolXp + action.xp
+        skillXp[action.skillId] = (skillXp[action.skillId] ?? 0) + action.xp / (action.hitsPerCycle ?? 1)
+        masteryXp[action.id] = (masteryXp[action.id] ?? 0) + action.xp / (action.hitsPerCycle ?? 1)
+        masteryPoolXp[action.skillId] = poolXp + action.xp / (action.hitsPerCycle ?? 1)
 
         const masteryLevel = masteryLevelForXp(masteryXp[action.id])
         // Pets: a rare per-completion find, chance scaled by this action's
@@ -396,13 +417,13 @@ export const useGameStore = create<GameState>((set, get) => ({
 
         cursor += durationMs
         const speedBonus = masterySpeedBonus(masteryLevel) + petSpeedBonus(ownedPetIds, action.skillId)
-        durationMs = rollDurationMs(action) * (1 - speedBonus)
+        durationMs = rollDurationMs(action) * (1 - speedBonus) / (action.hitsPerCycle ?? 1) * (baited ? 0.85 : 1)
         completions++
       }
 
       return {
         ...state,
-        activeAction: { ...state.activeAction, startedAt: cursor, durationMs },
+        activeAction: { ...state.activeAction, startedAt: cursor, durationMs, hitsRemaining },
         skillXp,
         inventory,
         masteryXp,

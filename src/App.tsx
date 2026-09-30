@@ -1,4 +1,3 @@
-import { AdventureJournal } from './ui/AdventureJournal'
 import { RewardToast } from './ui/RewardToast'
 import { GameNavigation, type Destination } from './ui/gameNavigation'
 import { GoalPanel } from './ui/GoalPanel'
@@ -49,7 +48,7 @@ function App() {
 
   return (
     <GameNavigation.Provider value={{ navigate, inspectItem: setItemId }}>
-      <div className="flex h-dvh w-full flex-col overflow-hidden bg-app text-neutral-100">
+      <div className="reference-shell flex h-dvh w-full flex-col overflow-hidden bg-app text-neutral-100">
         <Header
           view={view}
           selectedSkill={selectedSkill}
@@ -108,7 +107,7 @@ function App() {
           {view === 'pets' && <PetsPage />}
           {view === 'codex' && <CodexPage />}
           {view === 'settings' && <SettingsPage />}
-          <AdventureJournal />
+
         </div>
         <StatusBar />
         <PetFoundToast />

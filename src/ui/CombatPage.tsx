@@ -1,4 +1,7 @@
-import { ArtIcon, LocationArt } from './ArtIcon'
+import { EnemyFigure } from './EnemyFigure'
+import { WorldScene } from './WorldScene'
+import { ItemLink } from './ItemLink'
+import { ArtIcon } from './ArtIcon'
 import { useState } from 'react'
 import { combatAreas, combatSkillDisplay, combatSkillOrder, enemiesById, getItem, items } from '../data'
 import { slayerTaskProgress } from '../engine/slayerEngine'
@@ -79,6 +82,7 @@ export function CombatPage({ initialEnemyId }: { initialEnemyId?: string }) {
   const area = combatAreas.find((a) => a.id === selectedAreaId) ?? combatAreas[0]
   const [selectedEnemyId, setSelectedEnemyId] = useState(initialEnemyId ?? area?.enemyIds[0])
 
+  const equipment = useGameStore(s => s.equipment)
   const combat = useGameStore((s) => s.combat)
   const lastDefeatAt = useGameStore((s) => s.lastDefeatAt)
   const inventory = useGameStore((s) => s.inventory)
@@ -101,8 +105,8 @@ export function CombatPage({ initialEnemyId }: { initialEnemyId?: string }) {
     .map(([itemId]) => items[itemId])
 
   return (
-    <div className="flex min-w-0 flex-1 flex-col overflow-y-auto md:flex-row md:overflow-hidden">
-      <aside className="w-full shrink-0 md:w-64 md:overflow-y-auto border-r border-line bg-rail p-3">
+    <div className="combat-world"><WorldScene kind="combat" active={Boolean(combat)} />
+      <aside className="combat-preparation realm-panel">
         <h2 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">
           Combat Areas
         </h2>
@@ -167,6 +171,10 @@ export function CombatPage({ initialEnemyId }: { initialEnemyId?: string }) {
           })}
         </div>
 
+        <h2 className="realm-heading">Equipment</h2>
+        <div className="combat-equipment">{(['helmet','amulet','weapon','body','shield','gloves','legs','ring','boots'] as const).map(slot => <div key={slot} title={slot} className={`equipment-${slot}`}>
+          {equipment[slot] ? <ItemLink itemId={equipment[slot]!}><ArtIcon name={equipment[slot]!} className="h-10 w-10" /></ItemLink> : <span>{slot}</span>}
+        </div>)}</div>
         <h2 className="mb-2 mt-4 px-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">
           Combat Stats
         </h2>
@@ -191,10 +199,10 @@ export function CombatPage({ initialEnemyId }: { initialEnemyId?: string }) {
         <SlayerTaskCard onViewEnemy={setSelectedEnemyId} />
       </aside>
 
-      <main className="min-w-0 shrink-0 p-4 md:flex-1 md:overflow-y-auto">
-        <LocationArt name={area.name} skillId={area.id} />
+      <main className="combat-stage">
+        {selectedEnemy && <div className="enemy-figure"><EnemyFigure id={selectedEnemy.id} /><span>{selectedEnemy.name}</span></div>}
         {selectedEnemy && (
-          <div className="max-w-2xl space-y-4">
+          <div className="combat-controls space-y-4">
             {showDefeatBanner && (
               <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm text-red-300">
                 💀 You were defeated and retreated to heal. Your HP is fully restored — no other
@@ -202,12 +210,12 @@ export function CombatPage({ initialEnemyId }: { initialEnemyId?: string }) {
               </div>
             )}
 
-            <div className="overflow-hidden rounded-xl border border-line bg-panel">
+            <div className="combat-vitals realm-panel">
               <div className="border-b border-line bg-panel-soft px-4 py-2 text-center font-semibold text-gold">
                 {area?.name ?? 'Combat Arena'}
               </div>
 
-              <div className="grid grid-cols-2 divide-x divide-line">
+              <div className="combat-health-row grid grid-cols-2 divide-x divide-line">
                 <div className="space-y-2 p-4">
                   <div className="flex items-center gap-2">
                     <span className="text-2xl">🧑‍⚔️</span>
@@ -247,7 +255,7 @@ export function CombatPage({ initialEnemyId }: { initialEnemyId?: string }) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1 border-t border-line px-4 py-3 text-sm text-neutral-400">
+              <div className="enemy-stat-panel grid grid-cols-2 gap-x-4 gap-y-1 border-t border-line px-4 py-3 text-sm text-neutral-400">
                 <span>
                   Accuracy: <span className="text-neutral-200">{selectedEnemy.accuracy}</span>
                 </span>
@@ -284,7 +292,7 @@ export function CombatPage({ initialEnemyId }: { initialEnemyId?: string }) {
               </div>
             </div>
 
-            <div className="rounded-xl border border-line bg-panel p-4">
+            <div className="combat-food realm-panel p-4">
               <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">
                 Select Food
               </h3>

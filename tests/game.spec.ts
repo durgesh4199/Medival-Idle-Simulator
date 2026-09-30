@@ -446,3 +446,105 @@ test('rare loot creates a discovery notification in the activity log', async ({ 
     page.getByText('Found rare loot: Rusty Ancient Dagger!', { exact: true }).first(),
   ).toBeVisible()
 })
+
+test('tree hits retain partial progress and award logs only on a full cut', async ({ page }) => {
+  await page.goto('/')
+  const result = await page.evaluate(async () => {
+    const { useGameStore } = await import('/src/state/gameStore.ts' as string)
+    const { stopGameLoop } = await import('/src/engine/gameLoop.ts' as string)
+    const { parseSaveData } = await import('/src/engine/saveValidation.ts' as string)
+    stopGameLoop()
+    const random = Math.random
+    Math.random = () => 0.5
+    try {
+      const now = Date.now()
+      useGameStore.setState({ inventory: {}, skillXp: {}, masteryXp: {}, masteryPoolXp: {}, ownedPetIds: {} })
+      useGameStore.getState().startAction('chop_normal_tree')
+      let active = useGameStore.getState().activeAction
+      useGameStore.getState().tick(active.startedAt + active.durationMs + 1)
+      const first = useGameStore.getState()
+      const partial = { ...first.toSaveShape(), version: 1, savedAt: now }
+      const valid = parseSaveData(partial)
+      useGameStore.getState().loadFromSave(partial)
+      active = useGameStore.getState().activeAction
+      useGameStore.getState().tick(active.startedAt + active.durationMs + 1)
+      active = useGameStore.getState().activeAction
+      useGameStore.getState().tick(active.startedAt + active.durationMs + 1)
+      const end = useGameStore.getState()
+      return { firstLogs: first.inventory.logs ?? 0, firstHits: first.activeAction.hitsRemaining,
+        valid: valid.ok, logs: end.inventory.logs, hits: end.activeAction.hitsRemaining, xp: end.skillXp.woodcutting }
+    } finally { Math.random = random }
+  })
+  expect(result.firstLogs).toBe(0)
+  expect(result.firstHits).toBe(2)
+  expect(result.valid).toBe(true)
+  expect(result.logs).toBe(1)
+  expect(result.hits).toBe(3)
+  expect(result.xp).toBeCloseTo(10)
+})
+
+test('fishing priority changes catch weights and bait consumes only available feathers', async ({ page }) => {
+  await page.goto('/')
+  const result = await page.evaluate(async () => {
+    const { useGameStore } = await import('/src/state/gameStore.ts' as string)
+    const { stopGameLoop } = await import('/src/engine/gameLoop.ts' as string)
+    const { parseSaveData } = await import('/src/engine/saveValidation.ts' as string)
+    stopGameLoop()
+    const random = Math.random
+    Math.random = () => 0.7
+    try {
+      const catches = []
+      for (const priority of [null, 'raw_herring']) {
+        useGameStore.setState({ inventory: { feathers: 1 }, skillXp: {}, masteryXp: {}, masteryPoolXp: {}, ownedPetIds: {} })
+        useGameStore.getState().startAction('shallow_shores_quiet_bend')
+        useGameStore.getState().configureFishing(priority, 'feathers')
+        let active = useGameStore.getState().activeAction
+        useGameStore.getState().tick(active.startedAt + active.durationMs + 1)
+        const first = useGameStore.getState()
+        active = first.activeAction
+        useGameStore.getState().tick(active.startedAt + active.durationMs + 1)
+        const end = useGameStore.getState()
+        catches.push({ herring: first.inventory.raw_herring ?? 0, junk: first.inventory.junk ?? 0,
+          feathers: end.inventory.feathers, baitDuration: first.activeAction.durationMs,
+          normalDuration: end.activeAction.durationMs,
+          valid: parseSaveData({ ...end.toSaveShape(), version: 1, savedAt: Date.now() }).ok })
+      }
+      return catches
+    } finally { Math.random = random }
+  })
+  expect(result[0].junk).toBe(1)
+  expect(result[1].herring).toBe(1)
+  for (const entry of result) {
+    expect(entry.feathers).toBe(0)
+    expect(entry.baitDuration).toBeCloseTo(entry.normalDuration * 0.85, 1)
+    expect(entry.valid).toBe(true)
+  }
+})
+
+test('invalid gathering configuration is rejected and mining restores its partial vein', async ({ page }) => {
+  await page.goto('/')
+  const result = await page.evaluate(async () => {
+    const { useGameStore } = await import('/src/state/gameStore.ts' as string)
+    const { stopGameLoop } = await import('/src/engine/gameLoop.ts' as string)
+    const { parseSaveData } = await import('/src/engine/saveValidation.ts' as string)
+    stopGameLoop()
+    const random = Math.random
+    Math.random = () => 0.5
+    try {
+      useGameStore.setState({ inventory: {}, skillXp: {}, masteryXp: {}, masteryPoolXp: {}, ownedPetIds: {} })
+      useGameStore.getState().startAction('mine_copper')
+      const active = useGameStore.getState().activeAction
+      useGameStore.getState().tick(active.startedAt + active.durationMs + 1)
+      const state = useGameStore.getState()
+      const partial = { ...state.toSaveShape(), version: 1, savedAt: Date.now() }
+      const invalid = [-1, 0, 4, 1.5].map(hitsRemaining => parseSaveData({ ...partial, activeAction: { ...partial.activeAction, hitsRemaining } }).ok)
+      invalid.push(parseSaveData({ ...partial, activeAction: { ...partial.activeAction, priorityItemId: 'raw_herring' } }).ok)
+      invalid.push(parseSaveData({ ...partial, activeAction: { ...partial.activeAction, baitItemId: 'logs' } }).ok)
+      useGameStore.getState().loadFromSave(partial)
+      return { invalid, hits: useGameStore.getState().activeAction.hitsRemaining, ore: useGameStore.getState().inventory.copper_ore ?? 0 }
+    } finally { Math.random = random }
+  })
+  expect(result.invalid.every(valid => !valid)).toBe(true)
+  expect(result.hits).toBe(2)
+  expect(result.ore).toBe(0)
+})

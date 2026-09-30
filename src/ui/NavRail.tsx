@@ -1,3 +1,4 @@
+import { ArtIcon } from './ArtIcon'
 import { COMBAT_SKILL_IDS, actionsById, skills } from '../data'
 import type { SkillId } from '../data/types'
 import { xpProgress } from '../engine/xp'
@@ -37,7 +38,7 @@ function ProgressRing({ percent, isActive }: { percent: number; isActive: boolea
   return (
     <svg
       viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}
-      className="pointer-events-none absolute inset-0 h-full w-full -rotate-90"
+      className="pointer-events-none absolute inset-0 h-11 w-11 -rotate-90"
       aria-hidden
     >
       <circle
@@ -66,7 +67,6 @@ function ProgressRing({ percent, isActive }: { percent: number; isActive: boolea
 }
 
 function RailButton({
-  icon,
   title,
   isActive,
   isRunning,
@@ -90,21 +90,22 @@ function RailButton({
   return (
     <button
       type="button"
+      aria-label={title}
+      aria-current={isActive ? 'page' : undefined}
       title={isRunning ? `${title} — in progress` : title}
       onClick={onClick}
-      className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-xl transition-colors ${
-        isActive
-          ? 'bg-gold/15 text-gold'
-          : 'text-neutral-500 hover:bg-panel hover:text-neutral-200'
+      className={`relative flex min-h-11 w-full shrink-0 items-center gap-2 rounded-lg text-xl transition-colors ${
+        isActive ? 'bg-gold/15 text-gold' : 'text-neutral-500 hover:bg-panel hover:text-neutral-200'
       }`}
     >
       {isActive && (
         <span className="absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full bg-gold" />
       )}
       {percent !== undefined && <ProgressRing percent={percent} isActive={isActive} />}
-      <span className="relative" aria-hidden>
-        {icon}
+      <span className="relative flex h-11 w-11 shrink-0 items-center justify-center" aria-hidden>
+        <ArtIcon name={title} />
       </span>
+      <span className="min-w-0 truncate pr-2 text-left text-xs">{title}</span>
       {isRunning && (
         <span
           aria-hidden
@@ -118,9 +119,7 @@ function RailButton({
 }
 
 /**
- * The single global icon rail: switches both skill (within the Skills view)
- * and top-level view, mirroring the reference UI's one slim icon strip
- * rather than a separate wide text sidebar + top tab bar. Each icon carries
+ * Labeled navigation switches both skills and top-level views. Each skill icon carries
  * a circular XP-progress ring, filling toward the next level.
  */
 export function NavRail({ view, selectedSkill, onSelectSkill, onChangeView }: Props) {
@@ -155,7 +154,11 @@ export function NavRail({ view, selectedSkill, onSelectSkill, onChangeView }: Pr
   }
 
   return (
-    <nav className="flex w-14 shrink-0 flex-col items-center gap-1 overflow-y-auto border-r border-line bg-rail py-2">
+    <nav
+      id="game-navigation"
+      aria-label="Game navigation"
+      className="flex h-full w-48 shrink-0 flex-col items-center gap-1 overflow-y-auto border-r border-line bg-rail py-2"
+    >
       {Object.values(skills).map((skill) => {
         const progress = xpProgress(skillXp[skill.id] ?? 0)
         return (

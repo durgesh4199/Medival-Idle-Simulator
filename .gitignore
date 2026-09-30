@@ -27,3 +27,7 @@ dist-ssr
 # Generated images, large and per-machine; not build artifacts to commit.
 tools/comfyui/output/
 __pycache__/
+
+# Browser regression artifacts
+test-results/
+playwright-report/

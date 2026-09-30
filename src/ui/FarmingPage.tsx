@@ -154,7 +154,7 @@ export function FarmingPage() {
         Plant a seed, then come back once it's grown — crops keep growing whether you're
         training, fighting, or gone entirely. Seeds are bought at the Shop.
       </p>
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,180px),1fr))] gap-3">
         {farmingPlots.map((_, i) => (
           <PlotCard key={i} plotIndex={i} />
         ))}

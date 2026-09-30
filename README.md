@@ -11,6 +11,32 @@ reverse-engineered breakdown of the Melvor Idle 2 systems this project is aiming
 sections below describe what's actually implemented today and how it maps onto that
 document.
 
+## Release hardening and adventure guide
+
+The game now includes a progress-aware first adventure, a persistent pinned quest,
+item source/recipe links, and batch trading (1, 10, 100, or maximum). Navigation uses
+matching original vector icons; skill screens include illustrated medieval location
+banners. Phone screens use a labeled menu and compact location selector.
+
+Save loading and importing validate known content IDs, quantities, timers, equipment,
+and activity state. Version-1 saves from before optional systems existed receive
+defaults; unsupported versions are rejected. Each successful save retains the previous
+valid snapshot as a backup. If the primary save is damaged, autosave pauses and Settings
+lets the player download the original and explicitly keep recovered progress. Storage
+failures remain visible, with export available as a fallback.
+
+Offline training and combat stop at 24 hours. Catch-up finishes permitted combat
+chunks and moves active clocks to the present, retaining partial-cycle progress;
+the next live tick cannot replay discarded absence. Farming still finishes one crop,
+and Ranching still uses each animal's stockpile cap.
+
+Run `npm test` for the Chromium regression suite. Playwright uses `/usr/bin/chromium`
+when available; otherwise install its browser with `npx playwright install chromium`.
+GitHub Actions runs the build, lint, and browser checks. See
+[`docs/production-review.md`](docs/production-review.md) for the original findings and
+[`docs/release-hardening.md`](docs/release-hardening.md) for implementation and remaining
+release work.
+
 ## Stack
 
 - **TypeScript** — content and state are typed, which matters once there are hundreds
@@ -751,9 +777,8 @@ file itself, not events inside the simulation.
 
 Export builds the exact `SaveData` the normal autosave would write (via
 `toSaveShape()` + a fresh `savedAt`), shown in a copyable textarea and offered
-as a `.json` download. Import parses pasted or uploaded JSON, checks it loosely
-resembles a save (`isValidSaveData` — enough to reject garbage, not full schema
-validation) and, if it does, calls `gameStore.loadFromSave()` directly on the
+as a `.json` download. Import parses pasted or uploaded JSON, validates its version and content
+with `parseSaveData` before changing the store and, if it does, calls `gameStore.loadFromSave()` directly on the
 live store — the same function `gameLoop.initGame()` calls on a normal boot,
 so restoring an old backup correctly replays offline progress from *that
 save's own* `savedAt`, not from the moment of import, exactly like loading any
@@ -833,8 +858,10 @@ Adding more of anything above stays additive:
 
 ### Generating art with a local ComfyUI
 
-Every icon above is still an emoji string (`icon: '🌾'` fields throughout
-`data/*.ts`) — there's no image asset pipeline in the game itself.
+Content icons remain emoji strings (`icon: '🌾'` fields throughout
+`data/*.ts`). The main navigation, Bank, Shop, and item Codex now render matching
+original vector icons; location banners also use vector artwork. The optional
+ComfyUI tooling can produce a more detailed image set.
 `tools/comfyui/` adds one, as opt-in local tooling: `extract_manifest.py`
 scans `src/data/*.ts` (plus `NavRail.tsx`'s hardcoded nav tabs) into a
 210-entry manifest tagged by kind (item/enemy/pet/skill/achievement/quest/

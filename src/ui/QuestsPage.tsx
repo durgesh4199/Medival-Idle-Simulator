@@ -1,3 +1,4 @@
+import { ItemLink } from './ItemLink'
 import {
   combatSkillDisplay,
   enemiesById,
@@ -62,7 +63,7 @@ function RequirementRow({ req }: { req: QuestRequirement }) {
   return (
     <div className="flex items-center justify-between text-sm">
       <span className={met ? 'text-neutral-300' : 'text-neutral-400'}>
-        {met ? '✅' : '⬜'} {label}
+        {met ? '✅' : '⬜'} {req.type === 'itemCount' ? <ItemLink itemId={req.itemId}>{label}</ItemLink> : label}
       </span>
       {req.type !== 'questComplete' && (
         <span className={met ? 'text-gold' : 'text-neutral-500'}>
@@ -74,6 +75,8 @@ function RequirementRow({ req }: { req: QuestRequirement }) {
 }
 
 function QuestCard({ questId }: { questId: string }) {
+  const pinQuest = useGameStore(s => s.pinQuest)
+  const pinnedQuestId = useGameStore(s => s.pinnedQuestId)
   const quest = questsById[questId]
   const completedQuestIds = useGameStore((s) => s.completedQuestIds)
   const canCompleteQuestById = useGameStore((s) => s.canCompleteQuestById)
@@ -137,6 +140,7 @@ function QuestCard({ questId }: { questId: string }) {
           </div>
         </div>
 
+        {!isComplete && <button type="button" onClick={() => pinQuest(pinnedQuestId === quest.id ? null : quest.id)} className="text-xs text-gold underline">{pinnedQuestId === quest.id ? 'Unpin quest' : 'Pin as next goal'}</button>}
         {!isComplete && (
           <button
             type="button"
@@ -155,7 +159,7 @@ function QuestCard({ questId }: { questId: string }) {
 export function QuestsPage() {
   return (
     <div className="flex-1 overflow-y-auto p-4">
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,320px),1fr))] gap-4">
         {quests.map((quest) => (
           <QuestCard key={quest.id} questId={quest.id} />
         ))}

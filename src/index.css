@@ -8,6 +8,8 @@
  * color and Tailwind's built-in reds for combat/stop states.
  */
 @theme {
+  --color-neutral-500: #969ba5;
+  --color-neutral-600: #9298a3;
   --color-app: #12151b;
   --color-rail: #0c0e12;
   --color-panel: #1a1e25;
@@ -49,4 +51,16 @@ body,
 ::-webkit-scrollbar-thumb {
   background: #3a3c46;
   border-radius: 4px;
+}
+
+button, a, input, textarea, select { touch-action: manipulation; }
+button:not(:disabled), a { cursor: pointer; }
+:focus-visible { outline: 2px solid #e3b155; outline-offset: 3px; }
+main { min-width: 0; }
+@media (max-width: 767px) {
+  footer { overflow-x: auto; gap: 0.5rem; padding-inline: 0.75rem; }
+  footer > * { flex-shrink: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
 }

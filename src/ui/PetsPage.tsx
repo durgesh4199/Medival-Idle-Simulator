@@ -35,7 +35,7 @@ export function PetsPage() {
         </span>
       </p>
 
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,220px),1fr))] gap-3">
         {pets.map((pet) => {
           const owned = Boolean(ownedPetIds[pet.id])
           const { sourceLabel, bonusLabel } = describePetSource(pet)

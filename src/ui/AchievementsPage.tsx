@@ -140,7 +140,7 @@ function AchievementCard({ achievementId }: { achievementId: string }) {
 export function AchievementsPage() {
   return (
     <div className="flex-1 overflow-y-auto p-4">
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,320px),1fr))] gap-4">
         {achievements.map((achievement) => (
           <AchievementCard key={achievement.id} achievementId={achievement.id} />
         ))}

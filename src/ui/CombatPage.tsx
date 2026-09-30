@@ -73,10 +73,10 @@ function SlayerTaskCard({ onViewEnemy }: { onViewEnemy: (enemyId: string) => voi
   )
 }
 
-export function CombatPage() {
-  const [selectedAreaId, setSelectedAreaId] = useState(combatAreas[0]?.id)
+export function CombatPage({ initialEnemyId }: { initialEnemyId?: string }) {
+  const [selectedAreaId, setSelectedAreaId] = useState(combatAreas.find(a => a.enemyIds.includes(initialEnemyId ?? ''))?.id ?? combatAreas[0]?.id)
   const area = combatAreas.find((a) => a.id === selectedAreaId) ?? combatAreas[0]
-  const [selectedEnemyId, setSelectedEnemyId] = useState(area?.enemyIds[0])
+  const [selectedEnemyId, setSelectedEnemyId] = useState(initialEnemyId ?? area?.enemyIds[0])
 
   const combat = useGameStore((s) => s.combat)
   const lastDefeatAt = useGameStore((s) => s.lastDefeatAt)
@@ -100,8 +100,8 @@ export function CombatPage() {
     .map(([itemId]) => items[itemId])
 
   return (
-    <div className="flex flex-1 overflow-hidden">
-      <aside className="w-64 shrink-0 overflow-y-auto border-r border-line bg-rail p-3">
+    <div className="flex min-w-0 flex-1 flex-col overflow-y-auto md:flex-row md:overflow-hidden">
+      <aside className="w-full shrink-0 md:w-64 md:overflow-y-auto border-r border-line bg-rail p-3">
         <h2 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">
           Combat Areas
         </h2>
@@ -190,7 +190,7 @@ export function CombatPage() {
         <SlayerTaskCard onViewEnemy={setSelectedEnemyId} />
       </aside>
 
-      <main className="flex-1 overflow-y-auto p-4">
+      <main className="min-w-0 shrink-0 p-4 md:flex-1 md:overflow-y-auto">
         {selectedEnemy && (
           <div className="max-w-2xl space-y-4">
             {showDefeatBanner && (

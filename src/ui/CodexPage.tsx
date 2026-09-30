@@ -1,3 +1,5 @@
+import { ArtIcon } from './ArtIcon'
+import { ItemLink } from './ItemLink'
 import { useMemo, useState } from 'react'
 import { combatAreas, dungeons, enemies, getItem, items } from '../data'
 import type { Enemy, Item, ItemCategory } from '../data/types'
@@ -92,8 +94,8 @@ function EnemyCard({ enemy }: { enemy: Enemy }) {
 function ItemCard({ item }: { item: Item }) {
   return (
     <div className="flex flex-col gap-1 rounded-lg border border-line bg-panel p-2 text-center">
-      <span className="text-2xl">{item.icon}</span>
-      <span className="truncate text-xs text-neutral-200">{item.name}</span>
+      <ArtIcon name={item.id} className="h-9 w-9" />
+      <span className="truncate text-xs text-neutral-200"><ItemLink itemId={item.id}>{item.name}</ItemLink></span>
       <span className="text-[11px] text-neutral-500">{item.value ? `${item.value}g` : 'No value'}</span>
       {item.equipment && (
         <div className="mt-1 space-y-0.5 border-t border-line pt-1 text-[10px] text-neutral-400">
@@ -204,7 +206,7 @@ export function CodexPage() {
         (filteredEnemies.length === 0 ? (
           <p className="text-sm text-neutral-500">No enemies match "{search}".</p>
         ) : (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-3">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,260px),1fr))] gap-3">
             {filteredEnemies.map((enemy) => (
               <EnemyCard key={enemy.id} enemy={enemy} />
             ))}
@@ -215,7 +217,7 @@ export function CodexPage() {
         (filteredItems.length === 0 ? (
           <p className="text-sm text-neutral-500">No items match "{search}".</p>
         ) : (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-2">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,110px),1fr))] gap-2">
             {filteredItems.map((item) => (
               <ItemCard key={item.id} item={item} />
             ))}

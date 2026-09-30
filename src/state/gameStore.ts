@@ -64,6 +64,8 @@ export interface OfflineSummary {
 type Equipment = Partial<Record<EquipmentSlot, string>>
 
 interface GameState {
+  pinnedQuestId: string | null
+  pinQuest: (id: string | null) => void
   gold: number
   skillXp: Record<string, number>
   inventory: Record<string, number>
@@ -262,6 +264,8 @@ function padArray<T>(arr: T[] | undefined, length: number, factory: () => T): T[
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
+  pinnedQuestId: null,
+  pinQuest: (id) => { if (id === null || Object.hasOwn(questsById, id)) set({ pinnedQuestId: id }) },
   gold: 0,
   skillXp: {},
   inventory: {},
@@ -439,10 +443,10 @@ export const useGameStore = create<GameState>((set, get) => ({
   sellItem: (itemId, qty) =>
     set((state) => {
       const item = items[itemId]
-      if (!item || qty <= 0 || !isSellable(item)) return state
+      if (!item || !Number.isSafeInteger(qty) || qty <= 0 || !isSellable(item)) return state
       const owned = state.inventory[itemId] ?? 0
       const sellQty = Math.min(qty, owned)
-      if (sellQty <= 0) return state
+      if (sellQty <= 0 || !Number.isSafeInteger(state.gold + getSellPrice(item) * sellQty)) return state
 
       const inventory = { ...state.inventory }
       inventory[itemId] = owned - sellQty
@@ -454,9 +458,9 @@ export const useGameStore = create<GameState>((set, get) => ({
   buyItem: (itemId, qty) =>
     set((state) => {
       const item = items[itemId]
-      if (!item || qty <= 0 || !shopBuyableItemIds.includes(itemId)) return state
+      if (!item || !Number.isSafeInteger(qty) || qty <= 0 || !shopBuyableItemIds.includes(itemId)) return state
       const cost = getBuyPrice(item) * qty
-      if (state.gold < cost) return state
+      if (!Number.isSafeInteger(cost) || state.gold < cost || !Number.isSafeInteger((state.inventory[itemId] ?? 0) + qty)) return state
 
       const inventory = { ...state.inventory }
       inventory[itemId] = (inventory[itemId] ?? 0) + qty
@@ -1131,7 +1135,11 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   loadFromSave: (save) => {
     set({
+      pinnedQuestId: save.pinnedQuestId ?? null,
       gold: save.gold,
+      lastPetFound: null,
+      lastDefeatAt: null,
+      lastDungeonClear: null,
       skillXp: save.skillXp,
       inventory: save.inventory,
       equipment: save.equipment ?? {},
@@ -1161,10 +1169,39 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     // Clamp how far we simulate forward so an ancient save doesn't spin the
     // tab for minutes on load.
-    const effectiveNow = Math.min(Date.now(), save.savedAt + MAX_OFFLINE_MS)
+    const now = Date.now()
+    const effectiveNow = Math.min(now, save.savedAt + MAX_OFFLINE_MS)
     get().tick(effectiveNow)
-    get().combatTick(effectiveNow)
+    // Combat's safety limit bounds one chunk, not the whole offline window.
+    // Finish all permitted chunks before building the summary and rebasing clocks.
+    for (let chunk = 0; chunk < 64; chunk++) {
+      const fight = get().combat
+      if (!fight || Math.min(fight.nextPlayerAttackAt, fight.nextEnemyAttackAt) > effectiveNow) break
+      get().combatTick(effectiveNow)
+    }
     get().dungeonTick(effectiveNow)
+
+    // Discard absence beyond the cap without discarding the current cycle's
+    // partial progress. Otherwise the next live tick replays the entire backlog.
+    const skippedMs = now - effectiveNow
+    if (skippedMs > 0) {
+      const current = get()
+      set({
+        activeAction: current.activeAction ? {
+          ...current.activeAction, startedAt: current.activeAction.startedAt + skippedMs,
+        } : null,
+        combat: current.combat ? {
+          ...current.combat,
+          nextPlayerAttackAt: current.combat.nextPlayerAttackAt + skippedMs,
+          nextEnemyAttackAt: current.combat.nextEnemyAttackAt + skippedMs,
+        } : null,
+        dungeonRun: current.dungeonRun ? {
+          ...current.dungeonRun,
+          nextPlayerAttackAt: current.dungeonRun.nextPlayerAttackAt + skippedMs,
+          nextEnemyAttackAt: current.dungeonRun.nextEnemyAttackAt + skippedMs,
+        } : null,
+      })
+    }
 
     const afterState = get()
     const xpGained: Record<string, number> = {}
@@ -1200,6 +1237,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   toSaveShape: () => {
     const state = get()
     return {
+      pinnedQuestId: state.pinnedQuestId,
       gold: state.gold,
       skillXp: state.skillXp,
       inventory: state.inventory,

@@ -186,7 +186,7 @@ export function RanchingPage() {
         production keeps accumulating (up to a cap) whether you're around or not. Animals are
         bought at the Shop.
       </p>
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3">
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,180px),1fr))] gap-3">
         {ranchPens.map((_, i) => (
           <PenCard key={i} penIndex={i} />
         ))}

@@ -1,3 +1,4 @@
+import { ArtIcon } from './ArtIcon'
 import { skills } from '../data'
 import type { SkillId } from '../data/types'
 import { xpProgress } from '../engine/xp'
@@ -20,9 +21,14 @@ export type View =
 interface Props {
   view: View
   selectedSkill: SkillId
+  onToggleMenu: () => void
+  menuOpen: boolean
 }
 
-const VIEW_META: Record<Exclude<View, 'skills'>, { icon: string; title: string; subtitle: string }> = {
+const VIEW_META: Record<
+  Exclude<View, 'skills'>,
+  { icon: string; title: string; subtitle: string }
+> = {
   combat: {
     icon: '⚔️',
     title: 'Combat',
@@ -49,7 +55,7 @@ const VIEW_META: Record<Exclude<View, 'skills'>, { icon: string; title: string; 
   achievements: {
     icon: '🏆',
     title: 'Achievements',
-    subtitle: 'Secondary objectives across everything you\'ve already built',
+    subtitle: "Secondary objectives across everything you've already built",
   },
   pets: {
     icon: '🐾',
@@ -68,7 +74,7 @@ const VIEW_META: Record<Exclude<View, 'skills'>, { icon: string; title: string; 
   },
 }
 
-export function Header({ view, selectedSkill }: Props) {
+export function Header({ view, selectedSkill, onToggleMenu, menuOpen }: Props) {
   const gold = useGameStore((s) => s.gold)
   const xp = useGameStore((s) => s.skillXp[selectedSkill] ?? 0)
   const skill = skills[selectedSkill]
@@ -76,8 +82,18 @@ export function Header({ view, selectedSkill }: Props) {
 
   return (
     <header className="flex h-14 shrink-0 items-center gap-4 border-b border-line bg-rail px-4">
+      <button
+        type="button"
+        aria-label="Toggle navigation"
+        aria-expanded={menuOpen}
+        aria-controls="game-navigation"
+        onClick={onToggleMenu}
+        className="rounded-lg border border-line px-3 py-2 text-sm text-gold lg:hidden"
+      >
+        Menu
+      </button>
       <span className="hidden shrink-0 items-center gap-2 text-sm font-semibold tracking-wide text-neutral-300 sm:flex">
-        <span className="text-lg">🏰</span>
+        <ArtIcon name="castle" />
         Medieval Idle
       </span>
 
@@ -86,7 +102,7 @@ export function Header({ view, selectedSkill }: Props) {
       {view === 'skills' ? (
         <div className="flex flex-1 items-center gap-3 overflow-hidden">
           <span className="flex shrink-0 items-center gap-2">
-            <span className="text-xl leading-none">{skill?.icon}</span>
+            <ArtIcon name={selectedSkill} />
             <span className="font-semibold text-neutral-100">{skill?.name}</span>
           </span>
           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 border-gold bg-panel text-xs font-bold text-gold">
@@ -98,6 +114,7 @@ export function Header({ view, selectedSkill }: Props) {
               style={{ width: `${progress.percent}%` }}
             />
           </div>
+
           <span className="hidden shrink-0 text-xs tabular-nums text-neutral-500 sm:inline">
             {Math.floor(progress.xpIntoLevel).toLocaleString()} /{' '}
             {Math.floor(progress.xpForNextLevel).toLocaleString()} XP
@@ -105,7 +122,7 @@ export function Header({ view, selectedSkill }: Props) {
         </div>
       ) : (
         <div className="flex flex-1 items-center gap-2 overflow-hidden">
-          <span className="text-xl leading-none">{VIEW_META[view].icon}</span>
+          <ArtIcon name={view} />
           <span className="shrink-0 font-semibold text-neutral-100">{VIEW_META[view].title}</span>
           <span className="hidden truncate text-sm text-neutral-500 sm:inline">
             — {VIEW_META[view].subtitle}

@@ -22,8 +22,8 @@ function HpBar({ current, max, colorClass }: { current: number; max: number; col
   )
 }
 
-export function DungeonsPage() {
-  const [selectedDungeonId, setSelectedDungeonId] = useState(dungeons[0]?.id)
+export function DungeonsPage({ initialDungeonId }: { initialDungeonId?: string }) {
+  const [selectedDungeonId, setSelectedDungeonId] = useState(initialDungeonId ?? dungeons[0]?.id)
 
   const dungeonRun = useGameStore((s) => s.dungeonRun)
   const lastDefeatAt = useGameStore((s) => s.lastDefeatAt)
@@ -58,8 +58,8 @@ export function DungeonsPage() {
     : undefined
 
   return (
-    <div className="flex flex-1 overflow-hidden">
-      <aside className="w-64 shrink-0 overflow-y-auto border-r border-line bg-rail p-3">
+    <div className="flex min-w-0 flex-1 flex-col overflow-y-auto md:flex-row md:overflow-hidden">
+      <aside className="w-full shrink-0 md:w-64 md:overflow-y-auto border-r border-line bg-rail p-3">
         <h2 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">
           Dungeons
         </h2>
@@ -95,7 +95,7 @@ export function DungeonsPage() {
         </div>
       </aside>
 
-      <main className="flex-1 overflow-y-auto p-4">
+      <main className="min-w-0 shrink-0 p-4 md:flex-1 md:overflow-y-auto">
         {selectedDungeon && (
           <div className="max-w-2xl space-y-4">
             {showDefeatBanner && (

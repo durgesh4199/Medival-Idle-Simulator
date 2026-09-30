@@ -1,6 +1,14 @@
+import { parseSaveData } from '../engine/saveValidation'
 import { useRef, useState } from 'react'
-import { saveNow, stopGameLoop } from '../engine/gameLoop'
-import { SAVE_VERSION, clearSave, isValidSaveData, type SaveData } from '../engine/saveSystem'
+import { initGame, saveNow, stopGameLoop } from '../engine/gameLoop'
+import {
+  SAVE_VERSION,
+  allowSaveReplacement,
+  clearSave,
+  originalSaveText,
+  useSaveStatus,
+  type SaveData,
+} from '../engine/saveSystem'
 import { useGameStore } from '../state/gameStore'
 
 function downloadJson(filename: string, content: string) {
@@ -22,6 +30,9 @@ function downloadJson(filename: string, content: string) {
  * operations on the save file itself, not events inside the simulation.
  */
 export function SettingsPage() {
+  const saveError = useSaveStatus((s) => s.error)
+  const recoveryRequired = useSaveStatus((s) => s.recoveryRequired)
+  const recoveredBackup = useSaveStatus((s) => s.recoveredBackup)
   const [exportText, setExportText] = useState<string | null>(null)
   const [savedFlash, setSavedFlash] = useState(false)
   const [importText, setImportText] = useState('')
@@ -40,8 +51,7 @@ export function SettingsPage() {
   }
 
   function handleSaveNow() {
-    saveNow()
-    setSavedFlash(true)
+    setSavedFlash(saveNow())
     setTimeout(() => setSavedFlash(false), 2000)
   }
 
@@ -56,8 +66,13 @@ export function SettingsPage() {
   function handleFilePicked(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
+    if (file.size > 2_000_000) {
+      setImportError('Save files must be smaller than 2 MB.')
+      return
+    }
     const reader = new FileReader()
     reader.onload = () => setImportText(String(reader.result ?? ''))
+    reader.onerror = () => setImportError('Could not read that file. Try another backup.')
     reader.readAsText(file)
     // Allow re-picking the same file later without needing to change it first.
     e.target.value = ''
@@ -65,6 +80,10 @@ export function SettingsPage() {
 
   function handleImport() {
     setImportError(null)
+    if (importText.length > 2_000_000) {
+      setImportError('Save files must be smaller than 2 MB.')
+      return
+    }
     let parsed: unknown
     try {
       parsed = JSON.parse(importText)
@@ -72,8 +91,9 @@ export function SettingsPage() {
       setImportError('That’s not valid JSON — check the file or paste and try again.')
       return
     }
-    if (!isValidSaveData(parsed)) {
-      setImportError('That doesn’t look like a Medieval Idle save file.')
+    const result = parseSaveData(parsed)
+    if (!result.ok) {
+      setImportError(result.error)
       return
     }
     // Applied straight to the live store — the same loadFromSave()
@@ -83,10 +103,12 @@ export function SettingsPage() {
     // against the beforeunload autosave re-persisting the old (pre-import)
     // live state over what was just imported. saveNow() immediately
     // persists the result so it isn't only sitting in memory.
-    useGameStore.getState().loadFromSave(parsed)
+    if (!allowSaveReplacement()) return
+    useGameStore.getState().loadFromSave(result.data)
     useGameStore.getState().ensureSlayerTask()
-    saveNow()
-    setImportedFlash(true)
+    const saved = saveNow()
+    setImportedFlash(saved)
+    if (!saved) setImportError('Loaded in memory, but could not save. Export a backup now.')
     setTimeout(() => setImportedFlash(false), 2000)
   }
 
@@ -104,18 +126,55 @@ export function SettingsPage() {
     // current (pre-reset) live state right back over the clearSave() below,
     // silently undoing the reset.
     stopGameLoop()
-    clearSave()
-    window.location.reload()
+    if (clearSave()) window.location.reload()
+    else initGame()
   }
 
   return (
     <div className="flex-1 overflow-y-auto p-4">
       <div className="mx-auto max-w-2xl space-y-4">
+        {saveError && (
+          <section
+            role="alert"
+            className="rounded-xl border border-amber-500/50 bg-panel p-4 text-sm text-amber-200"
+          >
+            <p>{saveError}</p>
+            {recoveryRequired && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="rounded bg-panel-soft px-3 py-2"
+                  onClick={() => {
+                    const raw = originalSaveText()
+                    if (raw) downloadJson('medieval-original-save.json', raw)
+                  }}
+                >
+                  Download original save
+                </button>
+                {recoveredBackup && (
+                  <button
+                    type="button"
+                    className="rounded bg-brand px-3 py-2 text-neutral-950"
+                    onClick={() => {
+                      if (allowSaveReplacement()) setSavedFlash(saveNow())
+                    }}
+                  >
+                    Keep recovered progress
+                  </button>
+                )}
+              </div>
+            )}
+          </section>
+        )}
+        <p className="text-sm text-neutral-400">
+          Training and combat earn up to 24 hours of offline progress. Crops finish once; ranch
+          animals stockpile up to their own limit.
+        </p>
         <section className="rounded-xl border border-line bg-panel p-4">
           <h2 className="mb-1 text-sm font-semibold text-neutral-100">Save</h2>
           <p className="mb-3 text-xs text-neutral-500">
-            Progress autosaves every 10 seconds and whenever you close the tab. This just
-            forces it early.
+            Progress autosaves every 10 seconds and whenever you close the tab. This just forces it
+            early.
           </p>
           <button
             type="button"
@@ -129,8 +188,8 @@ export function SettingsPage() {
         <section className="rounded-xl border border-line bg-panel p-4">
           <h2 className="mb-1 text-sm font-semibold text-neutral-100">Export Save</h2>
           <p className="mb-3 text-xs text-neutral-500">
-            Back up your progress, or move it to another browser/device — this is the exact
-            state the game would otherwise only keep in this browser's local storage.
+            Back up your progress, or move it to another browser/device — this is the exact state
+            the game would otherwise only keep in this browser's local storage.
           </p>
           <div className="mb-2 flex flex-wrap gap-2">
             <button
@@ -167,8 +226,8 @@ export function SettingsPage() {
         <section className="rounded-xl border border-line bg-panel p-4">
           <h2 className="mb-1 text-sm font-semibold text-neutral-100">Import Save</h2>
           <p className="mb-3 text-xs text-neutral-500">
-            Loads a previously exported save, replacing everything currently in this browser.
-            This can't be undone unless you've exported the current save first.
+            Loads a previously exported save, replacing everything currently in this browser. This
+            can't be undone unless you've exported the current save first.
           </p>
           <div className="mb-2 flex flex-wrap gap-2">
             <button
@@ -203,15 +262,15 @@ export function SettingsPage() {
             disabled={importText.trim().length === 0}
             className="mt-2 rounded-lg bg-amber-600/80 px-3 py-1.5 text-xs font-semibold text-neutral-950 hover:bg-amber-500 disabled:cursor-not-allowed disabled:bg-panel-soft disabled:text-neutral-500"
           >
-            {importedFlash ? 'Loading…' : 'Load Save'}
+            {importedFlash ? 'Loaded ✓' : 'Load Save'}
           </button>
         </section>
 
         <section className="rounded-xl border border-red-500/30 bg-panel p-4">
           <h2 className="mb-1 text-sm font-semibold text-red-300">Reset Game</h2>
           <p className="mb-3 text-xs text-neutral-500">
-            Permanently deletes everything in this browser and starts over from level 1.
-            Export a backup first if you might want this progress back.
+            Permanently deletes everything in this browser and starts over from level 1. Export a
+            backup first if you might want this progress back.
           </p>
           <button
             type="button"

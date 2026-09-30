@@ -1,3 +1,5 @@
+import { ItemLink } from './ItemLink'
+import { LocationArt } from './ArtIcon'
 import { useState } from 'react'
 import { actionsById, actionsForLocation, getItem, locationsForSkill } from '../data'
 import type { Location, SkillId } from '../data/types'
@@ -8,6 +10,7 @@ import { ProgressBar } from './ProgressBar'
 
 interface Props {
   skillId: SkillId
+  initialActionId?: string
 }
 
 /** Small preview row of the distinct items obtainable at a location, shown
@@ -26,10 +29,10 @@ function previewIcons(loc: Location): string[] {
   return icons
 }
 
-export function SkillPanel({ skillId }: Props) {
+export function SkillPanel({ skillId, initialActionId }: Props) {
   const locations = locationsForSkill(skillId)
-  const [locationId, setLocationId] = useState(locations[0]?.id)
-  const [actionId, setActionId] = useState<string | undefined>()
+  const [locationId, setLocationId] = useState((initialActionId && actionsById[initialActionId]?.skillId === skillId ? actionsById[initialActionId].locationId : undefined) ?? locations[0]?.id)
+  const [actionId, setActionId] = useState<string | undefined>(initialActionId)
 
   const activeAction = useGameStore((s) => s.activeAction)
   const inventory = useGameStore((s) => s.inventory)
@@ -51,8 +54,8 @@ export function SkillPanel({ skillId }: Props) {
   const poolFull = isMasteryPoolFull(poolXp)
 
   return (
-    <div className="flex flex-1 overflow-hidden">
-      <aside className="w-72 shrink-0 overflow-y-auto border-r border-line bg-rail p-3">
+    <div className="flex min-w-0 flex-1 flex-col overflow-y-auto md:flex-row md:overflow-hidden">
+      <aside className="hidden w-full shrink-0 md:block md:w-72 md:overflow-y-auto border-r border-line bg-rail p-3">
         <h2 className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">
           Select Location
         </h2>
@@ -105,7 +108,13 @@ export function SkillPanel({ skillId }: Props) {
         </div>
       </aside>
 
-      <main className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
+      <main className="flex min-w-0 flex-1 flex-col gap-4 p-4 md:overflow-y-auto">
+        <label className="flex flex-col gap-1 text-xs text-neutral-400 md:hidden">Location
+          <select aria-label="Location" value={locationId} onChange={e => {setLocationId(e.target.value); setActionId(undefined)}} className="rounded-lg border border-line bg-panel px-3 py-2 text-sm text-neutral-200">
+            {locations.map(loc => <option key={loc.id} value={loc.id} disabled={level < loc.requiredLevel}>{loc.name}{level < loc.requiredLevel ? ` · Level ${loc.requiredLevel}` : ''}</option>)}
+          </select>
+        </label>
+        <LocationArt name={locations.find(l => l.id === locationId)?.name ?? skillId} skillId={skillId} />
         <div>
           <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">
             Select Spot
@@ -154,7 +163,7 @@ export function SkillPanel({ skillId }: Props) {
                     return (
                       <div key={input.itemId} className="flex items-center justify-between text-sm">
                         <span>
-                          {item.icon} {item.name} x{input.qty}
+                          <ItemLink itemId={item.id}>{item.icon} {item.name}</ItemLink> x{input.qty}
                         </span>
                         <span className={have < input.qty ? 'text-red-400' : 'text-neutral-400'}>
                           You have {have}
@@ -176,7 +185,7 @@ export function SkillPanel({ skillId }: Props) {
                     return (
                       <div key={output.itemId} className="flex items-center justify-between text-sm">
                         <span>
-                          {item.icon} {item.name}{' '}
+                          <ItemLink itemId={item.id}>{item.icon} {item.name}</ItemLink>{' '}
                           <span className="text-neutral-500">{(output.chance * 100).toFixed(2)}%</span>
                         </span>
                         <span className="tabular-nums text-neutral-400">
@@ -244,7 +253,7 @@ export function SkillPanel({ skillId }: Props) {
                     return (
                       <div key={special.itemId} className="flex items-center justify-between text-sm">
                         <span>
-                          {item.icon} {item.name}{' '}
+                          <ItemLink itemId={item.id}>{item.icon} {item.name}</ItemLink>{' '}
                           <span className="text-neutral-500">{(special.chance * 100).toFixed(2)}%</span>
                         </span>
                         <span className="tabular-nums text-neutral-400">{inventory[special.itemId] ?? 0}</span>
@@ -267,6 +276,7 @@ export function SkillPanel({ skillId }: Props) {
                 {isRunningHere ? `Stop ${skillId}` : `Start ${skillId}`}
               </button>
 
+              {!isRunningHere && !canStartAction(selectedAction.id) && <p role="status" className="text-xs text-amber-200">{level < selectedAction.requiredLevel ? `Requires ${skillId} level ${selectedAction.requiredLevel}.` : 'Missing ingredients. Open an ingredient above to find its sources.'}</p>}
               {isRunningHere && <ProgressBar />}
             </div>
           </div>

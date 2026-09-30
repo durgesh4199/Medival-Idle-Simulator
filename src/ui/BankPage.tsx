@@ -1,3 +1,5 @@
+import { ArtIcon } from './ArtIcon'
+import { ItemLink } from './ItemLink'
 import { useMemo, useState } from 'react'
 import { items } from '../data'
 import type { EquipmentSlot, Item, ItemCategory } from '../data/types'
@@ -55,8 +57,8 @@ function InventoryCard({ item, qty }: { item: Item; qty: number }) {
       data-item-id={item.id}
       className="flex flex-col items-center gap-1 rounded-lg border border-line bg-panel p-2 text-center"
     >
-      <span className="text-2xl">{item.icon}</span>
-      <span className="w-full truncate text-xs text-neutral-200">{item.name}</span>
+      <ArtIcon name={item.id} className="h-9 w-9" />
+      <span className="w-full truncate text-xs text-neutral-200"><ItemLink itemId={item.id}>{item.name}</ItemLink></span>
       <span className="text-[11px] text-neutral-500">
         x{qty}
         {item.value ? ` · ${item.value}g` : ''}
@@ -93,8 +95,8 @@ export function BankPage() {
   }, [inventory, filter, search])
 
   return (
-    <div className="flex flex-1 gap-4 overflow-y-auto p-4">
-      <aside className="w-72 shrink-0">
+    <div className="flex min-w-0 flex-1 flex-col gap-4 overflow-y-auto p-4 md:flex-row">
+      <aside className="w-full shrink-0 md:w-72">
         <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">
           Equipment
         </h2>
@@ -123,7 +125,7 @@ export function BankPage() {
         </div>
       </aside>
 
-      <main className="flex-1">
+      <main className="min-w-0 flex-1">
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <input
             type="text"
@@ -153,7 +155,7 @@ export function BankPage() {
         {ownedItems.length === 0 ? (
           <p className="text-sm text-neutral-500">Nothing here yet — go train a skill.</p>
         ) : (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-2">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,110px),1fr))] gap-2">
             {ownedItems.map(({ item, qty }) => (
               <InventoryCard key={item.id} item={item} qty={qty} />
             ))}

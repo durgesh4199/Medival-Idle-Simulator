@@ -1,3 +1,5 @@
+import { create } from 'zustand'
+import { parseSaveData } from './saveValidation'
 /**
  * Persistence. A save is just a JSON snapshot of the store's serializable
  * fields — no engine state, no functions — so it stores and diffs cleanly
@@ -45,6 +47,7 @@ export interface DungeonRunSave {
 }
 
 export interface SaveData {
+  pinnedQuestId?: string | null
   version: number
   gold: number
   skillXp: Record<string, number>
@@ -94,12 +97,52 @@ export interface SaveData {
   savedAt: number
 }
 
-export function saveGame(data: Omit<SaveData, 'version' | 'savedAt'>): void {
+export const useSaveStatus = create<{
+  error: string | null
+  recoveryRequired: boolean
+  recoveredBackup: boolean
+  lastSavedAt: number | null
+}>(() => ({ error: null, recoveryRequired: false, recoveredBackup: false, lastSavedAt: null }))
+
+const BACKUP_KEY = `${SAVE_KEY}-backup`
+const RECOVERY_KEY = `${SAVE_KEY}-recovery`
+
+export function saveGame(data: Omit<SaveData, 'version' | 'savedAt'>): boolean {
+  if (useSaveStatus.getState().recoveryRequired) return false
   const payload: SaveData = { ...data, version: SAVE_VERSION, savedAt: Date.now() }
+  const validated = parseSaveData(payload)
+  if (!validated.ok) {
+    useSaveStatus.setState({ error: `Could not save: ${validated.error}` })
+    return false
+  }
   try {
+    const previous = localStorage.getItem(SAVE_KEY)
+    if (previous) {
+      let validPrevious = false
+      try {
+        validPrevious = parseSaveData(JSON.parse(previous)).ok
+      } catch {
+        /* invalid JSON */
+      }
+      if (validPrevious) localStorage.setItem(BACKUP_KEY, previous)
+      else if (localStorage.getItem(RECOVERY_KEY) !== previous) {
+        useSaveStatus.setState({
+          recoveryRequired: true,
+          error:
+            'The existing save is damaged. Autosave is paused. Open Settings to preserve and replace it.',
+        })
+        return false
+      }
+    }
     localStorage.setItem(SAVE_KEY, JSON.stringify(payload))
-  } catch (err) {
-    console.warn('[saveSystem] failed to save game', err)
+    useSaveStatus.setState({ error: null, lastSavedAt: payload.savedAt })
+    return true
+  } catch {
+    useSaveStatus.setState({
+      error:
+        'Progress could not be saved. Storage may be full or unavailable. Export a backup in Settings.',
+    })
+    return false
   }
 }
 
@@ -107,35 +150,83 @@ export function loadGame(): SaveData | null {
   try {
     const raw = localStorage.getItem(SAVE_KEY)
     if (!raw) return null
-    const data = JSON.parse(raw) as SaveData
-    if (data.version !== SAVE_VERSION) {
-      // Future migrations go here, keyed off the stored version number.
-      return data
+    const result = parseSaveData(JSON.parse(raw))
+    if (result.ok) return result.data
+    useSaveStatus.setState({ error: result.error })
+  } catch {
+    useSaveStatus.setState({ error: 'The saved game could not be read.' })
+  }
+  // Preserve the damaged primary save. Never let autosave silently overwrite it.
+  useSaveStatus.setState({ recoveryRequired: true })
+  try {
+    const backup = localStorage.getItem(BACKUP_KEY)
+    const result = backup ? parseSaveData(JSON.parse(backup)) : null
+    if (result?.ok) {
+      useSaveStatus.setState({
+        recoveredBackup: true,
+        error:
+          'Recovered the previous backup. Open Settings to keep it. The original save is preserved until you choose.',
+      })
+      return result.data
     }
-    return data
-  } catch (err) {
-    console.warn('[saveSystem] failed to load save', err)
+  } catch {
+    /* Keep the primary untouched even if the backup is also damaged. */
+  }
+  useSaveStatus.setState({
+    error:
+      'Your save could not be loaded. Autosave is paused to protect it. Open Settings to export the original or import a valid backup.',
+  })
+  return null
+}
+
+/** Explicit recovery/import action; archive the original before allowing writes. */
+export function allowSaveReplacement(): boolean {
+  try {
+    if (useSaveStatus.getState().recoveryRequired) {
+      const raw = localStorage.getItem(SAVE_KEY)
+      if (raw !== null) localStorage.setItem(RECOVERY_KEY, raw)
+    }
+    useSaveStatus.setState({ recoveryRequired: false, recoveredBackup: false, error: null })
+    return true
+  } catch {
+    useSaveStatus.setState({
+      error:
+        'Could not preserve the original save. Download it before freeing browser storage and retrying.',
+    })
+    return false
+  }
+}
+
+export function originalSaveText(): string | null {
+  try {
+    return useSaveStatus.getState().recoveryRequired
+      ? localStorage.getItem(SAVE_KEY)
+      : (localStorage.getItem(RECOVERY_KEY) ?? localStorage.getItem(SAVE_KEY))
+  } catch {
     return null
   }
 }
 
-/** Loose shape check for a save imported from outside the game (pasted or
- *  uploaded on `SettingsPage`) — just enough to reject obvious garbage
- *  before it's written to `localStorage` and reloaded, not a full schema
- *  validation. `loadGame` already tolerates a version mismatch, so this
- *  doesn't check `version` either. */
 export function isValidSaveData(data: unknown): data is SaveData {
-  if (typeof data !== 'object' || data === null) return false
-  const save = data as Partial<SaveData>
-  return (
-    typeof save.gold === 'number' &&
-    typeof save.skillXp === 'object' &&
-    save.skillXp !== null &&
-    typeof save.inventory === 'object' &&
-    save.inventory !== null
-  )
+  return parseSaveData(data).ok
 }
 
-export function clearSave(): void {
-  localStorage.removeItem(SAVE_KEY)
+export function clearSave(): boolean {
+  try {
+    localStorage.removeItem(SAVE_KEY)
+    localStorage.removeItem(BACKUP_KEY)
+    localStorage.removeItem(RECOVERY_KEY)
+    useSaveStatus.setState({
+      error: null,
+      recoveryRequired: false,
+      recoveredBackup: false,
+      lastSavedAt: null,
+    })
+    return true
+  } catch {
+    useSaveStatus.setState({
+      error: 'Could not reset the game because browser storage is unavailable.',
+    })
+    return false
+  }
 }

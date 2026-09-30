@@ -19,13 +19,13 @@ let tickHandle: number | undefined
 let autosaveHandle: number | undefined
 
 function persist() {
-  saveGame(useGameStore.getState().toSaveShape())
+  return saveGame(useGameStore.getState().toSaveShape())
 }
 
 /** Forces an immediate save outside the normal 10s autosave interval —
  *  `SettingsPage`'s "Save Now" button and the basis for its Export. */
-export function saveNow(): void {
-  persist()
+export function saveNow(): boolean {
+  return persist()
 }
 
 export function initGame(): void {
@@ -55,6 +55,7 @@ export function initGame(): void {
 }
 
 function onVisibilityChange() {
+  if (document.visibilityState === 'hidden') persist()
   if (document.visibilityState === 'visible') {
     // Catch up instantly on refocus instead of waiting for the next tick —
     // background tabs get throttled by the browser to well under 5/sec.
